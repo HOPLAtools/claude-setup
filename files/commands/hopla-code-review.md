@@ -9,6 +9,8 @@ Perform a technical code review focused on finding real bugs and issues.
 
 Read `CLAUDE.md` or `AGENTS.md` to understand project standards and patterns.
 
+If `.agents/guides/` exists, read any guides relevant to the files being reviewed (e.g. `@.agents/guides/api-guide.md` when reviewing API changes). These guides define the expected patterns for specific task types.
+
 ## Step 2: Identify Changed Files
 
 ```bash

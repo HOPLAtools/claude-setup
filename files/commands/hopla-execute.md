@@ -11,6 +11,7 @@ Read in this order:
 1. **$1** — The plan file (read it entirely before writing a single line of code)
 2. `CLAUDE.md` or `AGENTS.md` at project root — rules and patterns to follow
 3. All files listed in the plan's **Context References** section
+4. Any `.agents/guides/` files referenced in the plan or relevant to the tasks (e.g. `@.agents/guides/api-guide.md`)
 
 Do not start implementing until you have read everything above.
 
@@ -98,6 +99,6 @@ Provide a summary of what was done:
 ## Step 6: Suggest Next Steps
 
 After the summary, suggest:
-1. Run `/execution-report` to document this implementation for system review
-2. Run `/code-review` for a technical quality check
-3. Run `/commit` once everything is approved
+1. Run `/hopla-execution-report` to document this implementation for system review
+2. Run `/hopla-code-review` for a technical quality check
+3. Run `/hopla-commit` once everything is approved

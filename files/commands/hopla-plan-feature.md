@@ -22,6 +22,7 @@ Read the following to understand the project:
 1. `CLAUDE.md` or `AGENTS.md` at project root — architecture rules, patterns, constraints
 2. `README.md` — project overview and setup
 3. `package.json` or `pyproject.toml` — stack, dependencies, scripts
+4. `.agents/guides/` — if this directory exists, read any guides relevant to the feature being planned (e.g. `@.agents/guides/api-guide.md` when planning an API endpoint)
 
 Then run:
 
@@ -133,4 +134,4 @@ Confirm to the user:
 - Plan saved to: `.agents/plans/[feature-name].md`
 - Summary of tasks included
 - Any open questions or decisions that require human confirmation before execution
-- Suggest running `/commit` to save the plan to the repository
+- Suggest running `/hopla-commit` to save the plan to the repository
