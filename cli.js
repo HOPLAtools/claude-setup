@@ -100,6 +100,7 @@ const LEGACY_FILES = [
     "plan-feature.md",
     "prime.md",
     "system-review.md",
+    "hopla-lang.md",
 ];
 
 function removeLegacyFiles() {
