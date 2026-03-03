@@ -1,0 +1,27 @@
+{
+  "name": "@hopla/claude-setup",
+  "version": "1.0.0",
+  "description": "Hopla team agentic coding system for Claude Code",
+  "type": "module",
+  "bin": {
+    "claude-setup": "./install.js"
+  },
+  "files": [
+    "install.js",
+    "files/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "agentic",
+    "hopla"
+  ],
+  "author": "Hopla Tools",
+  "license": "MIT"
+}
