@@ -1,8 +1,10 @@
 ---
-description: Create a Product Requirements Document (PRD) for a project through guided questions
+description: Create or update the PRD for this project through guided questions
 ---
 
-Create a PRD for this project following the Layer 1 Planning approach: an exploratory conversation that defines scope, reduces assumptions, and generates both a `PRD.md` and supporting on-demand context documents.
+Create or update a `PRD.md` for this project following the Layer 1 Planning approach: an exploratory conversation that defines scope, reduces assumptions, and generates both a `PRD.md` and supporting on-demand context documents.
+
+**If a `PRD.md` already exists**, this command will read it first and only ask about what's missing, outdated, or changing — it will not start from scratch.
 
 > Layer 1 Planning = Global Rules + On-Demand Context + PRD
 
@@ -11,7 +13,9 @@ Create a PRD for this project following the Layer 1 Planning approach: an explor
 Before asking anything, read what already exists:
 - `CLAUDE.md` or `AGENTS.md` — extract product name, tech stack, business context
 - `README.md` — extract any existing product description
-- Any existing `PRD.md` — understand what's already defined
+- Any existing `PRD.md` — understand what's already defined and what needs updating
+
+If a `PRD.md` exists, tell the user: "I found an existing PRD. I'll update it rather than start from scratch — only asking about what's missing or has changed."
 
 Use this to avoid asking questions that are already answered.
 
@@ -196,7 +200,7 @@ Show the draft PRD to the user and ask:
 > "Does this accurately reflect the product? Any corrections before I save it?"
 
 Once confirmed:
-1. Save `PRD.md` to the project root
+1. Save `PRD.md` to the project root (overwrite if it existed)
 2. Save any on-demand context documents created in Step 3
-3. List all files created
+3. List all files created or updated
 4. Suggest running `/hopla-commit` to save everything to the repository
