@@ -47,6 +47,36 @@ CLAUDE.md (project root)   ← Project-specific rules (created with /hopla-init-
 
 ---
 
+## The Agentic Coding Framework
+
+This system is built on two core concepts from the Agentic Coding Course:
+
+### AI Layer — What guides the agent
+
+| Pillar | What it is | Where it lives |
+|--------|-----------|----------------|
+| **Global Rules** | Always-loaded context: language, git flow, tech defaults, autonomy rules | `~/.claude/CLAUDE.md` |
+| **On-Demand Context** | Task-specific guides loaded when needed (e.g. "how to add an API endpoint") | `.agents/guides/*.md` |
+| **Commands** | Reusable processes that tell the agent *how* to work | `~/.claude/commands/hopla-*.md` |
+
+The key insight: **commands inject on-demand context deterministically** — when you run `/hopla-plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
+
+### PIV Loop — How you work
+
+```
+Plan → Implement → Validate → (repeat)
+```
+
+- **Plan** (`/hopla-plan-feature`) — Research the codebase, design the approach, create a structured plan
+- **Implement** (`/hopla-execute`) — Delegate coding to the AI, trust but verify at each task
+- **Validate** — AI runs lint → types → tests → integration; human reviews the result
+
+### System Evolution
+
+After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to find process improvements. Don't just fix bugs — fix the system that allowed them.
+
+---
+
 ## What Gets Installed
 
 **`~/.claude/CLAUDE.md`** — Global rules applied to every Claude Code session.
