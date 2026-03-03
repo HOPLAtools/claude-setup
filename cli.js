@@ -173,6 +173,7 @@ const HOPLA_PERMISSIONS = [
     "Bash(cat *)",
     "Bash(head *)",
     "Bash(tail *)",
+    "Bash(echo *)",
 ];
 
 async function setupPermissions() {
