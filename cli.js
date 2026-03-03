@@ -7,6 +7,13 @@ import readline from "readline";
 
 const FORCE = process.argv.includes("--force");
 const UNINSTALL = process.argv.includes("--uninstall");
+const VERSION = process.argv.includes("--version") || process.argv.includes("-v");
+
+if (VERSION) {
+    const pkg = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+    console.log(`@hopla/claude-setup v${pkg.version}`);
+    process.exit(0);
+}
 const CLAUDE_DIR = path.join(os.homedir(), ".claude");
 const COMMANDS_DIR = path.join(CLAUDE_DIR, "commands");
 const FILES_DIR = path.join(import.meta.dirname, "files");
