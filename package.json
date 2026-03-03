@@ -4,10 +4,10 @@
   "description": "Hopla team agentic coding system for Claude Code",
   "type": "module",
   "bin": {
-    "claude-setup": "./install.js"
+    "claude-setup": "cli.js"
   },
   "files": [
-    "install.js",
+    "cli.js",
     "files/"
   ],
   "engines": {
