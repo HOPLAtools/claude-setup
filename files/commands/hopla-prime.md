@@ -31,13 +31,12 @@ git status
 
 ## Step 4: Summary Report
 
-Provide a concise summary with:
+Write a short, conversational message (2-4 sentences) addressed directly to the user. Mention:
+- What the project is and what it does
+- The current branch and what it's for
+- Whether there are uncommitted changes or pending work
+- The command to start the project (if available)
 
-**Project:** [name and purpose in one sentence]
-**Stack:** [languages, frameworks, key libraries]
-**Current branch:** [branch name and what it's for]
-**Key structure:** [main folders and their purpose]
-**Useful commands:** [how to run, test, build]
-**Git status:** [clean / changes pending / uncommitted files]
+End with a sentence like: "Listo para continuar — ¿por dónde empezamos?" or "All caught up — what are we working on today?" depending on the language the user writes in.
 
-Keep it scannable — this is for human review in under 30 seconds.
+Do NOT use headers, labels, or bullet points in this final message. Write it as natural, friendly prose.

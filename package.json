@@ -1,6 +1,6 @@
 {
   "name": "@hopla/claude-setup",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Hopla team agentic coding system for Claude Code",
   "type": "module",
   "bin": {
