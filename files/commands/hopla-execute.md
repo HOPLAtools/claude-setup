@@ -33,32 +33,41 @@ Work through each task in the plan sequentially. For each task:
 2. **Follow the pattern** referenced in the plan — do not invent new patterns
 3. **Implement** only what the task specifies — nothing more
 4. **Validate** the task using the method specified in the plan's validate field
-5. **Do not proceed** to the next task if the current one fails validation
+5. **Report completion** with a brief status: what was done, what was skipped, any decision made
+6. **Do not proceed** to the next task if the current one fails validation
 
-If you encounter something unexpected (a file doesn't exist, a pattern is different than the plan assumed), **stop and report** before continuing — do not improvise silently.
+**Trust but Verify — pause and report if:**
+- A file referenced in the plan doesn't exist
+- The actual pattern in the code differs from what the plan assumed
+- A task is ambiguous or has multiple valid implementations
+- Something unexpected is discovered that could affect subsequent tasks
+
+Do not improvise silently. When in doubt, stop and ask.
 
 ## Step 4: Run Full Validation Pyramid
 
 After all tasks are complete, run the full validation sequence in order.
 **Do not skip levels. Do not proceed if a level fails.**
 
+Use the exact commands from the plan's **Validation Checklist**. If not specified, read `CLAUDE.md` section "Development Commands" to find the correct commands.
+
 ### Level 1 — Lint & Format
-Run the project's lint and format check.
+Run the project's lint and format check (e.g. `npm run lint`, `uv run ruff check .`).
 Fix any issues before continuing.
 
 ### Level 2 — Type Check
-Run the project's type checker.
+Run the project's type checker (e.g. `npm run type-check`, `uv run mypy .`).
 Fix all type errors before continuing.
 
 ### Level 3 — Unit Tests
-Run the project's unit test suite.
+Run the project's unit test suite (e.g. `npm run test`, `uv run pytest`).
 If tests fail:
 - Investigate the root cause
 - Fix the code (not the tests)
 - Re-run until all pass
 
 ### Level 4 — Integration Tests
-Run integration tests or manual verification as specified in the plan.
+Run integration tests or manual verification as specified in the plan (e.g. `npm run test:e2e`, manual curl).
 Verify the feature works end-to-end.
 
 ### Level 5 — Human Review (flag for user)

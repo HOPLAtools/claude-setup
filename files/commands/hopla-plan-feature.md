@@ -123,8 +123,8 @@ Run in this order — do not proceed if a level fails:
 Before finishing, review the plan against these criteria:
 
 - [ ] Every task has a specific file path (no vague "update the component")
-- [ ] Every task references an existing pattern to follow
-- [ ] Validation commands match the actual project scripts
+- [ ] Every task has: Action, File, Pattern, Details, Gotcha, Validate — no field left empty
+- [ ] Validation Checklist has **exact commands** from `CLAUDE.md` or `package.json` (not vague "run lint")
 - [ ] The plan is complete enough that another agent can execute it without this conversation
 - [ ] No ambiguous requirements left unresolved
 

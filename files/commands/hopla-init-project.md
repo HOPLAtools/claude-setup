@@ -125,7 +125,28 @@ Add to `.gitignore` (create if it doesn't exist):
 .agents/system-reviews/
 ```
 
-## Step 5: Confirm and Save
+## Step 5: Create .claude/commands/ (optional but recommended)
+
+Create `.claude/commands/` at the project root for project-specific commands that override or extend the global ones.
+
+Common project-specific commands to create:
+
+**`validate.md`** — runs the full validation sequence for this project:
+```markdown
+---
+description: Run full validation for this project
+---
+Run in order, stop if any level fails:
+1. `[lint command]`
+2. `[type check command]`
+3. `[test command]`
+```
+
+Ask the user: "Do you want me to create a project-specific `/validate` command with the commands from your stack?"
+
+If yes, create `.claude/commands/validate.md` using the dev commands collected in Topic E.
+
+## Step 6: Confirm and Save
 
 Show the draft `CLAUDE.md` to the user and ask:
 > "Does this accurately reflect the project's rules? Any corrections before I save it?"
