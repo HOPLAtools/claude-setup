@@ -154,6 +154,58 @@ async function install() {
         log(`  ${CYAN}/${name}${RESET}`);
     }
     log(`\nRun with ${BOLD}--force${RESET} to overwrite all files without prompting.\n`);
+
+    await setupPermissions();
+}
+
+const HOPLA_PERMISSIONS = [
+    "Bash(git *)",
+    "Bash(ls *)",
+    "Bash(find *)",
+    "Bash(cat *)",
+    "Bash(head *)",
+    "Bash(tail *)",
+];
+
+async function setupPermissions() {
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+
+    // Read existing settings
+    let settings = { permissions: { allow: [] } };
+    if (fs.existsSync(settingsPath)) {
+        try {
+            settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+        } catch {
+            // If parsing fails, keep defaults
+        }
+    }
+    if (!settings.permissions) settings.permissions = {};
+    if (!settings.permissions.allow) settings.permissions.allow = [];
+
+    // Find permissions not yet added
+    const existing = new Set(settings.permissions.allow);
+    const toAdd = HOPLA_PERMISSIONS.filter((p) => !existing.has(p));
+
+    if (toAdd.length === 0) {
+        log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
+        return;
+    }
+
+    log(`${CYAN}Configuring permissions...${RESET}`);
+    log(`  The following will be added to ~/.claude/settings.json:\n`);
+    for (const p of toAdd) {
+        log(`  ${CYAN}+${RESET}  ${p}`);
+    }
+
+    const ok = await confirm(`\n  Add these permissions? (y/N) `);
+    if (!ok) {
+        log(`  ${YELLOW}↷${RESET}  Skipped — you can add them manually to ~/.claude/settings.json\n`);
+        return;
+    }
+
+    settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+    log(`  ${GREEN}✓${RESET}  Permissions added.\n`);
 }
 
 const run = UNINSTALL ? uninstall : install;
