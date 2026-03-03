@@ -84,16 +84,18 @@ Key files the executing agent must read before starting:
 
 ## Implementation Tasks
 
+> All fields are required. Use `N/A` if a field does not apply — never leave a field blank.
+
 ### Task 1: [Action verb + what]
-- **Action:** [Specific action: create / modify / delete]
-- **File:** `[exact file path]`
-- **Pattern:** Follow the same pattern as `[reference file]`
-- **Details:** [Exact description of what to implement]
-- **Gotcha:** [Known pitfall or constraint to watch for]
-- **Validate:** [How to verify this task is done correctly]
+- **Action:** create | modify | delete
+- **File:** `[exact file path — no vague references like "the component"]`
+- **Pattern:** `[exact reference file to follow]` — or `N/A` if no existing pattern
+- **Details:** [Step-by-step description of what to implement]
+- **Gotcha:** [Known pitfall or constraint] — or `N/A`
+- **Validate:** [Exact command or check to confirm this task is done correctly]
 
 ### Task 2: [Action verb + what]
-[Same structure]
+[Same structure — all 6 fields required]
 
 [Continue for all tasks...]
 

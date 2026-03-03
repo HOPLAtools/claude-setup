@@ -49,7 +49,9 @@ Ask one topic at a time. Wait for each answer before continuing.
 **Topic F — Reference Guides**
 - Are there specific task types that need extra guidance?
   (e.g. "When adding an API endpoint", "When creating a React component")
-- For each task type: what patterns should the AI always follow?
+- For each task type identified: what are the exact steps? What files to follow as pattern? What pitfalls to avoid?
+
+Collect enough detail to write a full guide for each task type — not just the name, but the actual patterns, file structure, and constraints.
 
 ## Step 3: Generate CLAUDE.md
 
@@ -103,6 +105,106 @@ Save to `CLAUDE.md` at the project root. Use this structure:
 **When to use:** [Trigger condition]
 Read: `.agents/guides/[guide-name].md`
 This guide covers: [bullet list]
+```
+
+## Step 3.5: Generate Reference Guides
+
+For each task type identified in Topic F, create a guide at `.agents/guides/[kebab-case-task-name].md`.
+
+Use this template for every guide:
+
+```markdown
+# Guide: [Task Type Name]
+
+## When to Use This Guide
+
+Load this guide when: [exact trigger condition, e.g. "adding a new API endpoint", "creating a React component"]
+
+---
+
+## Architecture Pattern
+
+[Describe the layer structure for this task type. e.g.:]
+
+```
+Request → router/[resource].ts → service/[resource]Service.ts → model/[Resource].ts → DB
+```
+
+Key rules:
+- [Rule 1: e.g. "All business logic goes in the service layer, never in the router"]
+- [Rule 2: e.g. "Always validate input with Zod before passing to service"]
+- [Rule 3: e.g. "Return typed responses, never raw DB objects"]
+
+---
+
+## Reference Files
+
+Follow these existing implementations as pattern:
+- `[path/to/existing/example.ts]` — [what it demonstrates]
+- `[path/to/existing/example.ts]` — [what it demonstrates]
+
+---
+
+## Step-by-Step Implementation
+
+### 1. [First step]
+- [What to create/modify]
+- [Exact naming convention]
+- [Code pattern to follow]
+
+### 2. [Second step]
+- [What to create/modify]
+- [Key constraints]
+
+### 3. [Third step]
+[Continue for all steps...]
+
+---
+
+## Code Examples
+
+### [Filename pattern, e.g. router/products.ts]
+```[language]
+// Example showing the exact pattern to follow
+[concrete code snippet]
+```
+
+### [Next file pattern]
+```[language]
+[concrete code snippet]
+```
+
+---
+
+## Common Pitfalls
+
+- **[Pitfall 1]:** [What goes wrong and how to avoid it]
+- **[Pitfall 2]:** [What goes wrong and how to avoid it]
+
+---
+
+## Validation
+
+After implementing, verify:
+- [ ] `[exact lint/type check command]`
+- [ ] `[exact test command]`
+- [ ] [Manual check: e.g. "curl the endpoint and confirm response shape"]
+```
+
+**Important:** Guides must contain concrete, project-specific information — not generic advice. If the user's answers in Topic F don't have enough detail for a section, ask a follow-up before writing the guide.
+
+Also update the `CLAUDE.md` Section 7 (Task-Specific Reference Guides) to reference each guide created:
+
+```markdown
+## 7. Task-Specific Reference Guides
+
+**When adding an API endpoint:**
+Read: `.agents/guides/api-endpoint.md`
+This guide covers: router structure, service layer pattern, Zod validation, response types
+
+**When creating a React component:**
+Read: `.agents/guides/react-component.md`
+This guide covers: file structure, props typing, hook usage, test co-location
 ```
 
 ## Step 4: Create .agents/ Structure
