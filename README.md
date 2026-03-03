@@ -5,13 +5,27 @@ Hopla team agentic coding system for Claude Code. Installs global rules and comm
 ## Install
 
 ```bash
-npx @hopla/claude-setup
+npm install -g @hopla/claude-setup
+claude-setup
 ```
 
 To overwrite existing files without prompting:
 
 ```bash
-npx @hopla/claude-setup --force
+claude-setup --force
+```
+
+## Update
+
+```bash
+npm install -g @hopla/claude-setup@latest
+claude-setup --force
+```
+
+## Uninstall
+
+```bash
+claude-setup --uninstall
 ```
 
 ## What gets installed
@@ -31,11 +45,3 @@ npx @hopla/claude-setup --force
 | `/code-review-fix` | Fix issues found in a code review report |
 | `/execution-report` | Generate an implementation report for system review |
 | `/system-review` | Analyze implementation against plan to find process improvements |
-
-## Update
-
-Re-run the install command to update to the latest version:
-
-```bash
-npx @hopla/claude-setup@latest
-```
