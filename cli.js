@@ -6,11 +6,13 @@ import os from "os";
 import readline from "readline";
 
 const FORCE = process.argv.includes("--force");
+const UNINSTALL = process.argv.includes("--uninstall");
 const CLAUDE_DIR = path.join(os.homedir(), ".claude");
 const COMMANDS_DIR = path.join(CLAUDE_DIR, "commands");
 const FILES_DIR = path.join(import.meta.dirname, "files");
 
 const GREEN = "\x1b[32m";
+const RED = "\x1b[31m";
 const YELLOW = "\x1b[33m";
 const CYAN = "\x1b[36m";
 const RESET = "\x1b[0m";
@@ -48,7 +50,47 @@ async function installFile(src, dest, label) {
     log(`  ${GREEN}✓${RESET}  ${exists ? "Updated" : "Installed"}: ${label}`);
 }
 
-async function main() {
+function removeFile(dest, label) {
+    if (fs.existsSync(dest)) {
+        fs.rmSync(dest);
+        log(`  ${RED}✕${RESET}  Removed: ${label}`);
+    } else {
+        log(`  ${YELLOW}↷${RESET}  Not found: ${label}`);
+    }
+}
+
+async function uninstall() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Uninstall\n`);
+
+    const commandFiles = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const filesToRemove = [
+        { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md" },
+        ...commandFiles.map((file) => ({
+            dest: path.join(COMMANDS_DIR, file),
+            label: `~/.claude/commands/${file}`,
+        })),
+    ];
+
+    log(`The following files will be removed:`);
+    for (const { label } of filesToRemove) {
+        log(`  ${RED}✕${RESET}  ${label}`);
+    }
+
+    const ok = await confirm(`\nContinue? (y/N) `);
+    if (!ok) {
+        log(`\nAborted.\n`);
+        return;
+    }
+
+    log("");
+    for (const { dest, label } of filesToRemove) {
+        removeFile(dest, label);
+    }
+
+    log(`\n${GREEN}${BOLD}Done!${RESET} Files removed.\n`);
+}
+
+async function install() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System\n`);
 
     // Create directories if needed
@@ -80,7 +122,8 @@ async function main() {
     log(`\nRun with ${BOLD}--force${RESET} to overwrite all files without prompting.\n`);
 }
 
-main().catch((err) => {
-    console.error("Installation failed:", err.message);
+const run = UNINSTALL ? uninstall : install;
+run().catch((err) => {
+    console.error("Failed:", err.message);
     process.exit(1);
 });
