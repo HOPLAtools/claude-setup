@@ -167,6 +167,7 @@ async function install() {
 
 const HOPLA_PERMISSIONS = [
     "Bash(git *)",
+    "Bash(cd *)",
     "Bash(ls *)",
     "Bash(find *)",
     "Bash(cat *)",
