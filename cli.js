@@ -90,12 +90,45 @@ async function uninstall() {
     log(`\n${GREEN}${BOLD}Done!${RESET} Files removed.\n`);
 }
 
+const LEGACY_FILES = [
+    "code-review-fix.md",
+    "code-review.md",
+    "commit.md",
+    "create-prd.md",
+    "execute.md",
+    "execution-report.md",
+    "plan-feature.md",
+    "prime.md",
+    "system-review.md",
+];
+
+function removeLegacyFiles() {
+    const removed = [];
+    for (const file of LEGACY_FILES) {
+        const dest = path.join(COMMANDS_DIR, file);
+        if (fs.existsSync(dest)) {
+            fs.rmSync(dest);
+            removed.push(file);
+        }
+    }
+    if (removed.length > 0) {
+        log(`${CYAN}Cleaning up legacy commands...${RESET}`);
+        for (const file of removed) {
+            log(`  ${YELLOW}↷${RESET}  Removed legacy: ~/.claude/commands/${file}`);
+        }
+        log("");
+    }
+}
+
 async function install() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System\n`);
 
     // Create directories if needed
     fs.mkdirSync(CLAUDE_DIR, { recursive: true });
     fs.mkdirSync(COMMANDS_DIR, { recursive: true });
+
+    // Remove old non-prefixed commands from previous versions
+    removeLegacyFiles();
 
     log(`${CYAN}Installing global rules...${RESET}`);
     await installFile(
