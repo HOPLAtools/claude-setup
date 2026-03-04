@@ -5,6 +5,8 @@ argument-hint: "<plan-file-path>"
 
 Execute the implementation plan provided. You are the executing agent — you have not seen the planning conversation. The plan is your only source of truth.
 
+**Language:** Respond in the same language the user has been writing in throughout this conversation.
+
 ## Step 1: Load Context
 
 Read in this order:
@@ -15,17 +17,35 @@ Read in this order:
 
 Do not start implementing until you have read everything above.
 
-## Step 2: Confirm Understanding
+## Step 2: Verify Git Branch
+
+```bash
+git branch --show-current
+git status
+```
+
+Check that the current branch follows Git Flow:
+- **Never execute on `main` or `master`** — stop and warn the user
+- **If on `develop`/`dev`** — ask: "You're on `develop`. Should I create a feature branch first? (recommended: `feature/[plan-name]`)"
+- **If on a `feature/`, `fix/`, or `hotfix/` branch** — proceed
+
+If a new branch is needed, propose the name and wait for confirmation before creating it:
+```bash
+git checkout -b feature/[kebab-case-plan-name]
+```
+
+## Step 3: Confirm Understanding
 
 Before executing, summarize:
 - What you are about to build
+- The branch where changes will be made
 - How many tasks are in the plan
 - Any constraints or gotchas flagged in the plan
 - Anything unclear that needs clarification before proceeding
 
 If anything in the plan is ambiguous or contradictory, **stop and ask** before writing code.
 
-## Step 3: Execute Tasks in Order
+## Step 4: Execute Tasks in Order
 
 Work through each task in the plan sequentially. For each task:
 
@@ -44,7 +64,7 @@ Work through each task in the plan sequentially. For each task:
 
 Do not improvise silently. When in doubt, stop and ask.
 
-## Step 4: Run Full Validation Pyramid
+## Step 5: Run Full Validation Pyramid
 
 After all tasks are complete, run the full validation sequence in order.
 **Do not skip levels. Do not proceed if a level fails.**
@@ -76,7 +96,7 @@ List what the user should manually verify:
 - Edge cases to check
 - Any decisions made during implementation that the user should review
 
-## Step 5: Completion Report
+## Step 6: Completion Report
 
 Provide a summary of what was done:
 
@@ -105,7 +125,7 @@ Provide a summary of what was done:
 - [anything that differed from the plan and why]
 ```
 
-## Step 6: Suggest Next Steps
+## Step 7: Suggest Next Steps
 
 After the summary, suggest:
 1. Run `/hopla-execution-report` to document this implementation for system review
