@@ -42,9 +42,7 @@ Investigate the areas of the codebase relevant to this feature:
 - Find the entry points that will need to be modified or extended
 - Identify potential conflicts or dependencies
 
-```bash
-git ls-files | grep -i <relevant-keyword>
-```
+Use the Grep tool to find relevant files (pattern: relevant keyword, case-insensitive).
 
 Read the key files in their entirety — not just the parts that seem relevant.
 
@@ -146,4 +144,4 @@ Before saving the draft, review the plan against these criteria:
 
 **Finalize:**
 1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md`
-2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-execute .agents/plans/[feature-name].md` to implement it, or `/hopla-git-commit` to save the plan first."
+2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-git-commit` to commit it, then share with the team to execute with `/hopla-execute .agents/plans/[feature-name].md`."

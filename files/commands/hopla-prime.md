@@ -6,13 +6,13 @@ Get oriented in this project before doing any work.
 
 ## Step 1: Project Structure
 
-```bash
-git ls-files | head -60
-```
+Use the Glob tool to list project files (up to 60):
+- Pattern: `**/*` with head_limit: 60
 
-```bash
-find . -name "CLAUDE.md" -o -name "AGENTS.md" -o -name "README.md" | head -10
-```
+Use the Glob tool to find key config files:
+- `**/CLAUDE.md`
+- `**/AGENTS.md`
+- `**/README.md`
 
 ## Step 2: Read Key Files
 
@@ -31,9 +31,8 @@ git status
 
 ## Step 4: Check Pending Work
 
-```bash
-ls .agents/plans/ 2>/dev/null
-```
+Use the Glob tool to check for pending plans:
+- Pattern: `.agents/plans/*.md`
 
 If `.agents/plans/` exists, identify:
 - `.draft.md` files — unfinished drafts waiting for review

@@ -4,15 +4,29 @@ Hopla team agentic coding system for Claude Code. Installs global rules and comm
 
 ## Install
 
+### Full install — for the implementer (Julio)
+
 ```bash
 npm install -g @hopla/claude-setup
 claude-setup
 ```
 
+Installs all commands: planning + execution + review.
+
+### Planning-only install — for the planner/non-technical role (Robert)
+
+```bash
+npm install -g @hopla/claude-setup
+claude-setup --planning
+```
+
+Installs only planning commands: `init-project`, `prime`, `create-prd`, `plan-feature`, `review-plan`, `git-commit`, `git-pr`. No execution or review commands. No bash permission prompts during planning.
+
 To overwrite existing files without prompting:
 
 ```bash
 claude-setup --force
+claude-setup --planning --force
 ```
 
 ## Update

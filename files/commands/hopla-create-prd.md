@@ -74,10 +74,8 @@ Ask one topic at a time and wait for the answer before continuing. Adapt follow-
 
 First, explore the codebase to understand what's already built:
 
-```bash
-git ls-files | head -60
-git log --oneline -10
-```
+Use the Glob tool to list project files (pattern: `**/*`, head_limit: 60).
+Run `git log --oneline -10` to understand recent history.
 
 Read key files: entry points, main modules, config files, existing tests.
 

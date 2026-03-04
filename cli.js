@@ -7,6 +7,7 @@ import readline from "readline";
 
 const FORCE = process.argv.includes("--force");
 const UNINSTALL = process.argv.includes("--uninstall");
+const PLANNING = process.argv.includes("--planning");
 const VERSION = process.argv.includes("--version") || process.argv.includes("-v");
 
 if (VERSION) {
@@ -129,8 +130,19 @@ function removeLegacyFiles() {
     }
 }
 
+const PLANNING_COMMANDS = [
+    "hopla-init-project.md",
+    "hopla-prime.md",
+    "hopla-create-prd.md",
+    "hopla-plan-feature.md",
+    "hopla-review-plan.md",
+    "hopla-git-commit.md",
+    "hopla-git-pr.md",
+];
+
 async function install() {
-    log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System\n`);
+    const modeLabel = PLANNING ? "Planning Mode (Robert)" : "Full Install";
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System ${CYAN}[${modeLabel}]${RESET}\n`);
 
     // Create directories if needed
     fs.mkdirSync(CLAUDE_DIR, { recursive: true });
@@ -147,7 +159,10 @@ async function install() {
     );
 
     log(`\n${CYAN}Installing commands...${RESET}`);
-    const commandFiles = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const allCommandFiles = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const commandFiles = PLANNING
+        ? allCommandFiles.filter((f) => PLANNING_COMMANDS.includes(f))
+        : allCommandFiles;
     for (const file of commandFiles.sort()) {
         await installFile(
             path.join(FILES_DIR, "commands", file),
@@ -161,7 +176,11 @@ async function install() {
         const name = file.replace(".md", "");
         log(`  ${CYAN}/${name}${RESET}`);
     }
-    log(`\nRun with ${BOLD}--force${RESET} to overwrite all files without prompting.\n`);
+    if (PLANNING) {
+        log(`\n${YELLOW}Planning mode:${RESET} Only planning commands installed. Run without ${BOLD}--planning${RESET} for the full set.\n`);
+    } else {
+        log(`\nRun with ${BOLD}--force${RESET} to overwrite all files without prompting.\n`);
+    }
 
     await setupPermissions();
 }
