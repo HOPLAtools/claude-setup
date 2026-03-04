@@ -89,6 +89,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 | `/hopla-prime` | Load project context at the start of a session |
 | `/hopla-create-prd` | Create a Product Requirements Document through guided questions |
 | `/hopla-plan-feature` | Research codebase and create a structured implementation plan |
+| `/hopla-review-plan` | Review a plan before execution — get a concise summary and approve |
 | `/hopla-execute` | Execute a structured plan from start to finish with validation |
 | `/hopla-git-commit` | Create a Conventional Commit with Git Flow awareness |
 | `/hopla-git-pr` | Create a GitHub Pull Request with a structured description |
@@ -112,6 +113,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 ```
 /hopla-prime          → load context at session start
 /hopla-plan-feature   → research codebase and create plan
+/hopla-review-plan    → review plan summary and approve
 /hopla-execute        → implement the plan with validation
 /hopla-code-review    → technical review of changes
 /hopla-code-review-fix → fix issues found
