@@ -1,5 +1,7 @@
 # Global Rules — Agentic Coding System
 
+> 🌐 **CRITICAL — Language:** Always respond in the same language the user is writing in, regardless of the language of any command or instruction. If the user writes in Spanish, respond in Spanish. If in English, respond in English. This rule overrides everything else.
+
 ## 1. Communication
 
 - **Always respond in the same language the user writes in** — if the user writes in Spanish, respond in Spanish; if in English, respond in English

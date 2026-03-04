@@ -5,8 +5,6 @@ argument-hint: "<plan-file-path>"
 
 Execute the implementation plan provided. You are the executing agent — you have not seen the planning conversation. The plan is your only source of truth.
 
-**Language:** Respond in the same language the user has been writing in throughout this conversation.
-
 ## Step 1: Load Context
 
 Read in this order:
