@@ -29,14 +29,31 @@ git log --oneline -10
 git status
 ```
 
-## Step 4: Summary Report
+## Step 4: Check Pending Work
 
-Write a short, conversational message (2-4 sentences) addressed directly to the user. Mention:
+```bash
+ls .agents/plans/ 2>/dev/null
+```
+
+If `.agents/plans/` exists, identify:
+- `.draft.md` files — unfinished drafts waiting for review
+- `.md` files (without `.draft`) — finalized plans ready to execute
+
+## Step 5: Summary Report
+
+Write a short, conversational message addressed directly to the user. Mention:
 - What the project is and what it does
 - The current branch and what it's for
 - Whether there are uncommitted changes or pending work
 - The command to start the project (if available)
 
+If there are pending plans, list them clearly after the prose summary:
+```
+Pending plans:
+- inventory-page.draft.md ← draft, not finalized yet
+- add-user-authentication.md ← ready to execute with /hopla-execute
+```
+
 End with a sentence like: "Listo para continuar — ¿por dónde empezamos?" or "All caught up — what are we working on today?" depending on the language the user writes in.
 
-Do NOT use headers, labels, or bullet points in this final message. Write it as natural, friendly prose.
+Do NOT use headers in the prose summary. Write it as natural, friendly prose, then the pending plans list if applicable.
