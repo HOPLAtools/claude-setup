@@ -110,4 +110,4 @@ Provide a summary of what was done:
 After the summary, suggest:
 1. Run `/hopla-execution-report` to document this implementation for system review
 2. Run `/hopla-code-review` for a technical quality check
-3. Run `/hopla-commit` once everything is approved
+3. Run `/hopla-git-commit` once everything is approved

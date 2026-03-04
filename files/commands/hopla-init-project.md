@@ -258,4 +258,4 @@ Once confirmed:
 2. Create `.agents/` directory structure
 3. Update `.gitignore`
 4. Tell the user: "Project initialized. Run `/hopla-create-prd` next to define the product scope, or `/hopla-plan-feature` to start planning a feature."
-5. Suggest running `/hopla-commit` to save everything
+5. Suggest running `/hopla-git-commit` to save everything

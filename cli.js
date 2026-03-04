@@ -108,6 +108,7 @@ const LEGACY_FILES = [
     "prime.md",
     "system-review.md",
     "hopla-lang.md",
+    "hopla-commit.md",
 ];
 
 function removeLegacyFiles() {

@@ -110,7 +110,7 @@ These become **on-demand context** referenced from the PRD and used in future pl
 
 ## Step 4: Generate the PRD
 
-Save to `PRD.md` at the project root. Use this structure:
+Write the full PRD content in memory using this structure (it will be saved as a draft in Step 5):
 
 ```markdown
 # PRD — [Product Name]
@@ -194,13 +194,32 @@ The MVP is working when:
 - [on-demand context doc] — [what it contains]
 ```
 
-## Step 5: Confirm and Save
+## Step 5: Save Draft and Enter Review Loop
 
-Show the draft PRD to the user and ask:
-> "Does this accurately reflect the product? Any corrections before I save it?"
+Do NOT show the full PRD in the chat. Instead:
 
-Once confirmed:
-1. Save `PRD.md` to the project root (overwrite if it existed)
-2. Save any on-demand context documents created in Step 3
-3. List all files created or updated
-4. Suggest running `/hopla-commit` to save everything to the repository
+1. Save the draft to `PRD.draft.md` at the project root
+2. Save any on-demand context documents created in Step 3 (also with `.draft` suffix if new)
+3. Tell the user:
+   > "Draft saved to `PRD.draft.md` — open it in your editor and review it carefully. If you want changes, add comments like `<? change this >` anywhere in the file and tell me 'apply comments'. You can also request changes directly in the chat. When it's ready, say 'done' to create the final file."
+
+**Review loop:** Stay in this loop until the user finalizes:
+
+- If the user says **"apply comments"** (or similar) → scan `PRD.draft.md` for `<? ... >` comments, apply each one, remove the comment tags, update the file, then list what was changed: "Applied 3 changes: [list]. Anything else, or ready to finalize?"
+- If the user requests changes in chat → apply them directly to `PRD.draft.md`, then say: "Updated — anything else, or ready to finalize?"
+- If the user says the draft is ready (e.g. "looks good", "finalize", "listo") → proceed to Step 6
+
+**Comment format the user can add directly in the draft:**
+```
+<? your instruction here >
+```
+Comments can be placed anywhere in the file — inline after a line, or on their own line above a section. Process them in order from top to bottom.
+
+Do not ask clarifying questions about changes — just apply them and confirm what was changed.
+
+## Step 6: Finalize
+
+1. Rename `PRD.draft.md` → `PRD.md` (overwrite if it existed)
+2. Rename any `.draft` context documents to their final names
+3. Delete all `.draft` files
+4. Confirm: "✅ `PRD.md` saved. Run `/hopla-git-commit` to save it to the repository."

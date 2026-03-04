@@ -90,7 +90,8 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 | `/hopla-create-prd` | Create a Product Requirements Document through guided questions |
 | `/hopla-plan-feature` | Research codebase and create a structured implementation plan |
 | `/hopla-execute` | Execute a structured plan from start to finish with validation |
-| `/hopla-commit` | Create a Conventional Commit with Git Flow awareness |
+| `/hopla-git-commit` | Create a Conventional Commit with Git Flow awareness |
+| `/hopla-git-pr` | Create a GitHub Pull Request with a structured description |
 | `/hopla-code-review` | Technical code review on recently changed files |
 | `/hopla-code-review-fix` | Fix issues found in a code review report |
 | `/hopla-execution-report` | Generate an implementation report for system review |
@@ -104,7 +105,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 ```
 /hopla-init-project   → creates CLAUDE.md + .agents/ structure
 /hopla-create-prd     → defines product scope (PRD.md)
-/hopla-commit         → saves Layer 1 foundation to git
+/hopla-git-commit     → saves Layer 1 foundation to git
 ```
 
 ### Feature development (PIV loop)
@@ -114,7 +115,8 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 /hopla-execute        → implement the plan with validation
 /hopla-code-review    → technical review of changes
 /hopla-code-review-fix → fix issues found
-/hopla-commit         → save to git
+/hopla-git-commit     → save to git
+/hopla-git-pr         → open pull request on GitHub
 ```
 
 ### After implementation
@@ -156,7 +158,7 @@ Commands are modular — the output of one becomes the input of the next. Some c
 /hopla-code-review-fix .agents/code-reviews/add-user-authentication.md
 
 # 5. Commit
-/hopla-commit
+/hopla-git-commit
 
 # 6. Document
 /hopla-execution-report

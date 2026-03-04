@@ -59,7 +59,7 @@ Based on research, define:
 
 ## Phase 5: Generate the Plan
 
-Save the plan to: `.agents/plans/[kebab-case-feature-name].md`
+Write the full plan in memory using the structure below, then save it as a draft (do NOT output the plan content in the chat).
 
 Use this structure:
 
@@ -122,7 +122,7 @@ Run in this order — do not proceed if a level fails:
 
 ## Phase 6: Verify the Plan
 
-Before finishing, review the plan against these criteria:
+Before saving the draft, review the plan against these criteria:
 
 - [ ] Every task has a specific file path (no vague "update the component")
 - [ ] Every task has: Action, File, Pattern, Details, Gotcha, Validate — no field left empty
@@ -130,10 +130,20 @@ Before finishing, review the plan against these criteria:
 - [ ] The plan is complete enough that another agent can execute it without this conversation
 - [ ] No ambiguous requirements left unresolved
 
-## Final Output
+## Phase 7: Save Draft and Enter Review Loop
 
-Confirm to the user:
-- Plan saved to: `.agents/plans/[feature-name].md`
-- Summary of tasks included
-- Any open questions or decisions that require human confirmation before execution
-- Suggest running `/hopla-commit` to save the plan to the repository
+1. Save the plan to `.agents/plans/[kebab-case-feature-name].draft.md`
+2. Tell the user:
+   > "Plan draft saved to `.agents/plans/[feature-name].draft.md` — open it in your editor and review it carefully. If you want changes, add comments like `<? change this >` anywhere in the file and tell me 'apply comments'. You can also request changes directly in the chat. When it's ready, say 'done' to create the final file."
+3. Also mention:
+   - How many tasks are in the plan
+   - Any open questions or decisions that require human input before execution
+
+**Review loop:** Stay in this loop until the user finalizes:
+- If the user says **"apply comments"** → scan the draft for `<? ... >`, apply each one, remove the comment tags, update the file, report what changed
+- If the user requests changes in chat → apply directly to the draft, confirm what changed
+- If the user says the plan is ready → proceed to finalize
+
+**Finalize:**
+1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md`
+2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-execute .agents/plans/[feature-name].md` to implement it, or `/hopla-git-commit` to save the plan first."
