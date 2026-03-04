@@ -140,6 +140,25 @@ const PLANNING_COMMANDS = [
     "hopla-git-pr.md",
 ];
 
+function removeExecutionCommands() {
+    const planningSet = new Set(PLANNING_COMMANDS);
+    const removed = [];
+    if (!fs.existsSync(COMMANDS_DIR)) return;
+    for (const file of fs.readdirSync(COMMANDS_DIR)) {
+        if (file.startsWith("hopla-") && !planningSet.has(file)) {
+            fs.rmSync(path.join(COMMANDS_DIR, file));
+            removed.push(file);
+        }
+    }
+    if (removed.length > 0) {
+        log(`${CYAN}Removing execution commands (planning mode)...${RESET}`);
+        for (const file of removed) {
+            log(`  ${RED}✕${RESET}  Removed: ~/.claude/commands/${file}`);
+        }
+        log("");
+    }
+}
+
 async function install() {
     const modeLabel = PLANNING ? "Planning Mode (Robert)" : "Full Install";
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System ${CYAN}[${modeLabel}]${RESET}\n`);
@@ -150,6 +169,9 @@ async function install() {
 
     // Remove old non-prefixed commands from previous versions
     removeLegacyFiles();
+
+    // In planning mode, remove any execution commands left from a previous full install
+    if (PLANNING) removeExecutionCommands();
 
     log(`${CYAN}Installing global rules...${RESET}`);
     await installFile(
