@@ -10,6 +10,22 @@ Perform a meta-level analysis of how well the implementation followed the plan. 
 - **$1** — Path to the structured plan file
 - **$2** — Path to the execution report file
 
+## Step 0: Check for Existing Review
+
+Before doing anything else, check if a system review already exists for this plan:
+
+```bash
+ls .agents/system-reviews/
+```
+
+Look for a file that matches the feature name derived from **$1** (the plan filename). If a matching review exists:
+- Skip Steps 1–6
+- Go directly to **Step 7** to archive the plan
+
+If no matching review exists, continue with Step 1.
+
+---
+
 ## Step 1: Load All Context
 
 Read these four artifacts in order:
@@ -137,3 +153,15 @@ After the analysis, use this to prioritize actions:
 | Same manual step done 3+ times | Create a new command |
 | Plan was ambiguous in the same spot twice | Update plan-feature command |
 | First time seeing this issue | Note it, don't over-engineer yet |
+
+## Step 7: Archive the Plan
+
+Move the completed plan to the archive folder:
+
+```bash
+mkdir -p .agents/plans/done
+mv "$1" .agents/plans/done/
+```
+
+Then notify the user:
+> "✅ System review saved to `.agents/system-reviews/[feature]-review.md`. Plan archived to `.agents/plans/done/[plan-name].md` — the active plans folder is now clean."
