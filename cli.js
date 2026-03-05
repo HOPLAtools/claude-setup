@@ -218,6 +218,14 @@ const HOPLA_PERMISSIONS = [
     "Bash(echo *)",
 ];
 
+const PLANNING_PERMISSIONS = [
+    "Bash(git branch*)",
+    "Bash(git log*)",
+    "Bash(git status*)",
+];
+
+const ALL_HOPLA_PERMISSIONS = new Set([...HOPLA_PERMISSIONS, ...PLANNING_PERMISSIONS]);
+
 async function setupPermissions() {
     const settingsPath = path.join(CLAUDE_DIR, "settings.json");
 
@@ -233,30 +241,62 @@ async function setupPermissions() {
     if (!settings.permissions) settings.permissions = {};
     if (!settings.permissions.allow) settings.permissions.allow = [];
 
-    // Find permissions not yet added
-    const existing = new Set(settings.permissions.allow);
-    const toAdd = HOPLA_PERMISSIONS.filter((p) => !existing.has(p));
+    const targetPermissions = PLANNING ? PLANNING_PERMISSIONS : HOPLA_PERMISSIONS;
 
-    if (toAdd.length === 0) {
-        log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
-        return;
+    if (PLANNING) {
+        // Replace: remove all hopla-owned permissions, then add planning-only ones
+        const cleaned = settings.permissions.allow.filter((p) => !ALL_HOPLA_PERMISSIONS.has(p));
+        const toAdd = targetPermissions.filter((p) => !cleaned.includes(p));
+        const toRemove = settings.permissions.allow.filter((p) => ALL_HOPLA_PERMISSIONS.has(p) && !targetPermissions.includes(p));
+
+        if (toAdd.length === 0 && toRemove.length === 0) {
+            log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
+            return;
+        }
+
+        log(`${CYAN}Configuring permissions (planning mode)...${RESET}`);
+        log(`  The following changes will be made to ~/.claude/settings.json:\n`);
+        for (const p of toRemove) {
+            log(`  ${RED}-${RESET}  ${p}`);
+        }
+        for (const p of toAdd) {
+            log(`  ${CYAN}+${RESET}  ${p}`);
+        }
+
+        const ok = await confirm(`\n  Apply these permission changes? (y/N) `);
+        if (!ok) {
+            log(`  ${YELLOW}↷${RESET}  Skipped — you can edit ~/.claude/settings.json manually\n`);
+            return;
+        }
+
+        settings.permissions.allow = [...cleaned, ...targetPermissions];
+    } else {
+        // Merge: add missing ones
+        const existing = new Set(settings.permissions.allow);
+        const toAdd = targetPermissions.filter((p) => !existing.has(p));
+
+        if (toAdd.length === 0) {
+            log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
+            return;
+        }
+
+        log(`${CYAN}Configuring permissions...${RESET}`);
+        log(`  The following will be added to ~/.claude/settings.json:\n`);
+        for (const p of toAdd) {
+            log(`  ${CYAN}+${RESET}  ${p}`);
+        }
+
+        const ok = await confirm(`\n  Add these permissions? (y/N) `);
+        if (!ok) {
+            log(`  ${YELLOW}↷${RESET}  Skipped — you can add them manually to ~/.claude/settings.json\n`);
+            return;
+        }
+
+        settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
     }
 
-    log(`${CYAN}Configuring permissions...${RESET}`);
-    log(`  The following will be added to ~/.claude/settings.json:\n`);
-    for (const p of toAdd) {
-        log(`  ${CYAN}+${RESET}  ${p}`);
-    }
-
-    const ok = await confirm(`\n  Add these permissions? (y/N) `);
-    if (!ok) {
-        log(`  ${YELLOW}↷${RESET}  Skipped — you can add them manually to ~/.claude/settings.json\n`);
-        return;
-    }
-
-    settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-    log(`  ${GREEN}✓${RESET}  Permissions added.\n`);
+    log(`  ${GREEN}✓${RESET}  Permissions configured.\n`);
 }
 
 const run = UNINSTALL ? uninstall : install;
