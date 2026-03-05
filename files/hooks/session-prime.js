@@ -41,7 +41,9 @@ async function main() {
     }
 
     if (lines.length > 0) {
-        process.stdout.write("=== Session Context ===\n" + lines.join("\n\n") + "\n======================\n");
+        const output = "=== Session Context ===\n" + lines.join("\n\n") + "\n======================\n";
+        process.stdout.write(output);
+        process.stderr.write(output);
     }
 
     process.exit(0);
