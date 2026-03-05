@@ -72,6 +72,8 @@ This system is built on two core concepts from the Agentic Coding Course:
 | **Global Rules** | Always-loaded context: language, git flow, tech defaults, autonomy rules | `~/.claude/CLAUDE.md` |
 | **On-Demand Context** | Task-specific guides loaded when needed (e.g. "how to add an API endpoint") | `.agents/guides/*.md` |
 | **Commands** | Reusable processes that tell the agent *how* to work | `~/.claude/commands/hopla-*.md` |
+| **Skills** | Auto-activate by semantic matching — no slash command needed | `~/.claude/skills/hopla-*/SKILL.md` |
+| **Hooks** | Run automatically before/after tool use for type checking and protection | `~/.claude/hooks/*.js` |
 
 The key insight: **commands inject on-demand context deterministically** — when you run `/hopla-plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
 
@@ -112,6 +114,42 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 | `/hopla-execution-report` | Generate an implementation report for system review |
 | `/hopla-system-review` | Analyze implementation against plan to find process improvements |
 
+**`~/.claude/skills/`** — Auto-activate by semantic matching, no slash command needed:
+
+| Skill | Auto-activates when you say... |
+|---|---|
+| `hopla-git` | "commit this", "create a PR", "guarda los cambios" |
+| `hopla-prime` | "orient yourself", "ponte al día", "what is this project" |
+| `hopla-code-review` | "review the code", "code review", "analiza los cambios" |
+| `hopla-execution-report` | "generate the report", "genera el reporte", "document what was done" |
+
+**`~/.claude/hooks/`** — Run automatically before/after tool use (configured in `~/.claude/settings.json`):
+
+| Hook | Type | What it does |
+|---|---|---|
+| `tsc-check.js` | PostToolUse | Runs `tsc --noEmit` after file edits; feeds errors back to Claude |
+| `env-protect.js` | PreToolUse | Blocks reads/greps targeting `.env` files |
+| `session-prime.js` | SessionStart (opt-in) | Loads git context + CLAUDE.md summary at session start |
+
+**Installed layout:**
+
+```
+~/.claude/
+├── CLAUDE.md              ← Global rules
+├── commands/
+│   └── hopla-*.md         ← Slash commands (/hopla-prime, /hopla-execute, etc.)
+├── skills/
+│   ├── hopla-git/         ← Auto-activates for commit/PR requests
+│   ├── hopla-prime/       ← Auto-activates for orientation requests
+│   ├── hopla-code-review/ ← Auto-activates for review requests
+│   └── hopla-execution-report/ ← Auto-activates for report requests
+├── hooks/
+│   ├── tsc-check.js       ← TypeScript type checking after edits
+│   ├── env-protect.js     ← .env file protection
+│   └── session-prime.js   ← Session context loader (opt-in)
+└── settings.json          ← Permissions + hooks config (auto-updated)
+```
+
 ---
 
 ## Recommended Workflow
@@ -140,6 +178,8 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 /hopla-execution-report  → document what was built
 /hopla-system-review     → analyze plan vs. actual for process improvements
 ```
+
+> **Tip:** `hopla-prime`, `hopla-git-commit`, `hopla-git-pr`, `hopla-code-review`, and `hopla-execution-report` also exist as skills — they auto-activate when you describe what you want in natural language, without typing the slash command.
 
 ---
 

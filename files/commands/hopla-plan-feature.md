@@ -139,6 +139,16 @@ Before saving the draft, review the plan against these criteria:
 
 ## Phase 7: Save Draft and Enter Review Loop
 
+**Before saving, identify the target file:**
+
+1. List all files in `.agents/plans/` (both `*.draft.md` and `*.md`)
+2. Determine the target filename from the feature name derived in Phase 1: `[kebab-case-feature-name].draft.md`
+3. If a file with that name already exists → **overwrite it**
+4. If a file with a similar name exists (e.g. same feature, slight variation) → **overwrite it and confirm which file was updated**
+5. Never create versioned files (e.g. `-v2`, `-updated`, `-new`) — always update in place
+
+**Save and notify:**
+
 1. Save the plan to `.agents/plans/[kebab-case-feature-name].draft.md`
 2. Tell the user:
    > "Plan draft saved to `.agents/plans/[feature-name].draft.md` — open it in your editor and review it carefully. If you want changes, add comments like `<? change this >` anywhere in the file and tell me 'apply comments'. You can also request changes directly in the chat. When it's ready, say 'done' to create the final file."
@@ -147,10 +157,11 @@ Before saving the draft, review the plan against these criteria:
    - Any open questions or decisions that require human input before execution
 
 **Review loop:** Stay in this loop until the user finalizes:
-- If the user says **"apply comments"** → scan the draft for `<? ... >`, apply each one, remove the comment tags, update the file, report what changed
-- If the user requests changes in chat → apply directly to the draft, confirm what changed
+- If the user says **"apply comments"** → identify the active draft (the one saved in this session, or ask if unclear), scan it for `<? ... >`, apply each one, remove the comment tags, update the file, report what changed
+- If the user requests changes in chat → apply directly to the active draft, confirm the filename and what changed
+- If the user references a specific plan file (e.g. passes a path) → treat that file as the active draft
 - If the user says the plan is ready → proceed to finalize
 
 **Finalize:**
-1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md`
+1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md` (overwrite if it already exists)
 2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-git-commit` to commit it, then share with the team to execute with `/hopla-execute .agents/plans/[feature-name].md`."

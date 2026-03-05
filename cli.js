@@ -17,6 +17,8 @@ if (VERSION) {
 }
 const CLAUDE_DIR = path.join(os.homedir(), ".claude");
 const COMMANDS_DIR = path.join(CLAUDE_DIR, "commands");
+const SKILLS_DIR = path.join(CLAUDE_DIR, "skills");
+const HOOKS_DIR = path.join(CLAUDE_DIR, "hooks");
 const FILES_DIR = path.join(import.meta.dirname, "files");
 
 const GREEN = "\x1b[32m";
@@ -226,6 +228,169 @@ async function install() {
     }
 
     await setupPermissions();
+    await installSkills();
+    await installHooks();
+}
+
+// Skills to install in planning mode (subset)
+const PLANNING_SKILLS = ["hopla-prime"];
+
+async function installSkills() {
+    const skillsSrcDir = path.join(FILES_DIR, "skills");
+    if (!fs.existsSync(skillsSrcDir)) return;
+
+    fs.mkdirSync(SKILLS_DIR, { recursive: true });
+
+    const skillDirs = fs.readdirSync(skillsSrcDir).filter((entry) => {
+        return fs.statSync(path.join(skillsSrcDir, entry)).isDirectory();
+    });
+
+    const skillsToInstall = PLANNING
+        ? skillDirs.filter((d) => PLANNING_SKILLS.includes(d))
+        : skillDirs;
+
+    if (skillsToInstall.length === 0) return;
+
+    log(`\n${CYAN}Installing skills...${RESET}`);
+    for (const skillName of skillsToInstall.sort()) {
+        const srcDir = path.join(skillsSrcDir, skillName);
+        const destDir = path.join(SKILLS_DIR, skillName);
+        fs.mkdirSync(destDir, { recursive: true });
+        for (const file of fs.readdirSync(srcDir).sort()) {
+            await installFile(
+                path.join(srcDir, file),
+                path.join(destDir, file),
+                `~/.claude/skills/${skillName}/${file}`
+            );
+        }
+    }
+
+    log(`\n${GREEN}${BOLD}Skills installed!${RESET} Auto-activate without a slash command:\n`);
+    for (const skillName of skillsToInstall.sort()) {
+        log(`  ${CYAN}${skillName}${RESET}`);
+    }
+}
+
+async function installHooks() {
+    const hooksSrcDir = path.join(FILES_DIR, "hooks");
+    if (!fs.existsSync(hooksSrcDir)) return;
+
+    const hookFiles = fs.readdirSync(hooksSrcDir).filter((f) => f.endsWith(".js"));
+    if (hookFiles.length === 0) return;
+
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+
+    // Read existing settings
+    let settings = {};
+    if (fs.existsSync(settingsPath)) {
+        try {
+            settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+        } catch {
+            // keep defaults
+        }
+    }
+
+    const existingHooks = settings.hooks || {};
+    const tscHookCmd = `${HOOKS_DIR}/tsc-check.js`;
+    const envHookCmd = `${HOOKS_DIR}/env-protect.js`;
+    const sessionHookCmd = `${HOOKS_DIR}/session-prime.js`;
+
+    // Check what's already configured
+    const postToolUseHooks = existingHooks.PostToolUse || [];
+    const preToolUseHooks = existingHooks.PreToolUse || [];
+    const sessionStartHooks = existingHooks.SessionStart || [];
+
+    const hasTsc = postToolUseHooks.some((h) =>
+        h.hooks?.some((hh) => hh.command === tscHookCmd)
+    );
+    const hasEnv = preToolUseHooks.some((h) =>
+        h.hooks?.some((hh) => hh.command === envHookCmd)
+    );
+    const hasSession = sessionStartHooks.some((h) =>
+        h.hooks?.some((hh) => hh.command === sessionHookCmd)
+    );
+
+    const toAdd = [];
+    if (!hasTsc) toAdd.push(`PostToolUse(Write|Edit|MultiEdit) → tsc-check.js`);
+    if (!hasEnv) toAdd.push(`PreToolUse(Read|Grep) → env-protect.js`);
+
+    log(`\n${CYAN}Configuring hooks...${RESET}`);
+
+    if (toAdd.length === 0 && hasSession) {
+        log(`${GREEN}✓${RESET}  Hooks already configured.\n`);
+        return;
+    }
+
+    if (toAdd.length > 0) {
+        log(`  The following hooks will be added to ~/.claude/settings.json:\n`);
+        for (const h of toAdd) {
+            log(`  ${CYAN}+${RESET}  ${h}`);
+        }
+    }
+
+    // Ask about session-prime separately (opt-in)
+    let installSessionPrime = false;
+    if (!hasSession) {
+        log(`\n  ${YELLOW}Optional:${RESET} session-prime.js auto-loads project context on session start.`);
+        installSessionPrime = await confirm(`  Enable session-prime hook? (y/N) `);
+    }
+
+    if (toAdd.length === 0 && !installSessionPrime) {
+        log(`  ${YELLOW}↷${RESET}  Skipped hooks — you can configure ~/.claude/settings.json manually\n`);
+        return;
+    }
+
+    const ok = toAdd.length > 0
+        ? await confirm(`\n  Install these hooks? (y/N) `)
+        : true;
+
+    if (!ok) {
+        log(`  ${YELLOW}↷${RESET}  Skipped hooks — you can configure ~/.claude/settings.json manually\n`);
+        return;
+    }
+
+    // Copy hook files
+    fs.mkdirSync(HOOKS_DIR, { recursive: true });
+    for (const file of hookFiles) {
+        await installFile(
+            path.join(hooksSrcDir, file),
+            path.join(HOOKS_DIR, file),
+            `~/.claude/hooks/${file}`
+        );
+        // Make executable
+        try {
+            fs.chmodSync(path.join(HOOKS_DIR, file), 0o755);
+        } catch {
+            // Non-critical
+        }
+    }
+
+    // Build updated hooks config
+    if (!settings.hooks) settings.hooks = {};
+
+    if (!hasTsc) {
+        if (!settings.hooks.PostToolUse) settings.hooks.PostToolUse = [];
+        settings.hooks.PostToolUse.push({
+            matcher: "Write|Edit|MultiEdit",
+            hooks: [{ type: "command", command: tscHookCmd }],
+        });
+    }
+    if (!hasEnv) {
+        if (!settings.hooks.PreToolUse) settings.hooks.PreToolUse = [];
+        settings.hooks.PreToolUse.push({
+            matcher: "Read|Grep",
+            hooks: [{ type: "command", command: envHookCmd }],
+        });
+    }
+    if (installSessionPrime && !hasSession) {
+        if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
+        settings.hooks.SessionStart.push({
+            hooks: [{ type: "command", command: sessionHookCmd }],
+        });
+    }
+
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+    log(`  ${GREEN}✓${RESET}  Hooks configured.\n`);
 }
 
 const HOPLA_PERMISSIONS = [
