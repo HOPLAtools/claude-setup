@@ -15,6 +15,31 @@ Read in this order:
 
 Do not start implementing until you have read everything above.
 
+### Verification Checkpoints (before writing code)
+
+Verify that the plan's documented assumptions still hold. **You are not re-auditing from scratch** — the planner already did the full audit and documented findings in Context References and Gotchas. Your job is to confirm each finding is still accurate:
+
+- **Data models:** Read the referenced API route or schema. Confirm the field variants the planner documented (null cases, alternative representations, resolution chain) still match the actual code.
+- **Value semantics:** If the plan documents a formula, confirm the sign/unit convention still matches the actual display/formatter code.
+- **Reference patterns:** Read each Pattern file completely. Confirm the specific API calls, types, and data flow still match what the plan describes.
+
+See `.agents/guides/data-audit.md` for detailed criteria on what to check.
+
+If a discrepancy is found, stop immediately and file a Blocker Report below. You may continue with tasks that are not blocked by the discrepancy.
+
+#### Blocker Report
+
+Use when a plan assumption does not match reality:
+
+```
+## Blocker Report
+
+- **Blocked task:** [Task number and name]
+- **Failed assumption:** [What the plan said]
+- **Actual state:** [What you found — include a code snippet or data example]
+- **Recommendation:** [Replan X | Fix Y | Proceed with caution because Z]
+```
+
 ## Step 2: Verify Git Branch
 
 ```bash
@@ -54,11 +79,12 @@ Work through each task in the plan sequentially. For each task:
 5. **Report completion** with a brief status: what was done, what was skipped, any decision made
 6. **Do not proceed** to the next task if the current one fails validation
 
-**Trust but Verify — pause and report if:**
-- A file referenced in the plan doesn't exist
-- The actual pattern in the code differs from what the plan assumed
+**Git strategy:** Do not commit after individual tasks. Keep all changes staged but uncommitted until the full plan passes validation (Step 5). This allows a clean revert if later tasks fail.
+
+**Pause and report if, during implementation:**
 - A task is ambiguous or has multiple valid implementations
 - Something unexpected is discovered that could affect subsequent tasks
+- The plan's structure or ordering doesn't match conventions used elsewhere in the project
 
 Do not improvise silently. When in doubt, stop and ask.
 

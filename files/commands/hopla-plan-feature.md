@@ -46,6 +46,12 @@ Use the Grep tool to find relevant files (pattern: relevant keyword, case-insens
 
 Read the key files in their entirety — not just the parts that seem relevant.
 
+### Data audit (required for features that consume existing data)
+
+Follow the full checklist in `.agents/guides/data-audit.md`.
+
+**Your responsibility as planner:** Run the complete audit and document ALL findings in the plan's **Context References** and **Gotchas** fields. The executing agent must be able to verify your findings without re-auditing — they should only confirm that what you documented still holds.
+
 ## Phase 4: Design the Approach
 
 Based on research, define:
@@ -54,6 +60,7 @@ Based on research, define:
 - What the data flow looks like end-to-end
 - Any risks, edge cases, or gotchas to flag
 - What tests are needed
+- **Derived/computed values:** If any value is calculated from other fields, specify the exact formula including how stored values are interpreted (sign, units, semantics), AND how derived values propagate when inputs change (event system, reactivity, polling, etc.)
 
 ## Phase 5: Generate the Plan
 
@@ -127,6 +134,8 @@ Before saving the draft, review the plan against these criteria:
 - [ ] Validation Checklist has **exact commands** from `CLAUDE.md` or `package.json` (not vague "run lint")
 - [ ] The plan is complete enough that another agent can execute it without this conversation
 - [ ] No ambiguous requirements left unresolved
+- [ ] **Data audit complete:** All data sources audited per `.agents/guides/data-audit.md`, with all findings (null cases, value semantics, derived value propagation) documented in Context References and Gotchas
+- [ ] **Working references specified:** Every framework-specific pattern references a proven working implementation with extracted API calls, prop types, and data flow — not just "see file X"
 
 ## Phase 7: Save Draft and Enter Review Loop
 
