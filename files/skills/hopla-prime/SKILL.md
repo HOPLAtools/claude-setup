@@ -1,6 +1,6 @@
 ---
 name: hopla-prime
-description: Orients Claude in a project at the start of a session. Use when the user says "orient yourself", "get oriented", "prime yourself", "ponte al día", "qué es este proyecto", "what is this project", "load context", or asks Claude to familiarize itself with the codebase before starting work.
+description: Orients Claude in a project at the start of a session. Use when the user says "orient yourself", "get oriented", "prime yourself", "what is this project", "load context", or asks Claude to familiarize itself with the codebase before starting work.
 ---
 
 Get oriented in this project before doing any work.
@@ -54,6 +54,6 @@ Pending plans:
 - add-user-authentication.md ← ready to execute with /hopla-execute
 ```
 
-End with a sentence like: "Listo para continuar — ¿por dónde empezamos?" or "All caught up — what are we working on today?" depending on the language the user writes in.
+End with a sentence like: "All caught up — what are we working on today?" (adapt to the user's language).
 
 Do NOT use headers in the prose summary. Write it as natural, friendly prose, then the pending plans list if applicable.

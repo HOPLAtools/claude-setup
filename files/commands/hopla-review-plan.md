@@ -41,9 +41,8 @@ Do NOT reproduce the full plan. Instead, present a structured summary in the use
 
 ## Step 3: Ask for Approval
 
-After the summary, ask:
-> "¿Todo claro? Puedes aprobar para ejecutar, pedir cambios, o hacer preguntas sobre alguna tarea."
-> (or in English if the conversation is in English)
+After the summary, ask (in the user's language):
+> "All clear? You can approve to execute, request changes, or ask questions about any task."
 
 **Review loop:**
 - If the user has questions → answer them based on the plan content

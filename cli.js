@@ -72,17 +72,38 @@ function removeFile(dest, label) {
 async function uninstall() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Uninstall\n`);
 
-    const commandFiles = fs.readdirSync(path.join(FILES_DIR, "commands"));
-    const filesToRemove = [
-        { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md" },
-        ...commandFiles.map((file) => ({
+    const srcEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const srcFiles = srcEntries.filter((f) =>
+        fs.statSync(path.join(FILES_DIR, "commands", f)).isFile()
+    );
+    const srcDirs = srcEntries.filter((f) =>
+        fs.statSync(path.join(FILES_DIR, "commands", f)).isDirectory()
+    );
+
+    const itemsToRemove = [
+        { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md", isDir: false },
+        ...srcFiles.map((file) => ({
             dest: path.join(COMMANDS_DIR, file),
             label: `~/.claude/commands/${file}`,
+            isDir: false,
+        })),
+        ...srcDirs.map((dir) => ({
+            dest: path.join(COMMANDS_DIR, dir),
+            label: `~/.claude/commands/${dir}/`,
+            isDir: true,
         })),
     ];
 
-    log(`The following files will be removed:`);
-    for (const { label } of filesToRemove) {
+    // Also remove skills and hooks installed by hopla
+    if (fs.existsSync(SKILLS_DIR)) {
+        itemsToRemove.push({ dest: SKILLS_DIR, label: "~/.claude/skills/", isDir: true });
+    }
+    if (fs.existsSync(HOOKS_DIR)) {
+        itemsToRemove.push({ dest: HOOKS_DIR, label: "~/.claude/hooks/", isDir: true });
+    }
+
+    log(`The following will be removed:`);
+    for (const { label } of itemsToRemove) {
         log(`  ${RED}✕${RESET}  ${label}`);
     }
 
@@ -93,40 +114,34 @@ async function uninstall() {
     }
 
     log("");
-    for (const { dest, label } of filesToRemove) {
-        removeFile(dest, label);
+    for (const { dest, label, isDir } of itemsToRemove) {
+        if (fs.existsSync(dest)) {
+            fs.rmSync(dest, { recursive: isDir });
+            log(`  ${RED}✕${RESET}  Removed: ${label}`);
+        } else {
+            log(`  ${YELLOW}↷${RESET}  Not found: ${label}`);
+        }
     }
 
     log(`\n${GREEN}${BOLD}Done!${RESET} Files removed.\n`);
 }
 
-const LEGACY_FILES = [
-    "code-review-fix.md",
-    "code-review.md",
-    "commit.md",
-    "create-prd.md",
-    "execute.md",
-    "execution-report.md",
-    "plan-feature.md",
-    "prime.md",
-    "system-review.md",
-    "hopla-lang.md",
-    "hopla-commit.md",
-];
-
-function removeLegacyFiles() {
+function removeStaleCommands(currentCommandFiles) {
+    if (!fs.existsSync(COMMANDS_DIR)) return;
+    const currentSet = new Set(currentCommandFiles);
     const removed = [];
-    for (const file of LEGACY_FILES) {
-        const dest = path.join(COMMANDS_DIR, file);
-        if (fs.existsSync(dest)) {
-            fs.rmSync(dest);
+    for (const file of fs.readdirSync(COMMANDS_DIR)) {
+        const filePath = path.join(COMMANDS_DIR, file);
+        if (!fs.statSync(filePath).isFile()) continue;
+        if (file.startsWith("hopla-") && !currentSet.has(file)) {
+            fs.rmSync(filePath);
             removed.push(file);
         }
     }
     if (removed.length > 0) {
-        log(`${CYAN}Cleaning up legacy commands...${RESET}`);
+        log(`${CYAN}Removing stale commands from previous versions...${RESET}`);
         for (const file of removed) {
-            log(`  ${YELLOW}↷${RESET}  Removed legacy: ~/.claude/commands/${file}`);
+            log(`  ${YELLOW}↷${RESET}  Removed: ~/.claude/commands/${file}`);
         }
         log("");
     }
@@ -142,25 +157,6 @@ const PLANNING_COMMANDS = [
     "hopla-git-pr.md",
 ];
 
-function removeExecutionCommands() {
-    const planningSet = new Set(PLANNING_COMMANDS);
-    const removed = [];
-    if (!fs.existsSync(COMMANDS_DIR)) return;
-    for (const file of fs.readdirSync(COMMANDS_DIR)) {
-        if (file.startsWith("hopla-") && !planningSet.has(file)) {
-            fs.rmSync(path.join(COMMANDS_DIR, file));
-            removed.push(file);
-        }
-    }
-    if (removed.length > 0) {
-        log(`${CYAN}Removing execution commands (planning mode)...${RESET}`);
-        for (const file of removed) {
-            log(`  ${RED}✕${RESET}  Removed: ~/.claude/commands/${file}`);
-        }
-        log("");
-    }
-}
-
 async function install() {
     const modeLabel = PLANNING ? "Planning Mode (Robert)" : "Full Install";
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System ${CYAN}[${modeLabel}]${RESET}\n`);
@@ -169,20 +165,7 @@ async function install() {
     fs.mkdirSync(CLAUDE_DIR, { recursive: true });
     fs.mkdirSync(COMMANDS_DIR, { recursive: true });
 
-    // Remove old non-prefixed commands from previous versions
-    removeLegacyFiles();
-
-    // In planning mode, remove any execution commands left from a previous full install
-    if (PLANNING) removeExecutionCommands();
-
-    log(`${CYAN}Installing global rules...${RESET}`);
-    await installFile(
-        path.join(FILES_DIR, "CLAUDE.md"),
-        path.join(CLAUDE_DIR, "CLAUDE.md"),
-        "~/.claude/CLAUDE.md"
-    );
-
-    log(`\n${CYAN}Installing commands...${RESET}`);
+    // Determine which command files will be installed
     const allCommandEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
     const allCommandFiles = allCommandEntries.filter((f) => {
         const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
@@ -195,6 +178,18 @@ async function install() {
     const commandFiles = PLANNING
         ? allCommandFiles.filter((f) => PLANNING_COMMANDS.includes(f))
         : allCommandFiles;
+
+    // Remove stale hopla-* commands not in the current version
+    removeStaleCommands(commandFiles);
+
+    log(`${CYAN}Installing global rules...${RESET}`);
+    await installFile(
+        path.join(FILES_DIR, "CLAUDE.md"),
+        path.join(CLAUDE_DIR, "CLAUDE.md"),
+        "~/.claude/CLAUDE.md"
+    );
+
+    log(`\n${CYAN}Installing commands...${RESET}`);
     for (const file of commandFiles.sort()) {
         await installFile(
             path.join(FILES_DIR, "commands", file),

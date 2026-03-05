@@ -53,6 +53,6 @@ Pending plans:
 - add-user-authentication.md ← ready to execute with /hopla-execute
 ```
 
-End with a sentence like: "Listo para continuar — ¿por dónde empezamos?" or "All caught up — what are we working on today?" depending on the language the user writes in.
+End with a sentence like: "All caught up — what are we working on today?" (adapt to the user's language).
 
 Do NOT use headers in the prose summary. Write it as natural, friendly prose, then the pending plans list if applicable.

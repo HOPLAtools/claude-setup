@@ -7,13 +7,13 @@ Detect the user's intent and execute the appropriate git workflow.
 
 ## Intent Detection
 
-**If the user wants to commit** (keywords: "commit", "comitea", "guarda los cambios", "save changes", "crear commit", "hacer commit"):
+**If the user wants to commit** (keywords: "commit", "save changes", "create commit"):
 - Read and follow the instructions in `commit.md` (located in the same directory as this skill)
 
-**If the user wants to create a PR or push** (keywords: "PR", "pull request", "crea un PR", "abre un PR", "push", "merge request"):
+**If the user wants to create a PR or push** (keywords: "PR", "pull request", "push", "merge request"):
 - Read and follow the instructions in `pr.md` (located in the same directory as this skill)
 
-**If unclear**, ask the user one short question: "¿Commit o Pull Request?" / "Commit or Pull Request?"
+**If unclear**, ask the user one short question: "Commit or Pull Request?"
 
 ## File References
 
