@@ -41,9 +41,7 @@ async function main() {
     }
 
     if (lines.length > 0) {
-        const context = lines.join("\n\n");
-        const output = `Display the following session context to the user as your first message, formatted as a clear summary:\n\n${context}`;
-        process.stdout.write(output);
+        process.stdout.write(lines.join("\n\n"));
     }
 
     process.exit(0);
