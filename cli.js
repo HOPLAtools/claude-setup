@@ -181,7 +181,15 @@ async function install() {
     );
 
     log(`\n${CYAN}Installing commands...${RESET}`);
-    const allCommandFiles = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const allCommandEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const allCommandFiles = allCommandEntries.filter((f) => {
+        const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
+        return stat.isFile();
+    });
+    const allCommandDirs = allCommandEntries.filter((f) => {
+        const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
+        return stat.isDirectory();
+    });
     const commandFiles = PLANNING
         ? allCommandFiles.filter((f) => PLANNING_COMMANDS.includes(f))
         : allCommandFiles;
@@ -191,6 +199,19 @@ async function install() {
             path.join(COMMANDS_DIR, file),
             `~/.claude/commands/${file}`
         );
+    }
+    // Install subdirectories (e.g. guides/)
+    for (const dir of allCommandDirs.sort()) {
+        const srcDir = path.join(FILES_DIR, "commands", dir);
+        const destDir = path.join(COMMANDS_DIR, dir);
+        fs.mkdirSync(destDir, { recursive: true });
+        for (const file of fs.readdirSync(srcDir).sort()) {
+            await installFile(
+                path.join(srcDir, file),
+                path.join(destDir, file),
+                `~/.claude/commands/${dir}/${file}`
+            );
+        }
     }
 
     log(`\n${GREEN}${BOLD}Done!${RESET} Commands available in any Claude Code session:\n`);
