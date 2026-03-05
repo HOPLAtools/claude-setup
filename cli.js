@@ -385,6 +385,7 @@ async function installHooks() {
     if (installSessionPrime && !hasSession) {
         if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
         settings.hooks.SessionStart.push({
+            matcher: "startup",
             hooks: [{ type: "command", command: sessionHookCmd }],
         });
     }
