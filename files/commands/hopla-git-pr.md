@@ -22,9 +22,23 @@ Read the following if they exist:
 
 ## Step 2: Determine Base Branch
 
-- If `$1` is provided, use it as the base branch
-- Otherwise default to `develop` (or `dev` if that's what the project uses)
-- If on `main` or `develop` directly, warn the user: "You're on `[branch]` — PRs should come from feature branches."
+**If `$1` is provided**, use it as the base branch.
+
+**Otherwise, infer from Git Flow branch naming:**
+
+| Current branch prefix | Base branch |
+|---|---|
+| `feature/*` | `develop` or `dev` |
+| `fix/*` | `develop` or `dev` |
+| `hotfix/*` | `main` |
+| `release/*` | `main` |
+
+To resolve `develop` vs `dev`: run `git branch -r` and look for `origin/develop` or `origin/dev`. Use whichever exists.
+
+**Guard rails:**
+- If the current branch is `main`, `master`, `develop`, or `dev` → stop and warn: "You're on `[branch]` — PRs should come from feature branches."
+- If the branch name doesn't match any Git Flow prefix → ask the user: "I can't determine the base branch from `[branch]`. Should this PR target `develop` or `main`?"
+- **Always show the resolved base branch in Step 5** so the user can catch mistakes before the PR is created.
 
 ## Step 3: Check Push Status
 
@@ -82,3 +96,38 @@ gh pr create --title "[title]" --body "[body]" --base [base-branch]
 After creating, show the PR URL to the user.
 
 **Never merge automatically** — the PR is for human review.
+
+## Step 7: Post-Merge Cleanup
+
+After the user confirms the PR was approved and merged on GitHub, run the cleanup workflow based on the branch type:
+
+### For all branch types:
+
+```bash
+git checkout [base-branch]
+git pull origin [base-branch]
+git branch -d [merged-branch]
+git push origin --delete [merged-branch] 2>/dev/null  # skip if GitHub already deleted it
+```
+
+### Additional steps for `hotfix/*` and `release/*`:
+
+These branches were merged to `main` but `develop` also needs the changes:
+
+```bash
+git checkout develop
+git pull origin develop
+git merge main
+git push origin develop
+```
+
+Then create a version tag:
+
+```bash
+git tag -a v[version] -m "Release [version]"
+git push origin v[version]
+```
+
+Ask the user for the version number before tagging.
+
+**Always confirm each destructive action** (branch deletion, tag creation) before executing.
