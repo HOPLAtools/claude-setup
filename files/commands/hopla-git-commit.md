@@ -3,6 +3,8 @@ description: Create a conventional commit with Git Flow awareness
 argument-hint: "[optional: commit message or scope]"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Review the current git state and create an appropriate commit.
 
 ## Step 1: Gather Context

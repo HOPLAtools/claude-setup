@@ -3,6 +3,8 @@ name: hopla-prime
 description: Orients Claude in a project at the start of a session. Use when the user says "orient yourself", "get oriented", "prime yourself", "what is this project", "load context", or asks Claude to familiarize itself with the codebase before starting work.
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Get oriented in this project before doing any work.
 
 ## Step 1: Project Structure
@@ -54,6 +56,6 @@ Pending plans:
 - add-user-authentication.md ← ready to execute with /hopla-execute
 ```
 
-End with a sentence like: "All caught up — what are we working on today?" (adapt to the user's language).
+End with a sentence like: "All caught up — what are we working on today?"
 
 Do NOT use headers in the prose summary. Write it as natural, friendly prose, then the pending plans list if applicable.

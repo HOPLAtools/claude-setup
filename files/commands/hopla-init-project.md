@@ -2,6 +2,8 @@
 description: Initialize a new project with a CLAUDE.md and .agents/ structure
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Set up the Layer 1 planning foundation for this project: a project-specific `CLAUDE.md` with rules and architecture decisions, plus the `.agents/` directory structure.
 
 > Layer 1 = Global Rules (~/.claude/CLAUDE.md) + Project Rules (CLAUDE.md) + PRD

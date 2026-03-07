@@ -1,5 +1,7 @@
 # Hopla Git PR — Full Workflow
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Create a Pull Request on GitHub for the current branch.
 
 ## Step 1: Gather Context

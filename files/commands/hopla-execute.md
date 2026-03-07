@@ -3,6 +3,8 @@ description: Execute a structured plan from start to finish with validation
 argument-hint: "<plan-file-path>"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Execute the implementation plan provided. You are the executing agent — you have not seen the planning conversation. The plan is your only source of truth.
 
 ## Step 1: Load Context

@@ -3,6 +3,8 @@ description: Technical code review on recently changed files
 argument-hint: "[optional: branch or commit range, defaults to HEAD]"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Perform a technical code review focused on finding real bugs and issues.
 
 ## Step 1: Load Context

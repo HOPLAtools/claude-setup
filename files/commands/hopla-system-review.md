@@ -3,6 +3,8 @@ description: Analyze implementation against plan to find process improvements
 argument-hint: "<plan-file> <execution-report-file>"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Perform a meta-level analysis of how well the implementation followed the plan. This is NOT code review — you're looking for bugs in the process, not the code.
 
 ## Inputs

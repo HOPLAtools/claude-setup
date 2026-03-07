@@ -1,5 +1,7 @@
 # Hopla Git Commit — Full Workflow
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Review the current git state and create an appropriate conventional commit.
 
 ## Step 1: Gather Context

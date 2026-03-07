@@ -3,6 +3,8 @@ description: Review a plan before execution — get a concise summary and approv
 argument-hint: "<plan-file-path>"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Review the implementation plan and give the executing developer a clear, concise summary before they commit to running it.
 
 ## Step 1: Read the Plan
@@ -11,7 +13,7 @@ Read `$1` entirely before doing anything else.
 
 ## Step 2: Present Executive Summary
 
-Do NOT reproduce the full plan. Instead, present a structured summary in the user's language:
+Do NOT reproduce the full plan. Instead, present a structured summary:
 
 **Plan: [Feature Name]**
 

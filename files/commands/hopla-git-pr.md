@@ -3,6 +3,8 @@ description: Create a GitHub Pull Request with a structured description
 argument-hint: "[optional: base branch, defaults to develop]"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Create a Pull Request on GitHub for the current branch.
 
 ## Step 1: Gather Context

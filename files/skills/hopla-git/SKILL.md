@@ -3,6 +3,8 @@ name: hopla-git
 description: Handles git operations: creating commits, making pull requests, pushing branches. Use when the user asks to commit, create a commit, save changes to git, make a PR, create a pull request, push the branch, or any git workflow action.
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Detect the user's intent and execute the appropriate git workflow.
 
 ## Intent Detection

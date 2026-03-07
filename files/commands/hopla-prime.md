@@ -2,6 +2,8 @@
 description: Load project context at the start of a session
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Get oriented in this project before doing any work.
 
 ## Step 1: Project Structure
@@ -53,6 +55,6 @@ Pending plans:
 - add-user-authentication.md ← ready to execute with /hopla-execute
 ```
 
-End with a sentence like: "All caught up — what are we working on today?" (adapt to the user's language).
+End with a sentence like: "All caught up — what are we working on today?"
 
 Do NOT use headers in the prose summary. Write it as natural, friendly prose, then the pending plans list if applicable.

@@ -3,6 +3,8 @@ name: hopla-execution-report
 description: Generates an implementation report documenting what was built. Use when the user says "generate the report", "genera el reporte", "documenta lo implementado", "execution report", "document what was done", "write the implementation report", or after finishing a feature before committing.
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Review and document the implementation you just completed. Run this immediately after finishing a feature — before committing or starting the next task.
 
 ## Step 1: Gather Implementation Data

@@ -41,6 +41,10 @@ Follow these as patterns:
   ```
 
 ### 2. Write the command content
+- **First line after frontmatter must be the language directive:**
+  ```
+  > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+  ```
 - Structure with clear steps Claude should follow
 - Be specific — vague instructions lead to inconsistent behavior
 - Reference files or guides the command should read when it runs

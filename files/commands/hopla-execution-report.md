@@ -2,6 +2,8 @@
 description: Generate an implementation report for system review
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Review and document the implementation you just completed. Run this immediately after finishing a feature — before committing or starting the next task.
 
 ## Step 1: Gather Implementation Data

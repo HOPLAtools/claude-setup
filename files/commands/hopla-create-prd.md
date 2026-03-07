@@ -2,6 +2,8 @@
 description: Create or update the PRD for this project through guided questions
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Create or update a `PRD.md` for this project following the Layer 1 Planning approach: an exploratory conversation that defines scope, reduces assumptions, and generates both a `PRD.md` and supporting on-demand context documents.
 
 **If a `PRD.md` already exists**, this command will read it first and only ask about what's missing, outdated, or changing — it will not start from scratch.

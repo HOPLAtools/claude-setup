@@ -3,6 +3,8 @@ name: hopla-code-review
 description: Performs a technical code review on recently changed files. Use when the user says "review the code", "code review", "check my code", "look for issues", or asks for feedback on their implementation.
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Perform a technical code review focused on finding real bugs and issues.
 
 ## Step 1: Load Context

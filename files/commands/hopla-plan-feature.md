@@ -3,6 +3,8 @@ description: Research the codebase and create a structured implementation plan f
 argument-hint: "<feature-name-or-description>"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Transform the requirements discussed in this conversation into a structured plan that another agent can execute without access to this conversation.
 
 ## Phase 1: Understand the Requirements

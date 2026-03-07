@@ -3,6 +3,8 @@ description: Fix issues found in a code review report
 argument-hint: "<review-file-or-description> [scope]"
 ---
 
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 Fix the issues identified in a code review.
 
 ## Inputs
