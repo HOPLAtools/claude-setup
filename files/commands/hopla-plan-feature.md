@@ -25,6 +25,7 @@ Read the following to understand the project:
 2. `README.md` — project overview and setup
 3. `package.json` or `pyproject.toml` — stack, dependencies, scripts
 4. `.agents/guides/` — if this directory exists, read any guides relevant to the feature being planned (e.g. `@.agents/guides/api-guide.md` when planning an API endpoint)
+5. `MEMORY.md` (if it exists at project root or `~/.claude/`) — check for user preferences that affect this feature (UI patterns like modal vs inline, keyboard shortcuts, component conventions)
 
 Then run:
 
@@ -101,10 +102,18 @@ Key files the executing agent must read before starting:
 - **Gotcha:** [Known pitfall or constraint] — or `N/A`
 - **Validate:** [Exact command or check to confirm this task is done correctly]
 
+#### For tasks that create or modify API endpoints, also include:
+- **Validation:** [Required fields, input limits, format constraints (e.g. "IMEI must be exactly 15 digits")]
+- **Error UX:** [What the user sees when this operation fails (e.g. "toast.error with message", "inline error under field")]
+
 ### Task 2: [Action verb + what]
 [Same structure — all 6 fields required]
 
 [Continue for all tasks...]
+
+## Test Tasks
+
+> Every plan must include at least one task that creates or updates tests. If the feature is purely UI with no testable logic, specify which interactions to verify manually and why automated tests are not applicable.
 
 ## Validation Checklist
 
@@ -112,6 +121,7 @@ Run in this order — do not proceed if a level fails:
 
 - [ ] **Level 1 — Lint & Format:** `[project lint command]`
 - [ ] **Level 2 — Type Check:** `[project type check command]`
+- [ ] **Level 2.5 — Code Review:** Run `/hopla-code-review` on changed files
 - [ ] **Level 3 — Unit Tests:** `[project unit test command]`
 - [ ] **Level 4 — Integration Tests:** `[project integration test or manual curl/check]`
 - [ ] **Level 5 — Human Review:** Verify behavior matches requirements above
@@ -138,6 +148,9 @@ Before saving the draft, review the plan against these criteria:
 - [ ] No ambiguous requirements left unresolved
 - [ ] **Data audit complete:** All data sources audited per `.agents/guides/data-audit.md`, with all findings (null cases, value semantics, derived value propagation) documented in Context References and Gotchas
 - [ ] **Working references specified:** Every framework-specific pattern references a proven working implementation with extracted API calls, prop types, and data flow — not just "see file X"
+- [ ] **API validation specified:** Every task that creates/modifies an API endpoint includes Validation (required fields, limits, format) and Error UX (what the user sees on failure)
+- [ ] **Test coverage:** At least one task creates or updates tests — or a justification is provided for why tests are not applicable
+- [ ] **User preferences checked:** MEMORY.md was consulted for UI preferences (modal vs inline, keyboard shortcuts, component conventions) that affect the plan
 
 ## Phase 7: Save Draft and Enter Review Loop
 

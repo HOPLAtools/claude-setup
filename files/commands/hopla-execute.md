@@ -42,12 +42,21 @@ Use when a plan assumption does not match reality:
 - **Recommendation:** [Replan X | Fix Y | Proceed with caution because Z]
 ```
 
-## Step 2: Verify Git Branch
+## Step 2: Verify Git State
 
 ```bash
 git branch --show-current
 git status
 ```
+
+### Clean working tree check
+
+If there are uncommitted changes, **stop and warn the user**:
+> "There are uncommitted changes in the working tree. These will be mixed into the implementation and make it harder to review and revert. Please commit or stash them before continuing."
+
+Do not proceed until the working tree is clean.
+
+### Branch check
 
 Check that the current branch follows Git Flow:
 - **Never execute on `main` or `master`** — stop and warn the user
@@ -116,7 +125,22 @@ If tests fail:
 Run integration tests or manual verification as specified in the plan (e.g. `npm run test:e2e`, manual curl).
 Verify the feature works end-to-end.
 
-### Level 5 — Human Review (flag for user)
+### Level 5 — Code Review
+Run a code review on all changed files following the `/hopla-code-review` process. This catches bugs that linting, types, and tests miss (security issues, logic errors, pattern violations).
+
+If the review finds critical or high severity issues, **fix them before proceeding**.
+
+### Level 6 — File Drift Check
+Compare the files actually changed against the plan's task list:
+
+```bash
+git diff --name-only
+git ls-files --others --exclude-standard
+```
+
+Flag any files that were changed but are **not listed in any task**. These are potential scope leaks — unplanned additions that didn't get the same scrutiny as planned tasks. Report them in the completion summary so the user can review.
+
+### Level 7 — Human Review (flag for user)
 List what the user should manually verify:
 - Specific behaviors to test in the browser or CLI
 - Edge cases to check
@@ -138,11 +162,13 @@ Provide a summary of what was done:
 - [ ] Task 3: [description — if skipped, explain why]
 
 ### Validation Results
-- Level 1 Lint:       ✅ / ❌
-- Level 2 Type Check: ✅ / ❌
-- Level 3 Unit Tests: ✅ [X passed] / ❌ [X failed]
-- Level 4 Integration:✅ / ❌
-- Level 5 Human:      🔍 See items below
+- Level 1 Lint:        ✅ / ❌
+- Level 2 Type Check:  ✅ / ❌
+- Level 3 Unit Tests:  ✅ [X passed] / ❌ [X failed]
+- Level 4 Integration: ✅ / ❌
+- Level 5 Code Review: ✅ [X issues found, all fixed] / ❌
+- Level 6 File Drift:  ✅ [all files in plan] / ⚠️ [X unplanned files]
+- Level 7 Human:       🔍 See items below
 
 ### For Human Review
 - [specific thing to verify manually]
@@ -155,5 +181,4 @@ Provide a summary of what was done:
 
 After the summary, suggest:
 1. Run `/hopla-execution-report` to document this implementation for system review
-2. Run `/hopla-code-review` for a technical quality check
-3. Run `/hopla-git-commit` once everything is approved
+2. Run `/hopla-git-commit` once everything is approved
