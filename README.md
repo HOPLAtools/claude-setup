@@ -226,6 +226,16 @@ Commands are modular — the output of one becomes the input of the next. Some c
 
 ---
 
+## Roadmap
+
+Features under consideration for future versions:
+
+- **Custom subagents** (`.claude/agents/`) — Define specialized agents with their own instructions and skills for large projects with isolated domains (e.g. frontend agent, backend agent)
+- **Hook templates** — Installable hook patterns beyond tsc-check and env-protect (e.g. query deduplication, notification hooks)
+- **GitHub Actions integration** — Automated PR reviews and `@claude` mentions via GitHub App
+
+---
+
 ## Project Structure (after /hopla-init-project)
 
 ```
