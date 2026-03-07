@@ -131,6 +131,18 @@ Run in this order — do not proceed if a level fails:
 - [ ] [Specific, testable criterion]
 - [ ] [Specific, testable criterion]
 
+## Confidence Score: __/10
+
+- **Strengths:** [What is clear and well-understood]
+- **Uncertainties:** [What might change or is not fully known]
+- **Mitigations:** [How uncertainties will be handled]
+
+Scoring guide:
+- 10: Everything is clear, patterns exist, no unknowns
+- 7-9: Minor unknowns but mitigations identified
+- 4-6: Significant unknowns or missing patterns
+- 1-3: High risk, major assumptions unverified
+
 ## Notes for Executing Agent
 [Any important context, warnings, or decisions made during planning that the executing agent needs to know]
 ```
@@ -151,6 +163,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **API validation specified:** Every task that creates/modifies an API endpoint includes Validation (required fields, limits, format) and Error UX (what the user sees on failure)
 - [ ] **Test coverage:** At least one task creates or updates tests — or a justification is provided for why tests are not applicable
 - [ ] **User preferences checked:** MEMORY.md was consulted for UI preferences (modal vs inline, keyboard shortcuts, component conventions) that affect the plan
+- [ ] **Confidence score justified:** Score is provided with specific strengths, uncertainties, and mitigations
 
 ## Phase 7: Save Draft and Enter Review Loop
 
