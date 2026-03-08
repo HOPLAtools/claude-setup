@@ -62,6 +62,8 @@ Check that the current branch follows Git Flow:
 - **Never execute on `main` or `master`** — stop and warn the user
 - **If on `develop`/`dev`** — ask: "You're on `develop`. Should I create a feature branch first? (recommended: `feature/[plan-name]`)"
 - **If on a `feature/`, `fix/`, or `hotfix/` branch** — proceed
+- **If the plan specifies a base branch** (in `## Git Strategy`) — verify the current branch was created from that base. If not, warn the user:
+  > "The plan specifies base branch `[X]` but the current branch was created from `[Y]`. This may cause the PR to target the wrong branch. Continue anyway?"
 
 If a new branch is needed, propose the name and wait for confirmation before creating it:
 ```bash
@@ -98,6 +100,19 @@ Work through each task in the plan sequentially. For each task:
 - The plan's structure or ordering doesn't match conventions used elsewhere in the project
 
 Do not improvise silently. When in doubt, stop and ask.
+
+### Scope Guard
+
+If the user requests changes that are NOT in the plan during execution:
+
+1. **Acknowledge** the request
+2. **Assess** whether it's a small adjustment (< 5 minutes, same files) or a new feature
+3. **If small adjustment:** implement it and flag it as a deviation in the completion report
+4. **If new feature or significant addition:**
+   - Suggest committing the current planned work first
+   - Then create a new branch or add it to the backlog
+   - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `.agents/plans/backlog/` instead?"
+5. **Never** silently add significant unplanned work — scope creep caused the lowest alignment score (6/10) in past implementations
 
 ## Step 5: Run Full Validation Pyramid
 
@@ -180,5 +195,7 @@ Provide a summary of what was done:
 ## Step 7: Suggest Next Steps
 
 After the summary, suggest:
-1. Run `/hopla-execution-report` to document this implementation for system review
-2. Run `/hopla-git-commit` once everything is approved
+1. Run `/hopla-code-review` for a standalone review of the changes (recommended — a fresh review catches issues the executing agent may have missed)
+2. If issues are found, run `/hopla-code-review-fix` to fix them
+3. Run `/hopla-execution-report` to document the implementation
+4. Run `/hopla-git-commit` to commit the changes
