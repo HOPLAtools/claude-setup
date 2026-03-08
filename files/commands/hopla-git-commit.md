@@ -60,3 +60,6 @@ After committing, remind the user:
 > "Commit created locally. Do you want to push to `origin/<branch>`?"
 
 **Never push automatically** — wait for explicit confirmation.
+
+If the user confirms the push (or if the branch was already pushed), suggest:
+> "Ready to create a Pull Request? Run `/hopla-git-pr` to create one."

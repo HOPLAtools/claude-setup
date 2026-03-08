@@ -46,3 +46,8 @@ Provide a summary of:
 - Issues skipped and why (if $2 scope was used)
 - Validation result ✅/❌
 - Any issues that could not be fixed automatically and require human review
+
+## Next Step
+
+After all fixes pass validation, suggest:
+> "All review issues fixed and validation passed. Run `/hopla-execution-report` to document the implementation, then `/hopla-git-commit` to commit."

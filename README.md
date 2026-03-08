@@ -163,20 +163,20 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 ### Feature development (PIV loop)
 ```
-/hopla-prime          → load context at session start
-/hopla-plan-feature   → research codebase and create plan
-/hopla-review-plan    → review plan summary and approve
-/hopla-execute        → implement the plan with validation
-/hopla-code-review    → technical review of changes
-/hopla-code-review-fix → fix issues found
-/hopla-git-commit     → save to git
-/hopla-git-pr         → open pull request on GitHub
+/hopla-prime            → load context at session start
+/hopla-plan-feature     → research codebase and create plan
+/hopla-review-plan      → review plan summary and approve
+/hopla-execute          → implement the plan with validation
+/hopla-code-review      → standalone review of changes
+/hopla-code-review-fix  → fix issues found
+/hopla-execution-report → document what was built
+/hopla-git-commit       → save to git
+/hopla-git-pr           → open pull request on GitHub
 ```
 
 ### After implementation
 ```
-/hopla-execution-report  → document what was built
-/hopla-system-review     → analyze plan vs. actual for process improvements
+/hopla-system-review    → analyze plan vs. actual for process improvements
 ```
 
 > **Tip:** `hopla-prime`, `hopla-git-commit`, `hopla-git-pr`, `hopla-code-review`, and `hopla-execution-report` also exist as skills — they auto-activate when you describe what you want in natural language, without typing the slash command.
@@ -202,25 +202,31 @@ Commands are modular — the output of one becomes the input of the next. Some c
 /hopla-plan-feature add user authentication
 → saves: .agents/plans/add-user-authentication.md
 
-# 2. Execute
+# 2. Review plan
+/hopla-review-plan .agents/plans/add-user-authentication.md
+
+# 3. Execute
 /hopla-execute .agents/plans/add-user-authentication.md
 → implements the plan, runs validation
 
-# 3. Review
+# 4. Code review
 /hopla-code-review
 → saves: .agents/code-reviews/add-user-authentication.md
 
-# 4. Fix issues
+# 5. Fix issues
 /hopla-code-review-fix .agents/code-reviews/add-user-authentication.md
-
-# 5. Commit
-/hopla-git-commit
 
 # 6. Document
 /hopla-execution-report
 → saves: .agents/execution-reports/add-user-authentication.md
 
-# 7. Improve process
+# 7. Commit
+/hopla-git-commit
+
+# 8. Pull request
+/hopla-git-pr
+
+# 9. Process improvement (after PR merge)
 /hopla-system-review .agents/plans/add-user-authentication.md .agents/execution-reports/add-user-authentication.md
 ```
 

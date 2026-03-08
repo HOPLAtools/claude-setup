@@ -64,6 +64,9 @@ Based on research, define:
 - Any risks, edge cases, or gotchas to flag
 - What tests are needed
 - **Derived/computed values:** If any value is calculated from other fields, specify the exact formula including how stored values are interpreted (sign, units, semantics), AND how derived values propagate when inputs change (event system, reactivity, polling, etc.)
+- **Interaction states & edge cases:** For features involving interactive UI (forms, grids, keyboard navigation, wizards, CLI interactions), define a matrix of user interactions and their expected behavior. Cover: all keyboard shortcuts (both directions — e.g., Tab AND Shift+Tab), state transitions (empty → editing → saved → error), and boundary conditions (first item, last item, empty list, maximum items). This prevents iterative fix rounds that consumed up to 40% of session time in past implementations.
+- **API input validation:** For every API endpoint being created or modified, specify: required fields, field format constraints (e.g., "IMEI must be exactly 15 digits"), payload size limits, and what the user sees on validation failure. This was the #2 most common gap in past plans — validation was only added after code review in 4 of 7 implementations.
+- **User preferences check:** Before specifying UI architecture (modal vs. inline, page vs. panel, dialog vs. drawer), verify against MEMORY.md and conversation history for established preferences. In past implementations, plans that specified modals were rejected because the user preferred inline panels — this caused rework. When no preference exists, note it as a decision point for the user to confirm.
 
 ## Phase 5: Generate the Plan
 
@@ -85,6 +88,10 @@ Use this structure:
 ## Out of Scope
 - [Anything explicitly excluded]
 
+## Git Strategy
+- **Base branch:** `[develop | dev | main — specify which branch to create the feature branch from]`
+- **Feature branch:** `feature/[kebab-case-name]`
+
 ## Context References
 Key files the executing agent must read before starting:
 - `[path/to/file]` — [why it's relevant]
@@ -101,19 +108,33 @@ Key files the executing agent must read before starting:
 - **Details:** [Step-by-step description of what to implement]
 - **Gotcha:** [Known pitfall or constraint] — or `N/A`
 - **Validate:** [Exact command or check to confirm this task is done correctly]
+- **Time-box:** [Optional — for tasks with known technical risk, specify a maximum time and fallback. E.g., "30 min max. If auto-sizing doesn't work, fall back to fixed widths." Omit for straightforward tasks.]
 
 #### For tasks that create or modify API endpoints, also include:
 - **Validation:** [Required fields, input limits, format constraints (e.g. "IMEI must be exactly 15 digits")]
 - **Error UX:** [What the user sees when this operation fails (e.g. "toast.error with message", "inline error under field")]
 
 ### Task 2: [Action verb + what]
-[Same structure — all 6 fields required]
+[Same structure — all 6 required fields, plus optional Time-box]
 
 [Continue for all tasks...]
+
+## Interaction Matrix (if applicable)
+
+> Include this section when the feature involves interactive UI (grids, forms, keyboard navigation, drag-and-drop, wizards). Skip for pure backend/API features.
+
+| Action | Context | Expected Behavior |
+|--------|---------|-------------------|
+| [e.g., Tab] | [e.g., Last editable cell in row] | [e.g., Move to first cell of next row] |
+| [e.g., Escape] | [e.g., While editing a cell] | [e.g., Cancel edit, restore previous value] |
+
+Include: keyboard shortcuts (forward AND reverse), mouse interactions, state transitions, boundary conditions (first/last item, empty state, maximum items).
 
 ## Test Tasks
 
 > Every plan must include at least one task that creates or updates tests. If the feature is purely UI with no testable logic, specify which interactions to verify manually and why automated tests are not applicable.
+
+> **Regression check:** If this feature modifies existing interactive functionality (editing flows, keyboard navigation, API endpoints with existing consumers), include a task to smoke-test the existing behavior AFTER implementation. In past implementations, changes to shared utilities broke existing interactions that weren't covered by the plan's task list.
 
 ## Validation Checklist
 
@@ -164,6 +185,9 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Test coverage:** At least one task creates or updates tests — or a justification is provided for why tests are not applicable
 - [ ] **User preferences checked:** MEMORY.md was consulted for UI preferences (modal vs inline, keyboard shortcuts, component conventions) that affect the plan
 - [ ] **Confidence score justified:** Score is provided with specific strengths, uncertainties, and mitigations
+- [ ] **Git strategy specified:** Base branch and feature branch are defined in `## Git Strategy`
+- [ ] **Interaction matrix included:** If the feature involves interactive UI, the `## Interaction Matrix` section is filled out — or explicitly marked as N/A with justification
+- [ ] **Time-box on risky tasks:** Any task involving unfamiliar libraries, heuristic parsing, or known-complex behavior (auto-sizing, animation, real-time sync) has a Time-box with a fallback strategy
 
 ## Phase 7: Save Draft and Enter Review Loop
 
@@ -192,4 +216,4 @@ Before saving the draft, review the plan against these criteria:
 
 **Finalize:**
 1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md` (overwrite if it already exists)
-2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-git-commit` to commit it, then share with the team to execute with `/hopla-execute .agents/plans/[feature-name].md`."
+2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-review-plan .agents/plans/[feature-name].md` to review it, then `/hopla-execute .agents/plans/[feature-name].md` to implement it."
