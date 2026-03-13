@@ -63,3 +63,8 @@ Provide a clear summary:
 If everything passes, confirm the project is healthy.
 
 If anything failed and could not be fixed, list the remaining issues and suggest next steps.
+
+## Next Step
+
+After validation passes, suggest:
+> "All validation levels passed. Consider running `/hopla-code-review` for a deeper analysis — code review catches bugs in 79% of implementations that pass automated validation (stale closures, missing input validation, route shadowing, unhandled promise rejections). Run `/hopla-code-review` to check, or `/hopla-git-commit` to commit directly."
