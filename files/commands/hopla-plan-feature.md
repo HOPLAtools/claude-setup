@@ -44,6 +44,7 @@ Investigate the areas of the codebase relevant to this feature:
 - Locate similar features already implemented to use as reference
 - Find the entry points that will need to be modified or extended
 - Identify potential conflicts or dependencies
+- **DRY check:** Before specifying new utility functions, constants, or helpers in the plan, search for existing implementations that can be reused or extended. DRY violations were the #1 code review finding across 28 implementations.
 
 Use the Grep tool to find relevant files (pattern: relevant keyword, case-insensitive).
 
@@ -66,6 +67,8 @@ Based on research, define:
 - **Derived/computed values:** If any value is calculated from other fields, specify the exact formula including how stored values are interpreted (sign, units, semantics), AND how derived values propagate when inputs change (event system, reactivity, polling, etc.)
 - **Interaction states & edge cases:** For features involving interactive UI (forms, grids, keyboard navigation, wizards, CLI interactions), define a matrix of user interactions and their expected behavior. Cover: all keyboard shortcuts (both directions — e.g., Tab AND Shift+Tab), state transitions (empty → editing → saved → error), and boundary conditions (first item, last item, empty list, maximum items). This prevents iterative fix rounds that consumed up to 40% of session time in past implementations.
 - **API input validation:** For every API endpoint being created or modified, specify: required fields, field format constraints (e.g., "IMEI must be exactly 15 digits"), payload size limits, and what the user sees on validation failure. This was the #2 most common gap in past plans — validation was only added after code review in 4 of 7 implementations.
+- **Bidirectional data interactions:** If feature A updates data that feature B displays, does B need to react? If adding an item triggers validation, does editing trigger re-validation? Map all data mutation → side effect chains, not just keyboard navigation. Missed bidirectional interactions were a recurring planning blind spot.
+- **AI/LLM prompt tasks:** If the plan involves creating or modifying AI prompts (system prompts, prompt templates, LLM-based features), add an explicit task for testing against real data with 2-3 iteration cycles budgeted. AI prompt engineering rarely works on the first attempt.
 - **User preferences check:** Before specifying UI architecture (modal vs. inline, page vs. panel, dialog vs. drawer), verify against MEMORY.md and conversation history for established preferences. In past implementations, plans that specified modals were rejected because the user preferred inline panels — this caused rework. When no preference exists, note it as a decision point for the user to confirm.
 
 ## Phase 5: Generate the Plan
@@ -87,6 +90,11 @@ Use this structure:
 
 ## Out of Scope
 - [Anything explicitly excluded]
+
+## Likely Follow-ups
+[Features or changes naturally adjacent to this work that the user may request during or after execution. Historical data: 71% of sessions had scope expansion. Listing these upfront helps the executing agent handle them via the Scope Guard rather than improvising.]
+- [Follow-up 1]
+- [Follow-up 2]
 
 ## Git Strategy
 - **Base branch:** `[develop | dev | main — specify which branch to create the feature branch from]`
@@ -166,7 +174,19 @@ Scoring guide:
 
 ## Notes for Executing Agent
 [Any important context, warnings, or decisions made during planning that the executing agent needs to know]
+
+> **UI Styling Note:** UI styling specifications (colors, sizes, variants, labels, spacing) are `[provisional]` proposals. Historical data shows these change in 50%+ of implementations based on user feedback. Implement as specified but do not over-invest in pixel-perfect adherence — expect iteration.
 ```
+
+---
+
+### Plan Size Check
+
+After generating the plan, count the implementation tasks (excluding test tasks):
+
+- **3–7 tasks:** Optimal size. Proceed as-is.
+- **8–11 tasks:** Consider grouping tasks into logical phases with intermediate commit points. Add a `## Phase Boundaries` section to the plan listing where commits should happen.
+- **12+ tasks:** The plan should be split into multiple plans or phased with mandatory intermediate commits. Historical data: plans with 12+ tasks scored 6/10 alignment vs 10/10 for 3–7 task plans. Add phase boundaries and consider whether independent task groups can be separate plans.
 
 ---
 
@@ -188,6 +208,8 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Git strategy specified:** Base branch and feature branch are defined in `## Git Strategy`
 - [ ] **Interaction matrix included:** If the feature involves interactive UI, the `## Interaction Matrix` section is filled out — or explicitly marked as N/A with justification
 - [ ] **Time-box on risky tasks:** Any task involving unfamiliar libraries, heuristic parsing, or known-complex behavior (auto-sizing, animation, real-time sync) has a Time-box with a fallback strategy
+- [ ] **Plan size checked:** If >8 tasks, phase boundaries are defined with intermediate commit points. If >12 tasks, split justification is provided or phases are created.
+- [ ] **Likely follow-ups listed:** If the Out of Scope section has items, the Likely Follow-ups section is populated with naturally adjacent work the user may request
 
 ## Phase 7: Save Draft and Enter Review Loop
 

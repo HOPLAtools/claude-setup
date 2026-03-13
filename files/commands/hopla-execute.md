@@ -87,17 +87,21 @@ Work through each task in the plan sequentially. For each task:
 
 1. **Announce** the task you are starting (e.g., "Starting Task 2: Create the filter component")
 2. **Follow the pattern** referenced in the plan — do not invent new patterns
-3. **Implement** only what the task specifies — nothing more
-4. **Validate** the task using the method specified in the plan's validate field
-5. **Report completion** with a brief status: what was done, what was skipped, any decision made
-6. **Do not proceed** to the next task if the current one fails validation
+3. **Check for existing implementations** — before creating new functions, constants, or utility modules, search the codebase for existing implementations that serve the same purpose. Reuse or extend rather than duplicate. DRY violations were the #1 code quality issue across 28 implementations.
+4. **Implement** only what the task specifies — nothing more
+5. **Validate** the task using the method specified in the plan's validate field
+6. **Report completion** with a brief status: what was done, what was skipped, any decision made
+7. **Do not proceed** to the next task if the current one fails validation
 
-**Git strategy:** Do not commit after individual tasks. Keep all changes staged but uncommitted until the full plan passes validation (Step 5). This allows a clean revert if later tasks fail.
+**Git strategy:**
+- **Plans with 1–7 tasks:** Do not commit after individual tasks. Keep all changes staged but uncommitted until the full plan passes validation (Step 5). This allows a clean revert if later tasks fail.
+- **Plans with 8+ tasks (or plans with `## Phase Boundaries`):** Commit at each phase boundary defined in the plan. Run Level 1–2 validation (lint + types) before each intermediate commit. Use commit message format: `feat(<scope>): <feature> — phase N of M`. This prevents losing work on large implementations if later phases fail.
 
 **Pause and report if, during implementation:**
 - A task is ambiguous or has multiple valid implementations
 - Something unexpected is discovered that could affect subsequent tasks
 - The plan's structure or ordering doesn't match conventions used elsewhere in the project
+- A new API route might shadow or be shadowed by an existing parameterized route (check route ordering — e.g., `/users/all` must be defined before `/users/:id`)
 
 Do not improvise silently. When in doubt, stop and ask.
 
@@ -107,7 +111,7 @@ If the user requests changes that are NOT in the plan during execution:
 
 1. **Acknowledge** the request
 2. **Assess** whether it's a small adjustment (< 5 minutes, same files) or a new feature
-3. **If small adjustment:** implement it and flag it as a deviation in the completion report
+3. **If small adjustment:** implement it and flag it as a deviation in the completion report. Even for small adjustments, validate with the same rigor as planned tasks — check for DRY violations, verify pattern adherence, and run the relevant validation level before moving on.
 4. **If new feature or significant addition:**
    - Suggest committing the current planned work first
    - Then create a new branch or add it to the backlog

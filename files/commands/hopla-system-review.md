@@ -30,8 +30,9 @@ If no matching review exists, continue with Step 1.
 
 ## Step 1: Load All Context
 
-Read these four artifacts in order:
+Read these artifacts in order:
 
+0. `.agents/system-reviews/` — Read ALL previous system review files (if any exist) to identify recurring patterns. Pay special attention to: bug categories that appear across multiple reviews, process improvement suggestions that were made before but not yet applied, and alignment score trends (improving or declining).
 1. `.claude/commands/plan-feature.md` — understand how plans are created
 2. **$1** (the plan) — what the agent was supposed to do
 3. `.claude/commands/execute.md` — understand how execution is guided
@@ -76,6 +77,23 @@ For each problematic divergence, identify the root cause:
 - Was context missing? Where and why?
 - Was a validation step missing?
 - Was a manual step repeated that should be automated?
+
+## Step 5.5: Cross-Review Pattern Detection
+
+If previous system reviews exist in `.agents/system-reviews/`, compare the current findings against them:
+
+### Recurring Bug Patterns
+For each bug category in this implementation, check if the same category appeared in previous reviews. If a pattern appears 3+ times:
+- Flag it as a **systemic issue** that needs a structural fix (not just a process note)
+- Suggest adding it to `.agents/guides/review-checklist.md` as a project-specific check
+- Example: "Stale closure bugs found in 3 of last 5 implementations → add to review checklist"
+
+### Unresolved Improvements
+Cross-reference improvement suggestions from previous reviews. If a suggestion was made before and NOT yet applied:
+- Check if the suggested CLAUDE.md update was made
+- Check if the suggested command update was made
+- Check if the suggested guide was created
+- List any improvements that were suggested 2+ reviews ago and are still pending
 
 ## Step 6: Generate Process Improvements
 
@@ -141,6 +159,13 @@ root_cause: [unclear plan | missing context | missing validation | other]
 **What worked well:** [specific things]
 **What needs improvement:** [specific process gaps]
 **For next implementation:** [concrete changes to try]
+
+### Cross-Review Trends (if previous reviews exist)
+
+- **Recurring bug categories:** [list categories that appeared in 2+ reviews, with count — e.g., "stale closures: 3 occurrences"]
+- **Improvement backlog:** [list suggestions from previous reviews not yet applied]
+- **Alignment trend:** [list last 3–5 alignment scores with feature names, e.g., "parse-cache: 10, multi-org: 6, colors: 7"]
+- **Systemic issues:** [patterns appearing 3+ times that need structural fixes, not just process notes]
 
 ---
 
