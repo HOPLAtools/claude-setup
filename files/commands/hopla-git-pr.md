@@ -104,7 +104,7 @@ After showing the PR URL, suggest:
 
 After the user confirms the PR was approved and merged on GitHub, run the cleanup workflow based on the branch type:
 
-### For all branch types:
+### For feature and fix branches (merged to `dev`/`develop`):
 
 ```bash
 git checkout [base-branch]
@@ -113,7 +113,9 @@ git branch -d [merged-branch]
 git push origin --delete [merged-branch] 2>/dev/null  # skip if GitHub already deleted it
 ```
 
-### Additional steps for `hotfix/*` and `release/*`:
+**Important:** When `dev` is merged to `main` via PR, do NOT pull `main` back into `dev` — `dev` already has all the commits. Only sync `main` → `dev` for hotfix/release branches (see below).
+
+### Additional steps for `hotfix/*` and `release/*` ONLY:
 
 These branches were merged to `main` but `develop` also needs the changes:
 
