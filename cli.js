@@ -180,6 +180,7 @@ async function install() {
     // Determine which command files will be installed
     const allCommandEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
     const allCommandFiles = allCommandEntries.filter((f) => {
+        if (f.startsWith(".")) return false;
         const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
         return stat.isFile();
     });
