@@ -89,3 +89,8 @@ If no issues found: "Code review passed. No technical issues detected."
 - Focus on real bugs, not style preferences (linting handles that)
 - Flag security issues as `critical`
 - Suggest fixes, don't just identify problems
+
+## Next Step
+
+After the review, suggest:
+> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, run `/hopla-code-review-fix .agents/code-reviews/[name].md` to fix them. If the review passed clean, proceed to `/hopla-execution-report`."

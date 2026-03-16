@@ -26,8 +26,10 @@
 cli.js               ← CLI entry point (single file, Node built-ins only)
 files/
 ├── CLAUDE.md        ← Global rules template → installed to ~/.claude/CLAUDE.md
-└── commands/        ← Slash commands → installed to ~/.claude/commands/
-    └── hopla-*.md
+├── commands/        ← Slash commands → installed to ~/.claude/commands/
+│   └── hopla-*.md
+└── skills/          ← Auto-triggered skills → installed to ~/.claude/skills/
+    └── <name>/SKILL.md
 package.json         ← npm metadata and version
 README.md            ← Public documentation
 ```
@@ -41,7 +43,9 @@ create ~/.claude/ dirs
 → setupPermissions()           → ~/.claude/settings.json
 ```
 
-**Key rule:** New commands in `files/commands/` are **auto-discovered** — no changes to `cli.js` needed when adding one.
+**Key rules:**
+- New commands in `files/commands/` are **auto-discovered** — no changes to `cli.js` needed when adding one
+- **Never duplicate** a command and a skill with the same name — both appear in Claude's autocomplete, causing duplicates. Use commands for explicit `/slash` invocation only; use skills for auto-triggered behavior
 
 ---
 

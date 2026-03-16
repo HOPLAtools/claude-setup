@@ -80,9 +80,22 @@ async function uninstall() {
         fs.statSync(path.join(FILES_DIR, "commands", f)).isDirectory()
     );
 
+    // Also include any hopla-* files in ~/.claude/commands/ not in current source
+    // (leftovers from previous versions)
+    const installedHoplaFiles = fs.existsSync(COMMANDS_DIR)
+        ? fs.readdirSync(COMMANDS_DIR).filter((f) =>
+            f.startsWith("hopla-") && fs.statSync(path.join(COMMANDS_DIR, f)).isFile() && !srcFiles.includes(f)
+        )
+        : [];
+
     const itemsToRemove = [
         { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md", isDir: false },
         ...srcFiles.map((file) => ({
+            dest: path.join(COMMANDS_DIR, file),
+            label: `~/.claude/commands/${file}`,
+            isDir: false,
+        })),
+        ...installedHoplaFiles.map((file) => ({
             dest: path.join(COMMANDS_DIR, file),
             label: `~/.claude/commands/${file}`,
             isDir: false,
@@ -149,7 +162,6 @@ function removeStaleCommands(currentCommandFiles) {
 
 const PLANNING_COMMANDS = [
     "hopla-init-project.md",
-    "hopla-prime.md",
     "hopla-create-prd.md",
     "hopla-plan-feature.md",
     "hopla-review-plan.md",
