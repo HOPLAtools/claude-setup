@@ -18,13 +18,53 @@ Before asking anything, check what already exists:
 
 If a `CLAUDE.md` already exists at the project root, tell the user and ask if they want to update it or start fresh.
 
-## Step 2: Default Stack or Custom
+## Step 2: Understand the Product
 
-Present the **Hopla Default Stack** to the user:
+Check if a `PRD.md` or `PRD.draft.md` exists in the project root.
+
+### Path A — PRD exists (recommended flow)
+
+If a PRD is found, read it and extract:
+- Product name and description
+- Core features and capabilities
+- Target users and usage patterns
+- Technology preferences or constraints mentioned
+- External integrations or services
+
+Tell the user:
+> "I found the PRD for [product name]. I'll use it to recommend the right stack for this project."
+
+Then skip directly to **Step 3** (Recommend Stack).
+
+### Path B — No PRD found
+
+Ask the user:
+> "I don't see a PRD yet. Tell me about the project — what are you building? What does it do, who is it for, and what are the main things a user can do with it?"
+
+Wait for the answer. If the description is too short or vague, ask **product-focused** follow-up questions like:
+- "Who uses this — is it internal for your team, or for external customers?"
+- "What's the main thing a user does when they open the app?"
+- "Does it work with lists or tables of data? Like orders, products, users..."
+- "Do users need to log in? Can anyone sign up, or is it invite-only?"
+- "Does it need to talk to any external services or APIs?"
+- "Is there anything that runs in the background — imports, syncs, notifications?"
+
+**Do NOT ask technical questions.** The user describes the product; you infer the technical needs. For example:
+- "dashboard with a list of orders" → needs AG Grid, backend API
+- "users log in with Google" → needs Firebase Auth + JOSE
+- "imports a CSV and processes it in the background" → needs Durable Objects
+- "simple landing page with a contact form" → frontend only, no backend needed
+- "shows charts and trends over time" → needs Recharts
+
+Then proceed to **Step 3**.
+
+## Step 3: Recommend Stack
+
+Based on the PRD or the user's description, evaluate against the **Hopla Default Stack** and present a recommendation.
+
+### Hopla Default Stack (baseline)
 
 ```
-Hopla Default Stack:
-
 Frontend:
 - Language:        TypeScript (strict: false)
 - UI Framework:    React 19 + React Router 7
@@ -69,61 +109,64 @@ worker/
 │   └── types/         <- backend type definitions
 ```
 
-Ask the user:
-> "This is the Hopla default stack. Do you want to use it as-is, or would you prefer to customize it?"
+### How to present the recommendation
 
-**Option A — Use default:** Skip directly to Step 2.1 (ask only project name and any reference guides), then proceed to Step 3.
+**If the default stack covers everything:**
+> "Based on [the PRD / what you described], the Hopla default stack covers this project well. Here's what we'll use: [show stack]. Does this look good, or do you want to adjust anything?"
 
-**Option B — Customize:** Proceed to Step 2.2 (full conversational discovery).
+**If the default stack needs additions or removals:**
+> "The default stack covers most of it, but based on your needs I'd recommend these changes: [list additions/removals with reasoning]. Here's the adjusted stack: [show modified stack]. Does this look good?"
 
-### Step 2.1: Quick Setup (Default Stack)
+Examples of adjustments:
+- Project doesn't need data tables → remove AG Grid
+- Project doesn't need auth → remove Firebase + JOSE
+- Project doesn't need a backend → remove worker/, Hono, D1, KV, DO
+- Project needs real-time/WebSockets → add Durable Objects
+- Project needs file uploads → note Cloudflare R2
+- Project needs charts → add Recharts
+- Project needs i18n → add i18next + react-i18next
+- Project needs a specific library the user mentioned → add it
 
-Ask only these minimal questions:
+**If the project is fundamentally different from the default** (e.g. Python backend, mobile app, CLI tool):
+> "This project doesn't fit the default stack. Let me ask a few questions to define the right stack for it."
+Then proceed to the full conversational discovery (Step 3.1).
 
-1. **Project name** — What should I call this project?
-2. **Project description** — One-line summary of what this project does.
-3. **Reference Guides** (optional) — Are there specific task types that need step-by-step guidance? (e.g. "When adding a page", "When creating an API route"). If none, skip this — guides can always be added later.
+### Step 3.1: Full Conversational Discovery (only if default doesn't fit)
 
-Then proceed to Step 3 using the default stack values for all other fields.
+Ask one topic at a time. Wait for each answer before continuing.
 
-### Step 2.2: Custom Setup (Conversational Discovery)
+**Topic A — Tech Stack**
+- What languages, frameworks, and key libraries?
+- What versions matter?
+- What package manager?
 
-Ask one topic at a time. Wait for each answer before continuing. For each topic, show the default value so the user can just confirm or override.
+**Topic B — Architecture**
+- How is the project structured?
+- What are the main layers or modules?
+- Naming conventions for files and folders?
 
-**Topic A — Tech Stack** (default: TypeScript, React 19, Vite, Tailwind CSS 4, Shadcn UI, npm)
-- What languages, frameworks, and key libraries does this project use?
-- What versions matter? (e.g. Python 3.12, FastAPI 0.118, React 19)
-- What package manager? (npm, bun, uv, pip, etc.)
+**Topic C — Code Style**
+- Naming conventions? TypeScript strict mode?
+- Linting/formatting tools?
 
-**Topic B — Architecture** (default: modules-based under src/ + worker/)
-- How is the project structured? (e.g. layered, vertical slices, feature-based)
-- What are the main layers or modules? (e.g. routes -> services -> models)
-- Are there naming conventions for files and folders?
+**Topic D — Testing**
+- Framework? Structure? Naming?
 
-**Topic C — Code Style** (default: ESLint + Prettier, TypeScript strict: false)
-- Any strict naming conventions? (e.g. verbose fields like `product_id`, snake_case, camelCase)
-- TypeScript strict mode?
-- Linting/formatting tools and configs? (ESLint, Biome, Prettier, Ruff)
-
-**Topic D — Testing** (default: Vitest)
-- Testing framework? (vitest, jest, pytest)
-- Test structure? (colocated, mirrors source, separate folder)
-- Any naming conventions for tests?
-
-**Topic E — Development Commands** (default: Vite + Wrangler scripts)
-- How do you run the dev server?
-- How do you run tests?
-- How do you lint/format?
-- Any other key commands the AI should know?
+**Topic E — Development Commands**
+- Dev server? Tests? Lint/format? Other key commands?
 
 **Topic F — Reference Guides**
-- Are there specific task types that need extra guidance?
-  (e.g. "When adding an API endpoint", "When creating a React component")
-- For each task type identified: what are the exact steps? What files to follow as pattern? What pitfalls to avoid?
+- Specific task types that need step-by-step guidance?
 
-Collect enough detail to write a full guide for each task type — not just the name, but the actual patterns, file structure, and constraints.
+## Step 4: Collect Project Info
 
-## Step 3: Generate CLAUDE.md
+Once the stack is confirmed, ask only what's NOT already known from the PRD or conversation:
+
+1. **Project name** — skip if already in PRD
+2. **Project description** — skip if already in PRD
+3. **Reference Guides** (optional) — Are there specific task types that need step-by-step guidance? (e.g. "When adding a page", "When creating an API route"). If none, skip — guides can always be added later.
+
+## Step 5: Generate CLAUDE.md
 
 Save to `CLAUDE.md` at the project root. Use this structure:
 
@@ -274,9 +317,9 @@ This guide covers: [bullet list]
 
 **For custom stack projects**, fill in the values collected during Step 2.2 following the same structure.
 
-## Step 3.5: Generate Reference Guides
+## Step 5.5: Generate Reference Guides
 
-For each task type identified (in Step 2.1 or Topic F), create a guide at `.agents/guides/[kebab-case-task-name].md`.
+For each task type identified (in Step 4 or Step 3.1), create a guide at `.agents/guides/[kebab-case-task-name].md`.
 
 Use this template for every guide:
 
@@ -378,7 +421,7 @@ Read: `.agents/guides/feature-module.md`
 This guide covers: module structure, components, hooks, routing
 ```
 
-## Step 4: Create .agents/ Structure
+## Step 6: Create .agents/ Structure
 
 Create the following directories (with `.gitkeep` where needed):
 
@@ -398,7 +441,7 @@ Add to `.gitignore` (create if it doesn't exist):
 .agents/system-reviews/
 ```
 
-## Step 5: Create .claude/commands/ (optional but recommended)
+## Step 7: Create .claude/commands/ (optional but recommended)
 
 Create `.claude/commands/` at the project root for project-specific commands that override or extend the global ones.
 
@@ -422,7 +465,7 @@ Ask the user: "Do you want me to create a project-specific `/validate` command?"
 
 If yes, create `.claude/commands/validate.md`.
 
-## Step 6: Confirm and Save
+## Step 8: Confirm and Save
 
 Show the draft `CLAUDE.md` to the user and ask:
 > "Does this accurately reflect the project's rules? Any corrections before I save it?"
@@ -431,5 +474,6 @@ Once confirmed:
 1. Save `CLAUDE.md` to the project root
 2. Create `.agents/` directory structure
 3. Update `.gitignore`
-4. Tell the user: "Project initialized. Run `/hopla-create-prd` next to define the product scope, or `/hopla-plan-feature` to start planning a feature."
+4. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla-create-prd` next to define the product scope, or `/hopla-plan-feature` to start planning a feature."
+   If a PRD already exists, tell the user: "Project initialized. Run `/hopla-plan-feature` to start planning the first feature."
 5. Suggest running `/hopla-git-commit` to save everything

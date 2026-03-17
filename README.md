@@ -101,7 +101,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 | Command | Description |
 |---|---|
-| `/hopla-init-project` | Initialize project CLAUDE.md and .agents/ structure |
+| `/hopla-init-project` | Read PRD, recommend stack, create CLAUDE.md and .agents/ structure |
 | `/hopla-prime` | Load project context at the start of a session |
 | `/hopla-create-prd` | Create a Product Requirements Document through guided questions |
 | `/hopla-plan-feature` | Research codebase and create a structured implementation plan |
@@ -156,8 +156,8 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 ### Starting a new project
 ```
-/hopla-init-project   → creates CLAUDE.md + .agents/ structure
-/hopla-create-prd     → defines product scope (PRD.md)
+/hopla-create-prd     → define what you're building (PRD.md)
+/hopla-init-project   → reads PRD, recommends stack, creates CLAUDE.md + .agents/
 /hopla-git-commit     → saves Layer 1 foundation to git
 ```
 
@@ -242,12 +242,12 @@ Features under consideration for future versions:
 
 ---
 
-## Project Structure (after /hopla-init-project)
+## Project Structure (after /hopla-create-prd + /hopla-init-project)
 
 ```
 project/
-├── CLAUDE.md                      ← Project-specific rules
 ├── PRD.md                         ← Product scope (from /hopla-create-prd)
+├── CLAUDE.md                      ← Project rules and stack (from /hopla-init-project)
 ├── .agents/
 │   ├── plans/                     ← Implementation plans (commit these)
 │   ├── guides/                    ← On-demand reference guides (commit these)
