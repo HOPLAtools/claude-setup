@@ -2,7 +2,7 @@
 description: Initialize a new project with a CLAUDE.md and .agents/ structure
 ---
 
-> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+> **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
 Set up the Layer 1 planning foundation for this project: a project-specific `CLAUDE.md` with rules and architecture decisions, plus the `.agents/` directory structure.
 
@@ -18,31 +18,99 @@ Before asking anything, check what already exists:
 
 If a `CLAUDE.md` already exists at the project root, tell the user and ask if they want to update it or start fresh.
 
-## Step 2: Conversational Discovery
+## Step 2: Default Stack or Custom
 
-Ask one topic at a time. Wait for each answer before continuing.
+Present the **Hopla Default Stack** to the user:
 
-**Topic A — Tech Stack**
+```
+Hopla Default Stack:
+
+Frontend:
+- Language:        TypeScript (strict: false)
+- UI Framework:    React 19 + React Router 7
+- Bundler:         Vite
+- Styling:         Tailwind CSS 4 + Shadcn UI
+- Data Tables:     AG Grid Community
+- Forms:           React Hook Form + Zod
+- Icons:           Lucide React
+- Testing:         Vitest
+- Linting:         ESLint
+- Formatting:      Prettier
+
+Backend:
+- Runtime:         Cloudflare Workers
+- Routing:         Hono
+- Database:        Cloudflare D1 (SQLite)
+- Cache:           Cloudflare KV
+- Stateful Logic:  Cloudflare Durable Objects (if needed)
+- Auth:            Firebase (Google Sign-In) + JOSE (if needed)
+
+Package manager:   npm
+Path alias:        @/* -> ./src/*
+
+Architecture:
+src/
+├── components/        <- shared UI components
+│   ├── common/        <- generic reusable components
+│   └── ui/            <- Shadcn primitives (do not edit)
+├── modules/           <- self-contained feature modules
+│   └── [feature]/     <- components, hooks, view per feature
+├── hooks/             <- shared hooks
+├── lib/               <- utilities and helpers
+├── types/             <- shared TypeScript types
+├── layouts/           <- sidebar, topbar, app shell
+├── pages/             <- page-level components
+└── main.tsx           <- entry point
+worker/
+├── src/
+│   ├── index.ts       <- worker entry point, route registration
+│   ├── routes/        <- API route handlers (one file per domain)
+│   ├── lib/           <- backend utilities, auth, business logic
+│   └── types/         <- backend type definitions
+```
+
+Ask the user:
+> "This is the Hopla default stack. Do you want to use it as-is, or would you prefer to customize it?"
+
+**Option A — Use default:** Skip directly to Step 2.1 (ask only project name and any reference guides), then proceed to Step 3.
+
+**Option B — Customize:** Proceed to Step 2.2 (full conversational discovery).
+
+### Step 2.1: Quick Setup (Default Stack)
+
+Ask only these minimal questions:
+
+1. **Project name** — What should I call this project?
+2. **Project description** — One-line summary of what this project does.
+3. **Reference Guides** (optional) — Are there specific task types that need step-by-step guidance? (e.g. "When adding a page", "When creating an API route"). If none, skip this — guides can always be added later.
+
+Then proceed to Step 3 using the default stack values for all other fields.
+
+### Step 2.2: Custom Setup (Conversational Discovery)
+
+Ask one topic at a time. Wait for each answer before continuing. For each topic, show the default value so the user can just confirm or override.
+
+**Topic A — Tech Stack** (default: TypeScript, React 19, Vite, Tailwind CSS 4, Shadcn UI, npm)
 - What languages, frameworks, and key libraries does this project use?
 - What versions matter? (e.g. Python 3.12, FastAPI 0.118, React 19)
 - What package manager? (npm, bun, uv, pip, etc.)
 
-**Topic B — Architecture**
+**Topic B — Architecture** (default: modules-based under src/ + worker/)
 - How is the project structured? (e.g. layered, vertical slices, feature-based)
-- What are the main layers or modules? (e.g. routes → services → models)
+- What are the main layers or modules? (e.g. routes -> services -> models)
 - Are there naming conventions for files and folders?
 
-**Topic C — Code Style**
+**Topic C — Code Style** (default: ESLint + Prettier, TypeScript strict: false)
 - Any strict naming conventions? (e.g. verbose fields like `product_id`, snake_case, camelCase)
-- TypeScript strict mode? Pydantic validation?
-- Linting/formatting tools and configs? (Ruff, ESLint, Biome, Prettier)
+- TypeScript strict mode?
+- Linting/formatting tools and configs? (ESLint, Biome, Prettier, Ruff)
 
-**Topic D — Testing**
-- Testing framework? (pytest, vitest, jest)
-- Test structure? (mirrors source, separate folder, colocated)
+**Topic D — Testing** (default: Vitest)
+- Testing framework? (vitest, jest, pytest)
+- Test structure? (colocated, mirrors source, separate folder)
 - Any naming conventions for tests?
 
-**Topic E — Development Commands**
+**Topic E — Development Commands** (default: Vite + Wrangler scripts)
 - How do you run the dev server?
 - How do you run tests?
 - How do you lint/format?
@@ -59,44 +127,139 @@ Collect enough detail to write a full guide for each task type — not just the 
 
 Save to `CLAUDE.md` at the project root. Use this structure:
 
+**For default stack projects**, use these pre-filled values:
+
 ```markdown
 # [Project Name] — Development Rules
 
 ## 1. Core Principles
 
-[3-5 non-negotiable rules for this codebase, e.g. naming conventions, logging, type safety]
+- Functional React only — hooks, no class components
+- Feature modules are self-contained under `src/modules/`
+- Shadcn UI components in `src/components/ui/` are NOT to be edited
+- Code and comments in English, user-facing strings can be localized
+- Always run `npm run format` after making code changes
 
 ---
 
 ## 2. Tech Stack
 
-[List technologies with versions]
+### Frontend
+
+| Tool | Version | Purpose |
+|---|---|---|
+| React | 19 | UI framework |
+| TypeScript | 5.x | Type safety (strict: false) |
+| React Router | v7 | Client-side routing |
+| Vite | 7.x | Build tool + dev server |
+| Tailwind CSS | 4.x | Styling |
+| Shadcn UI + Radix | — | Accessible component primitives |
+| AG Grid Community | 35.x | Data tables and grids |
+| React Hook Form + Zod | — | Form handling and validation |
+| Lucide React | — | Icons (always use Lucide) |
+| Vitest | — | Unit testing |
+
+### Backend
+
+| Tool | Version | Purpose |
+|---|---|---|
+| Cloudflare Workers | — | Serverless runtime |
+| Cloudflare D1 | — | SQLite on the edge (database) |
+| Cloudflare KV | — | Key-value cache layer |
+| Cloudflare Durable Objects | — | Stateful long-running logic (if needed) |
+| Hono | 4.x | HTTP routing framework |
+| Firebase + JOSE | — | Authentication, Google Sign-In (if needed) |
 
 ---
 
 ## 3. Architecture
 
-[Describe the layer structure, file organization, and key patterns]
+```
+src/
+├── components/        <- shared UI components
+│   ├── common/        <- generic reusable components
+│   └── ui/            <- Shadcn primitives (do not edit)
+├── modules/           <- self-contained feature modules
+│   └── [feature]/     <- components, hooks, view per feature
+├── hooks/             <- shared hooks
+├── lib/               <- utilities and helpers (api, firebase, utils)
+├── types/             <- shared TypeScript types (index.ts)
+├── layouts/           <- sidebar, topbar, app shell
+├── pages/             <- page-level components (login, 404)
+├── App.tsx            <- root router
+├── main.tsx           <- entry point
+└── index.css          <- global styles
+worker/
+├── src/
+│   ├── index.ts       <- worker entry, route registration
+│   ├── routes/        <- API route handlers (one file per domain)
+│   ├── lib/           <- backend utilities, auth, business logic
+│   └── types/         <- backend type definitions
+├── wrangler.jsonc     <- Cloudflare Workers config
+└── migrations/        <- D1 SQLite migrations (numbered, sequential)
+```
+
+Key rules:
+- Feature modules in `src/modules/` are self-contained with their own components and hooks
+- Shared hooks go in `src/hooks/`, feature-specific ones stay in the module
+- All data tables use AG Grid Community — Shadcn UI for everything else
+- All icons use Lucide React — no other icon libraries
+- All API routes are under `/api`, organized by domain in `worker/src/routes/`
+- Backend uses prepared statements for D1 queries
+- Durable Objects for stateful long-running operations (if needed)
 
 ---
 
 ## 4. Code Style
 
-### [Language/Layer]
-[Naming conventions, formatting rules, with short code examples]
+### TypeScript
+- strict: false
+- Path alias: `@/*` maps to `./src/*`
+- Interfaces for object shapes, types for unions/intersections
+- Named exports preferred
+
+### React
+- Functional components only
+- Props defined as interface above the component
+- File name matches component name: `UserCard.tsx` exports `UserCard`
+
+### Naming
+- Components: `PascalCase.tsx`
+- Hooks: `useCamelCase.ts`
+- Utilities: `camelCase.ts`
+- Types/Interfaces: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Route files: `kebab-case.ts`
+
+### Backend (Hono)
+- One route file per domain in `worker/src/routes/`
+- Register static routes BEFORE parameterized routes
+- Use prepared statements for D1 queries
+- Auth middleware on protected routes
 
 ---
 
 ## 5. Testing
 
-[Framework, structure, naming conventions, how to run]
+- **Framework:** Vitest
+- **Run:** `npm run test` (vitest run)
 
 ---
 
 ## 6. Development Commands
 
 ```bash
-[command]  # description
+npm run dev              # Vite frontend dev server
+npm run dev:worker       # Wrangler worker only
+npm run dev:full         # Both frontend and worker concurrently
+npm run build            # Production build
+npm run deploy           # Deploy to Cloudflare Workers
+npm run db:migrate       # Apply pending D1 migrations (local)
+npm run db:migrate:remote # Apply pending D1 migrations (production)
+npm run typecheck        # TypeScript type checking (tsc -b --noEmit)
+npm run lint             # ESLint
+npm run format           # Prettier formatting
+npm run test             # Vitest unit tests
 ```
 
 ---
@@ -109,9 +272,11 @@ Read: `.agents/guides/[guide-name].md`
 This guide covers: [bullet list]
 ```
 
+**For custom stack projects**, fill in the values collected during Step 2.2 following the same structure.
+
 ## Step 3.5: Generate Reference Guides
 
-For each task type identified in Topic F, create a guide at `.agents/guides/[kebab-case-task-name].md`.
+For each task type identified (in Step 2.1 or Topic F), create a guide at `.agents/guides/[kebab-case-task-name].md`.
 
 Use this template for every guide:
 
@@ -120,7 +285,7 @@ Use this template for every guide:
 
 ## When to Use This Guide
 
-Load this guide when: [exact trigger condition, e.g. "adding a new API endpoint", "creating a React component"]
+Load this guide when: [exact trigger condition, e.g. "adding a new API route", "creating a React component"]
 
 ---
 
@@ -129,13 +294,15 @@ Load this guide when: [exact trigger condition, e.g. "adding a new API endpoint"
 [Describe the layer structure for this task type. e.g.:]
 
 ```
-Request → router/[resource].ts → service/[resource]Service.ts → model/[Resource].ts → DB
+src/modules/[feature]/components/[Component].tsx
+src/modules/[feature]/hooks/use[Hook].ts
+worker/src/routes/[domain].ts
 ```
 
 Key rules:
-- [Rule 1: e.g. "All business logic goes in the service layer, never in the router"]
-- [Rule 2: e.g. "Always validate input with Zod before passing to service"]
-- [Rule 3: e.g. "Return typed responses, never raw DB objects"]
+- [Rule 1: e.g. "All business logic goes in hooks or backend services, never in components"]
+- [Rule 2: e.g. "Use prepared statements for all D1 queries"]
+- [Rule 3: e.g. "Register static routes before parameterized routes"]
 
 ---
 
@@ -165,7 +332,7 @@ Follow these existing implementations as pattern:
 
 ## Code Examples
 
-### [Filename pattern, e.g. router/products.ts]
+### [Filename pattern, e.g. worker/src/routes/products.ts]
 ```[language]
 // Example showing the exact pattern to follow
 [concrete code snippet]
@@ -188,25 +355,27 @@ Follow these existing implementations as pattern:
 ## Validation
 
 After implementing, verify:
-- [ ] `[exact lint/type check command]`
-- [ ] `[exact test command]`
-- [ ] [Manual check: e.g. "curl the endpoint and confirm response shape"]
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm run test`
+- [ ] `npm run format`
+- [ ] [Manual check if applicable]
 ```
 
-**Important:** Guides must contain concrete, project-specific information — not generic advice. If the user's answers in Topic F don't have enough detail for a section, ask a follow-up before writing the guide.
+**Important:** Guides must contain concrete, project-specific information — not generic advice. If the user's answers don't have enough detail for a section, ask a follow-up before writing the guide.
 
 Also update the `CLAUDE.md` Section 7 (Task-Specific Reference Guides) to reference each guide created:
 
 ```markdown
 ## 7. Task-Specific Reference Guides
 
-**When adding an API endpoint:**
-Read: `.agents/guides/api-endpoint.md`
-This guide covers: router structure, service layer pattern, Zod validation, response types
+**When adding an API route:**
+Read: `.agents/guides/api-route.md`
+This guide covers: Hono route setup, D1 queries, auth middleware, response format
 
-**When creating a React component:**
-Read: `.agents/guides/react-component.md`
-This guide covers: file structure, props typing, hook usage, test co-location
+**When creating a feature module:**
+Read: `.agents/guides/feature-module.md`
+This guide covers: module structure, components, hooks, routing
 ```
 
 ## Step 4: Create .agents/ Structure
@@ -215,11 +384,11 @@ Create the following directories (with `.gitkeep` where needed):
 
 ```
 .agents/
-├── plans/          ← /hopla-plan-feature saves here (commit these)
-├── guides/         ← on-demand reference guides (commit these)
-├── execution-reports/   ← /hopla-execution-report saves here (do NOT commit)
-├── code-reviews/        ← /hopla-code-review saves here (do NOT commit)
-└── system-reviews/      ← /hopla-system-review saves here (do NOT commit)
+├── plans/          <- /hopla-plan-feature saves here (commit these)
+├── guides/         <- on-demand reference guides (commit these)
+├── execution-reports/   <- /hopla-execution-report saves here (do NOT commit)
+├── code-reviews/        <- /hopla-code-review saves here (do NOT commit)
+└── system-reviews/      <- /hopla-system-review saves here (do NOT commit)
 ```
 
 Add to `.gitignore` (create if it doesn't exist):
@@ -233,22 +402,25 @@ Add to `.gitignore` (create if it doesn't exist):
 
 Create `.claude/commands/` at the project root for project-specific commands that override or extend the global ones.
 
-Common project-specific commands to create:
-
 **`validate.md`** — runs the full validation sequence for this project:
+
+For default stack:
 ```markdown
 ---
 description: Run full validation for this project
 ---
 Run in order, stop if any level fails:
-1. `[lint command]`
-2. `[type check command]`
-3. `[test command]`
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm run test`
+4. `npm run format`
 ```
 
-Ask the user: "Do you want me to create a project-specific `/validate` command with the commands from your stack?"
+For custom stack, use the commands collected during discovery.
 
-If yes, create `.claude/commands/validate.md` using the dev commands collected in Topic E.
+Ask the user: "Do you want me to create a project-specific `/validate` command?"
+
+If yes, create `.claude/commands/validate.md`.
 
 ## Step 6: Confirm and Save
 
