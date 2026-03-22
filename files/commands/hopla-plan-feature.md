@@ -56,6 +56,8 @@ Follow the full checklist in `.agents/guides/data-audit.md`.
 
 **Your responsibility as planner:** Run the complete audit and document ALL findings in the plan's **Context References** and **Gotchas** fields. The executing agent must be able to verify your findings without re-auditing — they should only confirm that what you documented still holds.
 
+**Column removal audit:** When a plan removes a database column, run `grep -r 'column_name' worker/src/` (or equivalent for the project's backend) and include ALL locations in the plan's task list. Do not rely on memory or a single file — columns are often referenced in helper functions, auto-create logic, and ensure-drafts flows across multiple route files. Document the exact count of locations found.
+
 ## Phase 4: Design the Approach
 
 Based on research, define:
