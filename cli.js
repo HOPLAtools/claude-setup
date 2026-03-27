@@ -19,7 +19,8 @@ const CLAUDE_DIR = path.join(os.homedir(), ".claude");
 const COMMANDS_DIR = path.join(CLAUDE_DIR, "commands");
 const SKILLS_DIR = path.join(CLAUDE_DIR, "skills");
 const HOOKS_DIR = path.join(CLAUDE_DIR, "hooks");
-const FILES_DIR = path.join(import.meta.dirname, "files");
+const AGENTS_DIR = path.join(CLAUDE_DIR, "agents");
+const REPO_ROOT = import.meta.dirname;
 
 const GREEN = "\x1b[32m";
 const RED = "\x1b[31m";
@@ -72,12 +73,12 @@ function removeFile(dest, label) {
 async function uninstall() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Uninstall\n`);
 
-    const srcEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const srcEntries = fs.readdirSync(path.join(REPO_ROOT, "commands"));
     const srcFiles = srcEntries.filter((f) =>
-        fs.statSync(path.join(FILES_DIR, "commands", f)).isFile()
+        fs.statSync(path.join(REPO_ROOT, "commands", f)).isFile()
     );
     const srcDirs = srcEntries.filter((f) =>
-        fs.statSync(path.join(FILES_DIR, "commands", f)).isDirectory()
+        fs.statSync(path.join(REPO_ROOT, "commands", f)).isDirectory()
     );
 
     // Also include any hopla-* files in ~/.claude/commands/ not in current source
@@ -107,9 +108,12 @@ async function uninstall() {
         })),
     ];
 
-    // Also remove skills and hooks installed by hopla
+    // Also remove skills, agents, and hooks installed by hopla
     if (fs.existsSync(SKILLS_DIR)) {
         itemsToRemove.push({ dest: SKILLS_DIR, label: "~/.claude/skills/", isDir: true });
+    }
+    if (fs.existsSync(AGENTS_DIR)) {
+        itemsToRemove.push({ dest: AGENTS_DIR, label: "~/.claude/agents/", isDir: true });
     }
     if (fs.existsSync(HOOKS_DIR)) {
         itemsToRemove.push({ dest: HOOKS_DIR, label: "~/.claude/hooks/", isDir: true });
@@ -167,6 +171,7 @@ const PLANNING_COMMANDS = [
     "hopla-review-plan.md",
     "hopla-git-commit.md",
     "hopla-git-pr.md",
+    "hopla-guide.md",
 ];
 
 async function install() {
@@ -178,14 +183,14 @@ async function install() {
     fs.mkdirSync(COMMANDS_DIR, { recursive: true });
 
     // Determine which command files will be installed
-    const allCommandEntries = fs.readdirSync(path.join(FILES_DIR, "commands"));
+    const allCommandEntries = fs.readdirSync(path.join(REPO_ROOT, "commands"));
     const allCommandFiles = allCommandEntries.filter((f) => {
         if (f.startsWith(".")) return false;
-        const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
+        const stat = fs.statSync(path.join(REPO_ROOT, "commands", f));
         return stat.isFile();
     });
     const allCommandDirs = allCommandEntries.filter((f) => {
-        const stat = fs.statSync(path.join(FILES_DIR, "commands", f));
+        const stat = fs.statSync(path.join(REPO_ROOT, "commands", f));
         return stat.isDirectory();
     });
     const commandFiles = PLANNING
@@ -197,7 +202,7 @@ async function install() {
 
     log(`${CYAN}Installing global rules...${RESET}`);
     await installFile(
-        path.join(FILES_DIR, "CLAUDE.md"),
+        path.join(REPO_ROOT, "global-rules.md"),
         path.join(CLAUDE_DIR, "CLAUDE.md"),
         "~/.claude/CLAUDE.md"
     );
@@ -205,14 +210,14 @@ async function install() {
     log(`\n${CYAN}Installing commands...${RESET}`);
     for (const file of commandFiles.sort()) {
         await installFile(
-            path.join(FILES_DIR, "commands", file),
+            path.join(REPO_ROOT, "commands", file),
             path.join(COMMANDS_DIR, file),
             `~/.claude/commands/${file}`
         );
     }
     // Install subdirectories (e.g. guides/)
     for (const dir of allCommandDirs.sort()) {
-        const srcDir = path.join(FILES_DIR, "commands", dir);
+        const srcDir = path.join(REPO_ROOT, "commands", dir);
         const destDir = path.join(COMMANDS_DIR, dir);
         fs.mkdirSync(destDir, { recursive: true });
         for (const file of fs.readdirSync(srcDir).sort()) {
@@ -237,14 +242,15 @@ async function install() {
 
     await setupPermissions();
     await installSkills();
+    await installAgents();
     await installHooks();
 }
 
 // Skills to install in planning mode (subset)
-const PLANNING_SKILLS = ["hopla-prime"];
+const PLANNING_SKILLS = ["hopla-prime", "hopla-brainstorm"];
 
 async function installSkills() {
-    const skillsSrcDir = path.join(FILES_DIR, "skills");
+    const skillsSrcDir = path.join(REPO_ROOT, "skills");
     if (!fs.existsSync(skillsSrcDir)) return;
 
     fs.mkdirSync(SKILLS_DIR, { recursive: true });
@@ -279,8 +285,33 @@ async function installSkills() {
     }
 }
 
+async function installAgents() {
+    const agentsSrcDir = path.join(REPO_ROOT, "agents");
+    if (!fs.existsSync(agentsSrcDir)) return;
+
+    fs.mkdirSync(AGENTS_DIR, { recursive: true });
+
+    const agentFiles = fs.readdirSync(agentsSrcDir).filter((f) => f.endsWith(".md"));
+    if (agentFiles.length === 0) return;
+
+    log(`\n${CYAN}Installing agents...${RESET}`);
+    for (const file of agentFiles.sort()) {
+        await installFile(
+            path.join(agentsSrcDir, file),
+            path.join(AGENTS_DIR, file),
+            `~/.claude/agents/${file}`
+        );
+    }
+
+    log(`\n${GREEN}${BOLD}Agents installed!${RESET} Available for use:\n`);
+    for (const file of agentFiles.sort()) {
+        const name = file.replace(".md", "");
+        log(`  ${CYAN}${name}${RESET}`);
+    }
+}
+
 async function installHooks() {
-    const hooksSrcDir = path.join(FILES_DIR, "hooks");
+    const hooksSrcDir = path.join(REPO_ROOT, "hooks");
     if (!fs.existsSync(hooksSrcDir)) return;
 
     const hookFiles = fs.readdirSync(hooksSrcDir).filter((f) => f.endsWith(".js"));

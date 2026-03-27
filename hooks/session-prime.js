@@ -40,6 +40,19 @@ async function main() {
         lines.push(`Project rules (CLAUDE.md excerpt):\n${content}`);
     }
 
+    // Available skills reminder
+    lines.push(`📦 HOPLA Skills Available:
+- hopla-prime: Project orientation (trigger: "orient", "get context", "load project")
+- hopla-git: Git operations (trigger: "commit", "PR", "push")
+- hopla-code-review: Code review (trigger: "review code", "code review")
+- hopla-execution-report: Post-implementation docs (trigger: "generate report")
+- hopla-verify: Completion verification (trigger: any "done"/"listo"/"finished" claim)
+- hopla-brainstorm: Design exploration (trigger: "new feature", "brainstorm", "explore options")
+- hopla-debug: Systematic debugging (trigger: "bug", "error", "debug")
+- hopla-tdd: Test-driven development (trigger: implementing with tests)
+
+⚠️ If a skill applies to the current task, you MUST use it.`);
+
     if (lines.length > 0) {
         process.stdout.write(lines.join("\n\n"));
     }

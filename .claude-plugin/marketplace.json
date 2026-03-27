@@ -1,0 +1,20 @@
+{
+  "name": "hopla-marketplace",
+  "description": "Hopla Tools plugin marketplace for Claude Code",
+  "owner": {
+    "name": "Hopla Tools",
+    "email": "julio@hopla.tools"
+  },
+  "plugins": [
+    {
+      "name": "hopla",
+      "description": "Agentic coding system: PIV loop, TDD, debugging, brainstorming, subagent execution, and team workflows",
+      "version": "1.11.0",
+      "source": "./",
+      "author": {
+        "name": "Hopla Tools",
+        "email": "julio@hopla.tools"
+      }
+    }
+  ]
+}

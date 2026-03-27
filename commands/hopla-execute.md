@@ -3,6 +3,8 @@ description: Execute a structured plan from start to finish with validation
 argument-hint: "<plan-file-path>"
 ---
 
+> 💡 **Tip**: For complex tasks with intricate logic, consider using Extended Thinking mode for better reasoning quality.
+
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
 Execute the implementation plan provided. You are the executing agent — you have not seen the planning conversation. The plan is your only source of truth.

@@ -1,4 +1,5 @@
 .DS_Store
+files/
 .agents/execution-reports/
 .agents/code-reviews/
 .agents/system-reviews/

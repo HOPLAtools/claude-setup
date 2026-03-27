@@ -1,0 +1,23 @@
+{
+  "name": "hopla",
+  "description": "Agentic coding system for Claude Code: PIV loop (Plan → Implement → Validate), TDD, debugging, brainstorming, subagent execution, and team workflows",
+  "version": "1.11.0",
+  "author": {
+    "name": "Hopla Tools",
+    "email": "julio@hopla.tools"
+  },
+  "homepage": "https://github.com/hopla-tools/claude-setup",
+  "repository": "https://github.com/hopla-tools/claude-setup",
+  "license": "MIT",
+  "keywords": [
+    "claude",
+    "agentic-coding",
+    "piv-loop",
+    "tdd",
+    "debugging",
+    "brainstorming",
+    "code-review",
+    "workflows",
+    "skills"
+  ]
+}

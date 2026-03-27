@@ -1,6 +1,7 @@
 ---
 name: hopla-code-review
-description: Performs a technical code review on recently changed files. Use when the user says "review the code", "code review", "check my code", "look for issues", or asks for feedback on their implementation.
+description: "Technical code review on changed files. Use when the user says 'review code', 'code review', 'check my code', 'review changes', 'look for bugs', or 'audit code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
+allowed-tools: Read, Grep, Glob, Bash
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

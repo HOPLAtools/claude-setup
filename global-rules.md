@@ -87,3 +87,48 @@ Explain in plain language when suggesting a commit, adapting to the user's langu
 - Write tests alongside implementation, not after
 - Flag security issues immediately — never leave them for later
 - If the same validation failure repeats, signal it as a system improvement opportunity
+
+---
+
+## 📋 Context Management
+
+### Three levels of CLAUDE.md
+- **Machine-level** (`~/.claude/CLAUDE.md`): These global rules — apply to all projects
+- **Project-level** (`CLAUDE.md` at repo root): Shared with team via git — project-specific rules
+- **Local-level** (`CLAUDE.local.md`): Personal overrides — NOT committed to git
+
+### Context control
+- Use `@filename` to include specific files in context (works in chat and inside CLAUDE.md)
+- Use `/compact` between related tasks (preserves learned knowledge)
+- Use `/clear` between unrelated tasks (full reset)
+- Use `#` memory mode to quickly add rules: `# Never use console.log for debugging`
+- Use `Escape` to interrupt + `#` to prevent repeated errors
+- Use `Shift+Tab` twice to activate Plan Mode for complex multi-file changes
+
+---
+
+## 🔌 MCP Servers
+<!-- List your configured MCP servers here so the agent knows what tools are available -->
+<!-- Example: -->
+<!-- - Playwright: Browser automation for E2E testing -->
+<!-- - Supabase: Database management -->
+<!-- When planning features, explicitly include MCP integration points in the plan -->
+
+---
+
+## 🛠️ Available HOPLA Commands
+When a skill applies to your current task, you MUST use it. Check available skills before responding.
+
+### Workflow: Plan → Implement → Validate
+1. `/hopla-plan-feature` — Research codebase and create implementation plan
+2. `/hopla-review-plan` — Review plan before execution
+3. `/hopla-execute` — Execute plan with validation
+4. `/hopla-validate` — Run full validation pyramid
+5. `/hopla-git-commit` — Create conventional commit
+6. `/hopla-git-pr` — Create GitHub PR
+
+### Other commands
+- `/hopla-create-prd` — Create or update Product Requirements Document
+- `/hopla-init-project` — Initialize project with CLAUDE.md and .agents/ structure
+- `/hopla-code-review-fix` — Fix issues from code review report
+- `/hopla-system-review` — Analyze plan vs execution for process improvements

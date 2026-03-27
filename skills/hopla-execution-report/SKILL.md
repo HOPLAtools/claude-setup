@@ -1,6 +1,8 @@
 ---
 name: hopla-execution-report
-description: Generates an implementation report documenting what was built. Use when the user says "generate the report", "genera el reporte", "documenta lo implementado", "execution report", "document what was done", "write the implementation report", or after finishing a feature before committing.
+description: "Post-implementation documentation generator. Use when the user says 'generate report', 'document what was done', 'execution report', 'what changed', or after a feature implementation is complete and validated. Do NOT use during implementation — only after completion."
+allowed-tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

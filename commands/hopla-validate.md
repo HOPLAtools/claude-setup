@@ -64,6 +64,11 @@ If everything passes, confirm the project is healthy.
 
 If anything failed and could not be fixed, list the remaining issues and suggest next steps.
 
+## After Validation Passes
+
+- Suggest running `/hopla-code-review` if not already done
+- Remind that completion claims must be backed by this fresh validation evidence (see hopla-verify skill)
+
 ## Next Step
 
 After validation passes, suggest:

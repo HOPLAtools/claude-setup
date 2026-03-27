@@ -1,6 +1,8 @@
 ---
 name: hopla-prime
-description: Orients Claude in a project at the start of a session. Use when the user says "orient yourself", "get oriented", "prime yourself", "what is this project", "load context", or asks Claude to familiarize itself with the codebase before starting work.
+description: "Project orientation and context loading. Use when starting a session, onboarding to a project, needing to understand the codebase, or when the user says 'orient', 'get context', 'load project', 'what is this project', 'prime', or 'start'. Do NOT use mid-task when the project is already understood."
+allowed-tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

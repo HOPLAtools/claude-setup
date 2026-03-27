@@ -19,6 +19,14 @@ If $1 is a description, treat it as the list of issues to fix.
 
 If $2 is provided, filter to only the issues within that scope.
 
+## Pre-Fix Verification
+
+Before fixing each issue:
+1. **Verify the issue is real** — Read the actual code. Is this a genuine bug or a false positive?
+2. **Push back if needed** — If an issue is not real, document WHY it's a false positive instead of "fixing" it
+3. **YAGNI check** — Does the suggested fix add unnecessary complexity? If the fix introduces code that isn't needed for current requirements, skip it and document the reason
+4. **Never use performative agreement** — Don't say "You're absolutely right!" before verifying. Check the codebase first, then respond.
+
 ## Step 2: Fix Issues One by One
 
 For each issue, in order of severity (critical → high → medium → low):

@@ -1,6 +1,6 @@
 ---
 name: hopla-git
-description: Handles git operations: creating commits, making pull requests, pushing branches. Use when the user asks to commit, create a commit, save changes to git, make a PR, create a pull request, push the branch, or any git workflow action.
+description: "Git operations handler for commits and pull requests. Use when the user mentions 'commit', 'save changes', 'create commit', 'PR', 'pull request', 'push', 'merge request', or any git workflow action. Do NOT use for git status checks or branch management — only for commits and PRs."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

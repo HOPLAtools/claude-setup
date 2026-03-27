@@ -2,11 +2,15 @@
 
 ## 1. Core Principles
 
-- `files/CLAUDE.md` is a **template** installed to users' `~/.claude/CLAUDE.md` — it is NOT this project's rules
-- `files/commands/*.md` are Claude Code slash commands for users — Markdown files, not scripts
+- `global-rules.md` is a **template** installed to users' `~/.claude/CLAUDE.md` — it is NOT this project's rules
+- `commands/*.md` are Claude Code slash commands for users — Markdown files, not scripts
+- `skills/*/SKILL.md` are auto-triggered skills discovered by Claude Code's plugin system
+- `agents/*.md` are specialized subagent definitions
+- `hooks/*.js` are event-driven hooks; `hooks/hooks.json` declares them for the plugin system
 - `cli.js` is a single-file Node.js ESM script — keep it that way, no external dependencies
-- Any change to `files/` affects every future user install — review carefully before committing
-- Bump `version` in `package.json` before every `npm publish`
+- This repo serves **two distribution channels**: Claude Code plugin AND npm CLI
+- Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
+- Bump `version` in **both** `package.json` AND `.claude-plugin/plugin.json` before every release
 
 ---
 
@@ -15,7 +19,7 @@
 - **Runtime:** Node.js ≥18
 - **Language:** JavaScript (ESM, `"type": "module"`)
 - **Package manager:** npm
-- **Entry point:** `cli.js`
+- **Entry point:** `cli.js` (CLI channel), `.claude-plugin/plugin.json` (plugin channel)
 - No TypeScript, no bundler, no test framework, no linter, no external dependencies
 
 ---
@@ -23,29 +27,51 @@
 ## 3. Architecture
 
 ```
+.claude-plugin/
+├── plugin.json      ← Plugin manifest (name, version, metadata)
+└── marketplace.json ← Self-hosted marketplace definition
 cli.js               ← CLI entry point (single file, Node built-ins only)
-files/
-├── CLAUDE.md        ← Global rules template → installed to ~/.claude/CLAUDE.md
-├── commands/        ← Slash commands → installed to ~/.claude/commands/
-│   └── hopla-*.md
-└── skills/          ← Auto-triggered skills → installed to ~/.claude/skills/
-    └── <name>/SKILL.md
+global-rules.md      ← Global rules template → installed to ~/.claude/CLAUDE.md (CLI only)
+commands/            ← Slash commands (auto-discovered by plugin + CLI)
+│   ├── hopla-*.md
+│   └── guides/      ← Reference guides loaded on-demand
+skills/              ← Auto-triggered skills (auto-discovered by plugin + CLI)
+│   └── <name>/SKILL.md
+agents/              ← Subagent definitions (auto-discovered by plugin + CLI)
+│   └── *.md
+hooks/               ← Event hooks (auto-discovered by plugin via hooks.json, copied by CLI)
+│   ├── hooks.json   ← Plugin hook declarations (uses ${CLAUDE_PLUGIN_ROOT})
+│   ├── tsc-check.js
+│   ├── env-protect.js
+│   └── session-prime.js
 package.json         ← npm metadata and version
+CLAUDE.md            ← THIS FILE — project dev rules (not installed to users)
 README.md            ← Public documentation
 ```
 
-**Install flow (cli.js):**
+**Distribution channels:**
+
+| Channel | Install | Updates | Installs global-rules.md? |
+|---------|---------|---------|---------------------------|
+| **Plugin** | `/plugin install hopla@hopla-marketplace` | Automatic on version bump | No — plugin can't write to ~/.claude/CLAUDE.md |
+| **CLI (npm)** | `npm i -g @hopla/claude-setup && claude-setup` | Manual: `npm i -g @latest && claude-setup --force` | Yes |
+
+**CLI install flow (cli.js):**
 ```
 create ~/.claude/ dirs
-→ removeLegacyFiles()          ← cleans up renamed/removed commands
-→ install files/CLAUDE.md      → ~/.claude/CLAUDE.md
-→ install files/commands/*.md  → ~/.claude/commands/ (auto-discovered)
-→ setupPermissions()           → ~/.claude/settings.json
+→ removeStaleCommands()       ← cleans up renamed/removed commands
+→ install global-rules.md     → ~/.claude/CLAUDE.md
+→ install commands/*.md       → ~/.claude/commands/ (auto-discovered)
+→ setupPermissions()          → ~/.claude/settings.json
+→ installSkills()             → ~/.claude/skills/ (auto-discovered)
+→ installAgents()             → ~/.claude/agents/ (auto-discovered)
+→ installHooks()              → ~/.claude/hooks/ + settings.json
 ```
 
 **Key rules:**
-- New commands in `files/commands/` are **auto-discovered** — no changes to `cli.js` needed when adding one
+- New commands in `commands/` are **auto-discovered** by both channels — no changes to `cli.js` needed
 - **Never duplicate** a command and a skill with the same name — both appear in Claude's autocomplete, causing duplicates. Use commands for explicit `/slash` invocation only; use skills for auto-triggered behavior
+- `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` paths for the plugin channel; the CLI writes absolute `~/.claude/hooks/` paths to `settings.json` independently
 
 ---
 
@@ -56,7 +82,7 @@ create ~/.claude/ dirs
 - Node.js built-ins only — never add external packages
 - All logic stays in a single file
 
-### Command files (files/commands/*.md)
+### Command files (commands/*.md)
 - Filename: `hopla-[kebab-case-name].md` — this becomes the slash command `/hopla-[name]`
 - If renaming a command, add the old filename to `LEGACY_FILES` in `cli.js`
 
@@ -75,6 +101,8 @@ node cli.js --version  # verify version string
 
 Verify files landed correctly in `~/.claude/` and `~/.claude/commands/`.
 
+For the plugin channel, verify `.claude-plugin/plugin.json` is valid JSON and version matches `package.json`.
+
 ---
 
 ## 6. Development Commands
@@ -84,7 +112,7 @@ node cli.js              # Run CLI locally (interactive)
 node cli.js --force      # Force install, overwrite all without prompting
 node cli.js --uninstall  # Uninstall all files from ~/.claude/
 node cli.js --version    # Print package version
-npm publish              # Publish to npm (bump version in package.json first)
+npm publish              # Publish to npm (bump version in package.json + plugin.json first)
 ```
 
 ---
@@ -95,7 +123,7 @@ npm publish              # Publish to npm (bump version in package.json first)
 Read: `.agents/guides/add-command.md`
 This guide covers: file naming, content structure, legacy cleanup, local testing
 
-**When updating the global template (`files/CLAUDE.md`):**
+**When updating the global template (`global-rules.md`):**
 Read: `.agents/guides/update-global-template.md`
 This guide covers: what to change, impact on existing users, validation
 
@@ -103,6 +131,6 @@ This guide covers: what to change, impact on existing users, validation
 Read: `.agents/guides/modify-cli.md`
 This guide covers: install/uninstall flows, permissions setup, adding flags, testing
 
-**When publishing a new version to npm:**
+**When publishing a new version:**
 Read: `.agents/guides/publish-npm.md`
-This guide covers: version bump, local verification, publish checklist
+This guide covers: version bump (both package.json + plugin.json), local verification, publish checklist
