@@ -30,7 +30,7 @@ The description is the MOST CRITICAL field — it determines when the skill acti
 
 ### Pattern
 ```
-[What the skill does]. Use when [trigger phrases, synonyms, variations in English and Spanish]. Do NOT use for [anti-triggers].
+[What the skill does]. Use when [trigger phrases, synonyms, variations]. Do NOT use for [anti-triggers].
 ```
 
 ### Good Example
@@ -47,7 +47,7 @@ The description is the MOST CRITICAL field — it determines when the skill acti
 
 Claude uses SEMANTIC matching, not keyword matching. Cover:
 - Different phrasings of the same intent
-- English AND Spanish triggers (for HOPLA's bilingual users)
+- Multilingual triggers if your team is multilingual
 - Common misspellings or abbreviations
 - Related verbs and nouns
 

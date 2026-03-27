@@ -1,10 +1,10 @@
 # Global Rules — Agentic Coding System
 
-> 🌐 **CRITICAL — Language:** Always respond in the same language the user is writing in, regardless of the language of any command or instruction. If the user writes in Spanish, respond in Spanish. If in English, respond in English. This rule overrides everything else.
+> 🌐 **CRITICAL — Language:** Always respond in the same language the user is writing in. Match the user's language — do not default to any specific language. This rule overrides everything else.
 
 ## 1. Communication
 
-- **Always respond in the same language the user writes in** — if the user writes in Spanish, respond in Spanish; if in English, respond in English
+- **Always respond in the language the user writes in** — match their language, never assume a default
 - Code, comments, variable names, and commit messages always in **English** regardless of the conversation language
 - Be concise — avoid unnecessary filler text
 - When reporting results, use ✅/❌ for clarity
