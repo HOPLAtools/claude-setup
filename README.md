@@ -6,11 +6,19 @@ Hopla team agentic coding system for Claude Code. Installs commands, skills, age
 
 ### Option A: Claude Code Plugin (recommended)
 
+First, register the HOPLA marketplace (only needed once):
+
+```
+/plugin marketplace add hopla-marketplace https://github.com/HOPLAtools/claude-setup.git
+```
+
+Then install the plugin:
+
 ```
 /plugin install hopla@hopla-marketplace
 ```
 
-Installs all commands, skills, agents, and hooks automatically. Updates are detected when the plugin version changes.
+This installs all commands, skills, agents, and hooks automatically. Updates are detected when the plugin version changes — update manually with `/plugin update hopla@hopla-marketplace`.
 
 To also install the global rules template (`~/.claude/CLAUDE.md`), run the CLI:
 
@@ -18,6 +26,8 @@ To also install the global rules template (`~/.claude/CLAUDE.md`), run the CLI:
 npm install -g @hopla/claude-setup
 claude-setup --force
 ```
+
+> **Note:** The global rules (`~/.claude/CLAUDE.md`) can only be installed via the CLI because the plugin system doesn't have access to write machine-level files.
 
 ### Option B: npm CLI only
 
