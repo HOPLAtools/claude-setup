@@ -9,7 +9,7 @@ Hopla team agentic coding system for Claude Code. Installs commands, skills, age
 First, register the HOPLA marketplace (only needed once):
 
 ```
-/plugin marketplace add hopla-marketplace https://github.com/HOPLAtools/claude-setup.git
+/plugin marketplace add hopla-marketplace HOPLAtools/claude-setup
 ```
 
 Then install the plugin:
@@ -164,10 +164,10 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 | Skill | Auto-activates when you say... |
 |---|---|
-| `hopla-git` | "commit this", "create a PR", "guarda los cambios" |
-| `hopla-prime` | "orient yourself", "ponte al día", "what is this project" |
-| `hopla-code-review` | "review the code", "code review", "analiza los cambios" |
-| `hopla-execution-report` | "generate the report", "genera el reporte", "document what was done" |
+| `hopla-git` | "commit this", "create a PR", "save the changes" |
+| `hopla-prime` | "orient yourself", "catch me up", "what is this project" |
+| `hopla-code-review` | "review the code", "code review", "check these changes" |
+| `hopla-execution-report` | "generate the report", "document what was done", "summarize the work" |
 | `hopla-verify` | "verify it works", "make sure it's correct", "check before finishing" |
 | `hopla-brainstorm` | "let's brainstorm", "explore approaches", "design this before coding" |
 | `hopla-debug` | "debug this", "find the bug", "why is this failing" |
@@ -249,7 +249,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 ### Feature development (PIV loop)
 ```
-"ponte al día"          → hopla-prime skill auto-loads project context
+"catch me up"           → hopla-prime skill auto-loads project context
 /hopla-plan-feature     → research codebase and create plan
 /hopla-review-plan      → review plan summary and approve
 /hopla-execute          → implement the plan with validation
@@ -257,7 +257,7 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 "review the code"       → hopla-code-review skill runs automatically
 /hopla-code-review-fix  → fix issues found
 /hopla-rca              → root cause analysis if a bug is found
-"genera el reporte"     → hopla-execution-report skill documents what was built
+"generate the report"     → hopla-execution-report skill documents what was built
 /hopla-git-commit       → save to git
 /hopla-git-pr           → open pull request on GitHub
 ```
@@ -319,7 +319,7 @@ Commands are modular — the output of one becomes the input of the next. Some c
 # 6. Fix issues
 /hopla-code-review-fix .agents/code-reviews/add-user-authentication.md
 
-# 7. Document (auto-triggered skill — just say "genera el reporte")
+# 7. Document (auto-triggered skill — just say "generate the report")
 → saves: .agents/execution-reports/add-user-authentication.md
 
 # 8. Commit
