@@ -1,5 +1,5 @@
 ---
-name: hopla-verify
+name: verify
 description: "Verification gate that ensures all completion claims are backed by fresh evidence. Use when the agent is about to declare work as done, finished, complete, ready, or implemented. Also use when hearing 'listo', 'terminé', 'ya está', 'done', 'finished', 'all tests pass', 'everything works', or any completion claim. Do NOT use for intermediate progress updates or partial task completion."
 ---
 

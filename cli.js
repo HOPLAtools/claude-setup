@@ -74,26 +74,30 @@ async function uninstall() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Uninstall\n`);
 
     const srcEntries = fs.readdirSync(path.join(REPO_ROOT, "commands"));
-    const srcFiles = srcEntries.filter((f) =>
-        fs.statSync(path.join(REPO_ROOT, "commands", f)).isFile()
-    );
+    const srcFiles = srcEntries.filter((f) => {
+        if (f.startsWith(".")) return false;
+        return fs.statSync(path.join(REPO_ROOT, "commands", f)).isFile();
+    });
     const srcDirs = srcEntries.filter((f) =>
         fs.statSync(path.join(REPO_ROOT, "commands", f)).isDirectory()
     );
+
+    // Map source files to their installed names (with hopla- prefix)
+    const installedNames = new Set(srcFiles.map((f) => withPrefix(f)));
 
     // Also include any hopla-* files in ~/.claude/commands/ not in current source
     // (leftovers from previous versions)
     const installedHoplaFiles = fs.existsSync(COMMANDS_DIR)
         ? fs.readdirSync(COMMANDS_DIR).filter((f) =>
-            f.startsWith("hopla-") && fs.statSync(path.join(COMMANDS_DIR, f)).isFile() && !srcFiles.includes(f)
+            f.startsWith("hopla-") && fs.statSync(path.join(COMMANDS_DIR, f)).isFile() && !installedNames.has(f)
         )
         : [];
 
     const itemsToRemove = [
         { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md", isDir: false },
         ...srcFiles.map((file) => ({
-            dest: path.join(COMMANDS_DIR, file),
-            label: `~/.claude/commands/${file}`,
+            dest: path.join(COMMANDS_DIR, withPrefix(file)),
+            label: `~/.claude/commands/${withPrefix(file)}`,
             isDir: false,
         })),
         ...installedHoplaFiles.map((file) => ({
@@ -145,7 +149,7 @@ async function uninstall() {
 
 function removeStaleCommands(currentCommandFiles) {
     if (!fs.existsSync(COMMANDS_DIR)) return;
-    const currentSet = new Set(currentCommandFiles);
+    const currentSet = new Set(currentCommandFiles.map((f) => withPrefix(f)));
     const removed = [];
     for (const file of fs.readdirSync(COMMANDS_DIR)) {
         const filePath = path.join(COMMANDS_DIR, file);
@@ -165,14 +169,19 @@ function removeStaleCommands(currentCommandFiles) {
 }
 
 const PLANNING_COMMANDS = [
-    "hopla-init-project.md",
-    "hopla-create-prd.md",
-    "hopla-plan-feature.md",
-    "hopla-review-plan.md",
-    "hopla-git-commit.md",
-    "hopla-git-pr.md",
-    "hopla-guide.md",
+    "init-project.md",
+    "create-prd.md",
+    "plan-feature.md",
+    "review-plan.md",
+    "git-commit.md",
+    "git-pr.md",
+    "guide.md",
 ];
+
+// CLI channel adds hopla- prefix so skills/commands keep their namespace
+function withPrefix(name) {
+    return `hopla-${name}`;
+}
 
 async function install() {
     const modeLabel = PLANNING ? "Planning Mode (Robert)" : "Full Install";
@@ -209,10 +218,11 @@ async function install() {
 
     log(`\n${CYAN}Installing commands...${RESET}`);
     for (const file of commandFiles.sort()) {
+        const destFile = withPrefix(file);
         await installFile(
             path.join(REPO_ROOT, "commands", file),
-            path.join(COMMANDS_DIR, file),
-            `~/.claude/commands/${file}`
+            path.join(COMMANDS_DIR, destFile),
+            `~/.claude/commands/${destFile}`
         );
     }
     // Install subdirectories (e.g. guides/)
@@ -231,7 +241,7 @@ async function install() {
 
     log(`\n${GREEN}${BOLD}Done!${RESET} Commands available in any Claude Code session:\n`);
     for (const file of commandFiles.sort()) {
-        const name = file.replace(".md", "");
+        const name = withPrefix(file).replace(".md", "");
         log(`  ${CYAN}/${name}${RESET}`);
     }
     if (PLANNING) {
@@ -247,7 +257,7 @@ async function install() {
 }
 
 // Skills to install in planning mode (subset)
-const PLANNING_SKILLS = ["hopla-prime", "hopla-brainstorm"];
+const PLANNING_SKILLS = ["prime", "brainstorm"];
 
 async function installSkills() {
     const skillsSrcDir = path.join(REPO_ROOT, "skills");
@@ -268,20 +278,21 @@ async function installSkills() {
     log(`\n${CYAN}Installing skills...${RESET}`);
     for (const skillName of skillsToInstall.sort()) {
         const srcDir = path.join(skillsSrcDir, skillName);
-        const destDir = path.join(SKILLS_DIR, skillName);
+        const destName = withPrefix(skillName);
+        const destDir = path.join(SKILLS_DIR, destName);
         fs.mkdirSync(destDir, { recursive: true });
         for (const file of fs.readdirSync(srcDir).sort()) {
             await installFile(
                 path.join(srcDir, file),
                 path.join(destDir, file),
-                `~/.claude/skills/${skillName}/${file}`
+                `~/.claude/skills/${destName}/${file}`
             );
         }
     }
 
     log(`\n${GREEN}${BOLD}Skills installed!${RESET} Auto-activate without a slash command:\n`);
     for (const skillName of skillsToInstall.sort()) {
-        log(`  ${CYAN}${skillName}${RESET}`);
+        log(`  ${CYAN}${withPrefix(skillName)}${RESET}`);
     }
 }
 

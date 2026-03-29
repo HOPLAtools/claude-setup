@@ -1,5 +1,5 @@
 ---
-name: hopla-worktree
+name: worktree
 description: "Git worktree management for isolated feature development. Use when starting a new feature that benefits from isolation, when the user says 'worktree', 'isolated branch', 'parallel development', or when implementing multiple features simultaneously. Do NOT use for quick fixes or single-file changes."
 ---
 

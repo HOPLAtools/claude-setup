@@ -1,5 +1,5 @@
 ---
-name: hopla-git
+name: git
 description: "Git operations handler for commits and pull requests. Use when the user mentions 'commit', 'save changes', 'create commit', 'PR', 'pull request', 'push', 'merge request', or any git workflow action. Do NOT use for git status checks or branch management — only for commits and PRs."
 ---
 
@@ -20,7 +20,7 @@ Detect the user's intent and execute the appropriate git workflow.
 ## File References
 
 The full step-by-step instructions for each workflow are in:
-- `~/.claude/skills/hopla-git/commit.md` — conventional commit with Git Flow awareness
-- `~/.claude/skills/hopla-git/pr.md` — GitHub PR creation with structured description
+- `commit.md` (in this skill's directory) — conventional commit with Git Flow awareness
+- `pr.md` (in this skill's directory) — GitHub PR creation with structured description
 
 Read the relevant file now and follow its instructions completely.

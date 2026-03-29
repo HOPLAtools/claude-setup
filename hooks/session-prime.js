@@ -42,14 +42,14 @@ async function main() {
 
     // Available skills reminder
     lines.push(`📦 HOPLA Skills Available:
-- hopla-prime: Project orientation (trigger: "orient", "get context", "load project")
-- hopla-git: Git operations (trigger: "commit", "PR", "push")
-- hopla-code-review: Code review (trigger: "review code", "code review")
-- hopla-execution-report: Post-implementation docs (trigger: "generate report")
-- hopla-verify: Completion verification (trigger: any "done"/"listo"/"finished" claim)
-- hopla-brainstorm: Design exploration (trigger: "new feature", "brainstorm", "explore options")
-- hopla-debug: Systematic debugging (trigger: "bug", "error", "debug")
-- hopla-tdd: Test-driven development (trigger: implementing with tests)
+- prime: Project orientation (trigger: "orient", "get context", "load project")
+- git: Git operations (trigger: "commit", "PR", "push")
+- code-review: Code review (trigger: "review code", "code review")
+- execution-report: Post-implementation docs (trigger: "generate report")
+- verify: Completion verification (trigger: any "done"/"listo"/"finished" claim)
+- brainstorm: Design exploration (trigger: "new feature", "brainstorm", "explore options")
+- debug: Systematic debugging (trigger: "bug", "error", "debug")
+- tdd: Test-driven development (trigger: implementing with tests)
 
 ⚠️ If a skill applies to the current task, you MUST use it.`);
 

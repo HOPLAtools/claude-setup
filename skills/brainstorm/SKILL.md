@@ -1,5 +1,5 @@
 ---
-name: hopla-brainstorm
+name: brainstorm
 description: "Design exploration and brainstorming before planning. Use when the user wants to explore options for a new feature, discuss approaches, design a solution, brainstorm ideas, or evaluate trade-offs. Trigger on: 'new feature', 'brainstorm', 'explore options', 'design', 'how should we', 'what approach', 'trade-offs', 'quiero agregar', 'diseñar', 'explorar opciones'. Do NOT use when the user already has a clear plan or is asking to execute existing work."
 ---
 

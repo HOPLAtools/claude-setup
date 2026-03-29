@@ -1,5 +1,5 @@
 ---
-name: hopla-parallel-dispatch
+name: parallel-dispatch
 description: "Parallel agent dispatch for independent tasks. Use when 2+ tasks have no shared state and can run simultaneously, during brainstorming to explore multiple approaches, or when the user says 'in parallel', 'simultaneously', 'at the same time'. Do NOT use when tasks have dependencies or share state."
 ---
 

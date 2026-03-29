@@ -1,5 +1,5 @@
 ---
-name: hopla-code-review
+name: code-review
 description: "Technical code review on changed files. Use when the user says 'review code', 'code review', 'check my code', 'review changes', 'look for bugs', or 'audit code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
 allowed-tools: Read, Grep, Glob, Bash
 ---

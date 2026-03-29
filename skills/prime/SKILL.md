@@ -1,5 +1,5 @@
 ---
-name: hopla-prime
+name: prime
 description: "Project orientation and context loading. Use when starting a session, onboarding to a project, needing to understand the codebase, or when the user says 'orient', 'get context', 'load project', 'what is this project', 'prime', or 'start'. Do NOT use mid-task when the project is already understood."
 allowed-tools: Read, Grep, Glob, Bash
 ---

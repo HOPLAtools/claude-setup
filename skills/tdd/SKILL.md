@@ -1,5 +1,5 @@
 ---
-name: hopla-tdd
+name: tdd
 description: "Test-driven development workflow using the RED-GREEN-REFACTOR cycle. Use when implementing features that require tests, when the plan specifies test tasks, when the user mentions 'TDD', 'test first', 'write tests', or when working on bug fixes that should have regression tests. Do NOT use for documentation, configuration, or tasks where tests don't apply."
 ---
 
