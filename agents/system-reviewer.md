@@ -1,7 +1,6 @@
 ---
 name: system-reviewer
 description: "System review agent that analyzes execution reports against plans to identify process improvements. Use after feature completion to find patterns and improve the development system."
-model: sonnet
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: codebase-researcher
 description: "Fast codebase exploration agent for research tasks. Use this agent to investigate code, find patterns, map dependencies, or gather context without polluting the main conversation."
-model: haiku
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

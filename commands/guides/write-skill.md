@@ -20,7 +20,7 @@ skill-name/
 name: skill-name
 description: "100-150 words. Start with what it does, then 'Use when...' + specific triggers. End with 'Do NOT use for...' anti-triggers."
 allowed-tools: Read, Grep, Glob, Bash  # Optional: restrict tools
-model: sonnet  # Optional: force specific model
+# Do NOT hardcode `model:` — let skills inherit the user's configured model
 ---
 ```
 

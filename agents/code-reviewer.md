@@ -1,7 +1,6 @@
 ---
 name: code-reviewer
 description: "Senior code reviewer agent for thorough code quality analysis. Use this agent to review completed code changes with fresh context, catching issues the implementer might miss."
-model: sonnet
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
