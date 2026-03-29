@@ -10,7 +10,7 @@
 - `cli.js` is a single-file Node.js ESM script — keep it that way, no external dependencies
 - This repo serves **two distribution channels**: Claude Code plugin AND npm CLI
 - Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
-- Bump `version` in **both** `package.json` AND `.claude-plugin/plugin.json` before every release
+- Bump `version` in **all three files** before every release: `package.json`, `.claude-plugin/plugin.json`, AND `.claude-plugin/marketplace.json`
 
 ---
 
@@ -28,8 +28,8 @@
 
 ```
 .claude-plugin/
-├── plugin.json      ← Plugin manifest (name, version, metadata)
-└── marketplace.json ← Self-hosted marketplace definition
+├── plugin.json      ← Plugin manifest (name, version, metadata) ⚠️ bump on release
+└── marketplace.json ← Self-hosted marketplace definition ⚠️ bump on release
 cli.js               ← CLI entry point (single file, Node built-ins only)
 global-rules.md      ← Global rules template → installed to ~/.claude/CLAUDE.md (CLI only)
 commands/            ← Slash commands (auto-discovered by plugin + CLI)
@@ -101,7 +101,7 @@ node cli.js --version  # verify version string
 
 Verify files landed correctly in `~/.claude/` and `~/.claude/commands/`.
 
-For the plugin channel, verify `.claude-plugin/plugin.json` is valid JSON and version matches `package.json`.
+For the plugin channel, verify `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are valid JSON and versions match `package.json`.
 
 ---
 
@@ -112,7 +112,7 @@ node cli.js              # Run CLI locally (interactive)
 node cli.js --force      # Force install, overwrite all without prompting
 node cli.js --uninstall  # Uninstall all files from ~/.claude/
 node cli.js --version    # Print package version
-npm publish              # Publish to npm (bump version in package.json + plugin.json first)
+npm publish              # Publish to npm (bump version in package.json + plugin.json + marketplace.json first)
 ```
 
 ---
@@ -133,4 +133,4 @@ This guide covers: install/uninstall flows, permissions setup, adding flags, tes
 
 **When publishing a new version:**
 Read: `.agents/guides/publish-npm.md`
-This guide covers: version bump (both package.json + plugin.json), local verification, publish checklist
+This guide covers: version bump (package.json + plugin.json + marketplace.json), local verification, publish checklist
