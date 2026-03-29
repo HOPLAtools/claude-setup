@@ -18,7 +18,7 @@ Then install the plugin:
 /plugin install hopla@hopla-marketplace
 ```
 
-This installs all commands, skills, agents, and hooks automatically. Updates are detected when the plugin version changes — update manually with `/plugin update hopla@hopla-marketplace`.
+This installs all commands, skills, agents, and hooks automatically.
 
 To also install the global rules template (`~/.claude/CLAUDE.md`), run the CLI:
 
@@ -45,7 +45,7 @@ npm install -g @hopla/claude-setup
 claude-setup --planning
 ```
 
-Installs only planning commands: `init-project`, `create-prd`, `plan-feature`, `review-plan`, `guide`, `git-commit`, `git-pr`. Also installs planning skills (`hopla-prime`, `hopla-brainstorm`). No execution or review commands. No bash permission prompts during planning.
+Installs only planning commands: `init-project`, `create-prd`, `plan-feature`, `review-plan`, `guide`, `git-commit`, `git-pr`. Also installs planning skills (`prime`, `brainstorm`). No execution or review commands. No bash permission prompts during planning.
 
 To overwrite existing files without prompting:
 
@@ -56,12 +56,24 @@ claude-setup --planning --force
 
 ## Update
 
-**Plugin channel:** updates automatically when the plugin version changes, or manually:
-```
-/plugin update hopla@hopla-marketplace
+### Plugin channel
+
+Claude Code caches the marketplace repo locally. To get the latest version:
+
+```bash
+# Step 1: Update the local marketplace cache
+cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull
+
+# Step 2: Reinstall the plugin in Claude Code
+/plugin uninstall hopla@hopla-marketplace
+/plugin install hopla@hopla-marketplace
+/reload-plugins
 ```
 
-**CLI channel (for global rules):**
+> **Known issue:** Claude Code does not automatically `git pull` the marketplace when reinstalling a plugin. The manual `git pull` in step 1 is required to pick up new versions.
+
+### CLI channel (for global rules)
+
 ```bash
 npm install -g @hopla/claude-setup@latest --prefer-online && claude-setup --force
 ```
@@ -80,6 +92,19 @@ claude-setup --uninstall
 
 ---
 
+## Naming Convention
+
+Skills and commands use short names in source (e.g., `prime`, `execute`, `git`). Each distribution channel adds its own namespace:
+
+| Channel | Skills | Commands |
+|---|---|---|
+| **Plugin** | `/hopla:prime`, `/hopla:git` | `/hopla:execute`, `/hopla:plan-feature` |
+| **CLI** | `hopla-prime`, `hopla-git` | `/hopla-execute`, `/hopla-plan-feature` |
+
+The plugin channel uses the plugin name (`hopla:`) as namespace. The CLI channel adds a `hopla-` prefix during installation.
+
+---
+
 ## How It Works — Layered Context
 
 The system uses three levels of CLAUDE.md, each scoped differently:
@@ -88,7 +113,7 @@ The system uses three levels of CLAUDE.md, each scoped differently:
 ~/.claude/CLAUDE.md        ← Machine-level (installed by claude-setup)
     └── applies to ALL projects on this machine
 
-CLAUDE.md (project root)   ← Project-level (created with /hopla-init-project)
+CLAUDE.md (project root)   ← Project-level (created with /init-project)
     └── applies to THIS project only
 
 .claude/CLAUDE.local.md    ← Local overrides (personal, gitignored)
@@ -113,12 +138,12 @@ This system is built on two core concepts from the Agentic Coding Course:
 |--------|-----------|----------------|
 | **Global Rules** | Always-loaded context: language, git flow, tech defaults, autonomy rules | `~/.claude/CLAUDE.md` |
 | **On-Demand Context** | Task-specific guides loaded when needed (e.g. "how to add an API endpoint") | `.agents/guides/*.md` |
-| **Commands** | Reusable processes that tell the agent *how* to work | `~/.claude/commands/hopla-*.md` |
-| **Skills** | Auto-activate by semantic matching — no slash command needed | `~/.claude/skills/hopla-*/SKILL.md` |
+| **Commands** | Reusable processes that tell the agent *how* to work | `~/.claude/commands/` |
+| **Skills** | Auto-activate by semantic matching — no slash command needed | `~/.claude/skills/` |
 | **Agents** | Specialized subagents for delegation (code review, research, system analysis) | `~/.claude/agents/*.md` |
 | **Hooks** | Run automatically before/after tool use for type checking and protection | `~/.claude/hooks/*.js` |
 
-The key insight: **commands inject on-demand context deterministically** — when you run `/hopla-plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
+The key insight: **commands inject on-demand context deterministically** — when you run `/plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
 
 ### PIV Loop — How you work
 
@@ -126,13 +151,13 @@ The key insight: **commands inject on-demand context deterministically** — whe
 Plan → Implement → Validate → (repeat)
 ```
 
-- **Plan** (`/hopla-plan-feature`) — Research the codebase, design the approach, create a structured plan
-- **Implement** (`/hopla-execute`) — Delegate coding to the AI, trust but verify at each task
+- **Plan** (`/plan-feature`) — Research the codebase, design the approach, create a structured plan
+- **Implement** (`/execute`) — Delegate coding to the AI, trust but verify at each task
 - **Validate** — AI runs lint → types → tests → integration; human reviews the result
 
 ### System Evolution
 
-After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to find process improvements. Don't just fix bugs — fix the system that allowed them.
+After each PIV loop, run `/execution-report` + `/system-review` to find process improvements. Don't just fix bugs — fix the system that allowed them.
 
 ---
 
@@ -140,43 +165,43 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 
 **`~/.claude/CLAUDE.md`** — Global rules applied to every Claude Code session.
 
-**`~/.claude/commands/`** — Reusable commands available in any project:
+**Commands** — Reusable commands available in any project:
 
 | Command | Description |
 |---|---|
-| `/hopla-init-project` | Read PRD, recommend stack, create CLAUDE.md and .agents/ structure |
-| `/hopla-create-prd` | Create a Product Requirements Document through guided questions |
-| `/hopla-plan-feature` | Research codebase and create a structured implementation plan |
-| `/hopla-review-plan` | Review a plan before execution — get a concise summary and approve |
-| `/hopla-execute` | Execute a structured plan from start to finish with validation |
-| `/hopla-validate` | Run the validation pyramid: lint → types → tests → integration |
-| `/hopla-end-to-end` | Full PIV loop in one command: prime → brainstorm → plan → execute → validate → commit |
-| `/hopla-git-commit` | Create a Conventional Commit with Git Flow awareness |
-| `/hopla-git-pr` | Create a GitHub Pull Request with a structured description |
-| `/hopla-code-review-fix` | Fix issues found in a code review report |
-| `/hopla-rca` | Root Cause Analysis — investigate a bug systematically and generate an RCA doc |
-| `/hopla-guide` | 4D Framework guide for non-technical users (Description, Discernment, Delegation, Diligence) |
-| `/hopla-system-review` | Analyze implementation against plan to find process improvements |
+| `init-project` | Read PRD, recommend stack, create CLAUDE.md and .agents/ structure |
+| `create-prd` | Create a Product Requirements Document through guided questions |
+| `plan-feature` | Research codebase and create a structured implementation plan |
+| `review-plan` | Review a plan before execution — get a concise summary and approve |
+| `execute` | Execute a structured plan from start to finish with validation |
+| `validate` | Run the validation pyramid: lint → types → tests → integration |
+| `end-to-end` | Full PIV loop in one command: prime → brainstorm → plan → execute → validate → commit |
+| `git-commit` | Create a Conventional Commit with Git Flow awareness |
+| `git-pr` | Create a GitHub Pull Request with a structured description |
+| `code-review-fix` | Fix issues found in a code review report |
+| `rca` | Root Cause Analysis — investigate a bug systematically and generate an RCA doc |
+| `guide` | 4D Framework guide for non-technical users (Description, Discernment, Delegation, Diligence) |
+| `system-review` | Analyze implementation against plan to find process improvements |
 
-> **Note:** `hopla-prime`, `hopla-code-review`, and `hopla-execution-report` are **skills only** (no slash command needed) — they auto-activate when you describe the task in natural language.
+> **Note:** `prime`, `code-review`, and `execution-report` are **skills only** (no slash command needed) — they auto-activate when you describe the task in natural language.
 
-**`~/.claude/skills/`** — Auto-activate by semantic matching, no slash command needed:
+**Skills** — Auto-activate by semantic matching, no slash command needed:
 
 | Skill | Auto-activates when you say... |
 |---|---|
-| `hopla-git` | "commit this", "create a PR", "save the changes" |
-| `hopla-prime` | "orient yourself", "catch me up", "what is this project" |
-| `hopla-code-review` | "review the code", "code review", "check these changes" |
-| `hopla-execution-report` | "generate the report", "document what was done", "summarize the work" |
-| `hopla-verify` | "verify it works", "make sure it's correct", "check before finishing" |
-| `hopla-brainstorm` | "let's brainstorm", "explore approaches", "design this before coding" |
-| `hopla-debug` | "debug this", "find the bug", "why is this failing" |
-| `hopla-tdd` | "write tests first", "TDD", "red-green-refactor" |
-| `hopla-subagent-execution` | "use subagents", "execute with agents", plans with 5+ tasks |
-| `hopla-parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
-| `hopla-worktree` | "use a worktree", "isolated branch", "parallel feature work" |
+| `git` | "commit this", "create a PR", "save the changes" |
+| `prime` | "orient yourself", "catch me up", "what is this project" |
+| `code-review` | "review the code", "code review", "check these changes" |
+| `execution-report` | "generate the report", "document what was done", "summarize the work" |
+| `verify` | "verify it works", "make sure it's correct", "check before finishing" |
+| `brainstorm` | "let's brainstorm", "explore approaches", "design this before coding" |
+| `debug` | "debug this", "find the bug", "why is this failing" |
+| `tdd` | "write tests first", "TDD", "red-green-refactor" |
+| `subagent-execution` | "use subagents", "execute with agents", plans with 5+ tasks |
+| `parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
+| `worktree` | "use a worktree", "isolated branch", "parallel feature work" |
 
-**`~/.claude/hooks/`** — Run automatically before/after tool use (configured in `~/.claude/settings.json`):
+**Hooks** — Run automatically before/after tool use (configured in `~/.claude/settings.json`):
 
 | Hook | Type | What it does |
 |---|---|---|
@@ -184,15 +209,15 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 | `env-protect.js` | PreToolUse | Blocks reads/greps targeting `.env` files |
 | `session-prime.js` | SessionStart (opt-in) | Loads git context + CLAUDE.md summary at session start |
 
-**`~/.claude/agents/`** — Specialized subagents for delegation:
+**Agents** — Specialized subagents for delegation:
 
 | Agent | What it does |
 |---|---|
-| `code-reviewer` | Senior code reviewer (model: sonnet, read-only). Reviews plan alignment, code quality, architecture, logic, security, performance |
-| `codebase-researcher` | Fast codebase explorer (model: haiku, read-only). Systematic search and structured findings |
-| `system-reviewer` | System review analyst (model: sonnet, read-only). Analyzes execution vs plan, classifies divergences |
+| `code-reviewer` | Senior code reviewer (read-only). Reviews plan alignment, code quality, architecture, logic, security, performance |
+| `codebase-researcher` | Fast codebase explorer (read-only). Systematic search and structured findings |
+| `system-reviewer` | System review analyst (read-only). Analyzes execution vs plan, classifies divergences |
 
-**`~/.claude/commands/guides/`** — Reference guides loaded on-demand:
+**Reference guides** — Loaded on-demand:
 
 | Guide | What it covers |
 |---|---|
@@ -205,79 +230,48 @@ After each PIV loop, run `/hopla-execution-report` + `/hopla-system-review` to f
 | `data-audit.md` | Data pipeline audit checklist |
 | `review-checklist.md` | Code review checklist reference |
 
-**Installed layout:**
-
-```
-~/.claude/
-├── CLAUDE.md              ← Global rules
-├── commands/
-│   ├── hopla-*.md         ← Slash commands (/hopla-prime, /hopla-execute, etc.)
-│   └── guides/            ← Reference guides (loaded on-demand by commands/skills)
-├── skills/
-│   ├── hopla-git/         ← Auto-activates for commit/PR requests
-│   ├── hopla-prime/       ← Auto-activates for orientation requests
-│   ├── hopla-code-review/ ← Auto-activates for review requests
-│   ├── hopla-execution-report/ ← Auto-activates for report requests
-│   ├── hopla-verify/      ← Auto-activates for verification before completion
-│   ├── hopla-brainstorm/  ← Auto-activates for design exploration
-│   ├── hopla-debug/       ← Auto-activates for systematic debugging
-│   ├── hopla-tdd/         ← Auto-activates for test-driven development
-│   ├── hopla-subagent-execution/ ← Auto-activates for multi-task plans
-│   ├── hopla-parallel-dispatch/  ← Auto-activates for parallel work
-│   └── hopla-worktree/    ← Auto-activates for isolated branch work
-├── agents/
-│   ├── code-reviewer.md   ← Senior code review subagent
-│   ├── codebase-researcher.md ← Fast codebase exploration subagent
-│   └── system-reviewer.md ← Execution vs plan analysis subagent
-├── hooks/
-│   ├── tsc-check.js       ← TypeScript type checking after edits
-│   ├── env-protect.js     ← .env file protection
-│   └── session-prime.js   ← Session context loader (opt-in)
-└── settings.json          ← Permissions + hooks config (auto-updated)
-```
-
 ---
 
 ## Recommended Workflow
 
 ### Starting a new project
 ```
-/hopla-create-prd     → define what you're building (PRD.md)
-/hopla-init-project   → reads PRD, recommends stack, creates CLAUDE.md + .agents/
-/hopla-git-commit     → saves Layer 1 foundation to git
+/create-prd          → define what you're building (PRD.md)
+/init-project        → reads PRD, recommends stack, creates CLAUDE.md + .agents/
+/git-commit          → saves Layer 1 foundation to git
 ```
 
 ### Feature development (PIV loop)
 ```
-"catch me up"           → hopla-prime skill auto-loads project context
-/hopla-plan-feature     → research codebase and create plan
-/hopla-review-plan      → review plan summary and approve
-/hopla-execute          → implement the plan with validation
-/hopla-validate         → run lint → types → tests → integration
-"review the code"       → hopla-code-review skill runs automatically
-/hopla-code-review-fix  → fix issues found
-/hopla-rca              → root cause analysis if a bug is found
-"generate the report"     → hopla-execution-report skill documents what was built
-/hopla-git-commit       → save to git
-/hopla-git-pr           → open pull request on GitHub
+"catch me up"          → prime skill auto-loads project context
+/plan-feature          → research codebase and create plan
+/review-plan           → review plan summary and approve
+/execute               → implement the plan with validation
+/validate              → run lint → types → tests → integration
+"review the code"      → code-review skill runs automatically
+/code-review-fix       → fix issues found
+/rca                   → root cause analysis if a bug is found
+"generate the report"  → execution-report skill documents what was built
+/git-commit            → save to git
+/git-pr                → open pull request on GitHub
 ```
 
 ### Full automation (one command)
 ```
-/hopla-end-to-end       → runs the entire PIV loop: prime → brainstorm → plan → execute → validate → commit
+/end-to-end            → runs the entire PIV loop: prime → brainstorm → plan → execute → validate → commit
 ```
 
 ### After implementation
 ```
-/hopla-system-review    → analyze plan vs. actual for process improvements
+/system-review         → analyze plan vs. actual for process improvements
 ```
 
 ### For non-technical users
 ```
-/hopla-guide            → 4D Framework walkthrough (Description, Discernment, Delegation, Diligence)
+/guide                 → 4D Framework walkthrough (Description, Discernment, Delegation, Diligence)
 ```
 
-> **Tip:** Many commands also exist as skills — they auto-activate when you describe what you want in natural language. For example, saying "debug this" triggers `hopla-debug`, and "let's brainstorm" triggers `hopla-brainstorm`, without typing any slash command.
+> **Tip:** Many commands also exist as skills — they auto-activate when you describe what you want in natural language. For example, saying "debug this" triggers the `debug` skill, and "let's brainstorm" triggers the `brainstorm` skill, without typing any slash command.
 
 ---
 
@@ -289,50 +283,50 @@ Commands are modular — the output of one becomes the input of the next. Some c
 
 | Command | Argument | Example |
 |---|---|---|
-| `/hopla-execute` | Path to plan file | `/hopla-execute .agents/plans/auth-feature.md` |
-| `/hopla-end-to-end` | Feature description | `/hopla-end-to-end add user authentication` |
-| `/hopla-code-review-fix` | Path to review report or description | `/hopla-code-review-fix .agents/code-reviews/auth-review.md` |
-| `/hopla-rca` | Bug description or error message | `/hopla-rca "login fails with 403 after token refresh"` |
-| `/hopla-system-review` | Plan file + execution report | `/hopla-system-review .agents/plans/auth-feature.md .agents/execution-reports/auth-feature.md` |
+| `/execute` | Path to plan file | `/execute .agents/plans/auth-feature.md` |
+| `/end-to-end` | Feature description | `/end-to-end add user authentication` |
+| `/code-review-fix` | Path to review report or description | `/code-review-fix .agents/code-reviews/auth-review.md` |
+| `/rca` | Bug description or error message | `/rca "login fails with 403 after token refresh"` |
+| `/system-review` | Plan file + execution report | `/system-review .agents/plans/auth-feature.md .agents/execution-reports/auth-feature.md` |
 
 ### Full PIV loop example
 
 ```
 # 1. Plan
-/hopla-plan-feature add user authentication
+/plan-feature add user authentication
 → saves: .agents/plans/add-user-authentication.md
 
 # 2. Review plan
-/hopla-review-plan .agents/plans/add-user-authentication.md
+/review-plan .agents/plans/add-user-authentication.md
 
 # 3. Execute
-/hopla-execute .agents/plans/add-user-authentication.md
+/execute .agents/plans/add-user-authentication.md
 → implements the plan, runs validation
 
 # 4. Validate
-/hopla-validate
+/validate
 → runs lint → types → tests → integration
 
 # 5. Code review (auto-triggered skill — just say "review the code")
 → saves: .agents/code-reviews/add-user-authentication.md
 
 # 6. Fix issues
-/hopla-code-review-fix .agents/code-reviews/add-user-authentication.md
+/code-review-fix .agents/code-reviews/add-user-authentication.md
 
 # 7. Document (auto-triggered skill — just say "generate the report")
 → saves: .agents/execution-reports/add-user-authentication.md
 
 # 8. Commit
-/hopla-git-commit
+/git-commit
 
 # 9. Pull request
-/hopla-git-pr
+/git-pr
 
 # 10. Process improvement (after PR merge)
-/hopla-system-review .agents/plans/add-user-authentication.md .agents/execution-reports/add-user-authentication.md
+/system-review .agents/plans/add-user-authentication.md .agents/execution-reports/add-user-authentication.md
 ```
 
-> **Or do it all in one command:** `/hopla-end-to-end add user authentication`
+> **Or do it all in one command:** `/end-to-end add user authentication`
 
 ---
 
@@ -347,12 +341,12 @@ Features under consideration for future versions:
 
 ---
 
-## Project Structure (after /hopla-create-prd + /hopla-init-project)
+## Project Structure (after /create-prd + /init-project)
 
 ```
 project/
-├── PRD.md                         ← Product scope (from /hopla-create-prd)
-├── CLAUDE.md                      ← Project rules and stack (from /hopla-init-project)
+├── PRD.md                         ← Product scope (from /create-prd)
+├── CLAUDE.md                      ← Project rules and stack (from /init-project)
 ├── .agents/
 │   ├── plans/                     ← Implementation plans (commit these)
 │   ├── specs/                     ← Design specs from brainstorming (commit these)
