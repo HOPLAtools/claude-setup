@@ -76,6 +76,7 @@ Based on research, define:
 - **User preferences check:** Before specifying UI architecture (modal vs. inline, page vs. panel, dialog vs. drawer), verify against MEMORY.md and conversation history for established preferences. In past implementations, plans that specified modals were rejected because the user preferred inline panels — this caused rework. When no preference exists, note it as a decision point for the user to confirm.
 - **Reuse context analysis:** When a new view reuses an existing component in a different context (e.g., a list component in a "history" view vs. an "active" view), the plan MUST list what's different about the new context's requirements: different columns, different data filters, different interactions, different toolbar layout. Missed context differences caused 40%+ of unplanned work in past implementations.
 - **Multi-phase plan guidance:** For features requiring 3+ phases, create an architectural plan (`backlog/NN-feature.md`) with schema, phase boundaries, and target architecture. When executing each phase, create a standalone plan (`phase-NX-description.md`) with full task-level detail following this template. The architectural plan is the spec; phase plans are the execution instructions. Each phase should have its own feature branch and PR.
+- **API surface enumeration (security/access control plans):** When the plan modifies access control, authorization, or data visibility, enumerate ALL API surfaces that serve the same data — REST endpoints, WebSocket handlers, Durable Object methods, and any other data paths. Each surface must be updated consistently. In past implementations, updating only the WebSocket path while missing the parallel REST endpoint caused a security gap that was only caught by code review. Add a task for each surface, not just the primary one.
 
 ## Phase 5: Generate the Plan
 
@@ -216,6 +217,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Time-box on risky tasks:** Any task involving unfamiliar libraries, heuristic parsing, or known-complex behavior (auto-sizing, animation, real-time sync) has a Time-box with a fallback strategy
 - [ ] **Plan size checked:** If >8 tasks, phase boundaries are defined with intermediate commit points. If >12 tasks, split justification is provided or phases are created.
 - [ ] **Likely follow-ups listed:** If the Out of Scope section has items, the Likely Follow-ups section is populated with naturally adjacent work the user may request
+- [ ] **API surface enumeration (if security/access plan):** All parallel API surfaces (REST, WebSocket, DO) that serve the same data are listed with a task for each
 
 ## Phase 7: Save Draft and Enter Review Loop
 
