@@ -28,6 +28,7 @@ Read the following to understand the project:
 3. `package.json` or `pyproject.toml` — stack, dependencies, scripts
 4. `.agents/guides/` — if this directory exists, read any guides relevant to the feature being planned (e.g. `@.agents/guides/api-guide.md` when planning an API endpoint)
 5. `MEMORY.md` (if it exists at project root or `~/.claude/`) — check for user preferences that affect this feature (UI patterns like modal vs inline, keyboard shortcuts, component conventions)
+6. `.agents/execution-reports/` — if this directory exists, scan recent reports (last 3-5) for technical patterns discovered and gotchas relevant to the feature being planned. These contain real-world learnings from previous implementations that prevent re-discovering known issues.
 
 Then run:
 
@@ -51,6 +52,15 @@ Investigate the areas of the codebase relevant to this feature:
 Use the Grep tool to find relevant files (pattern: relevant keyword, case-insensitive).
 
 Read the key files in their entirety — not just the parts that seem relevant.
+
+### Assumption verification (required)
+
+For each existing table, API endpoint, or component the plan will modify, verify the current state during planning — do not defer to execution:
+- **Database/schema:** Read the most recent migration or schema definition. Confirm column names, types, and constraints match your assumptions.
+- **API endpoints:** Read the actual route handler. Confirm the request/response shape matches your assumptions.
+- **Components:** Read the component file. Confirm props, state, and data flow match your assumptions.
+
+Document verified assumptions in the plan's **Context References** with the exact file and line number. This prevents the #1 cause of mid-implementation redesigns: plans that assumed a field name, type, or constraint that didn't match reality.
 
 ### Data audit (required for features that consume existing data)
 
@@ -77,6 +87,9 @@ Based on research, define:
 - **Reuse context analysis:** When a new view reuses an existing component in a different context (e.g., a list component in a "history" view vs. an "active" view), the plan MUST list what's different about the new context's requirements: different columns, different data filters, different interactions, different toolbar layout. Missed context differences caused 40%+ of unplanned work in past implementations.
 - **Multi-phase plan guidance:** For features requiring 3+ phases, create an architectural plan (`backlog/NN-feature.md`) with schema, phase boundaries, and target architecture. When executing each phase, create a standalone plan (`phase-NX-description.md`) with full task-level detail following this template. The architectural plan is the spec; phase plans are the execution instructions. Each phase should have its own feature branch and PR.
 - **API surface enumeration (security/access control plans):** When the plan modifies access control, authorization, or data visibility, enumerate ALL API surfaces that serve the same data — REST endpoints, WebSocket handlers, Durable Object methods, and any other data paths. Each surface must be updated consistently. In past implementations, updating only the WebSocket path while missing the parallel REST endpoint caused a security gap that was only caught by code review. Add a task for each surface, not just the primary one.
+- **Role access matrix:** For features involving multiple user roles or multi-tenant access (admin, member, viewer, buyer, external user), define a matrix: what data does each role see? What endpoints does each role call? What filters apply per role? In past implementations, plans that didn't specify role-level access had authorization bugs discovered only during code review.
+- **External integration buffer:** If the feature integrates an external API or third-party service, budget 2x the estimated time. Document: do we have working test credentials? Is the SDK tested in our runtime (Workers, Node, edge, etc.)? Are there known deprecations or version constraints? External integrations consistently took 2-3x longer than planned in past implementations.
+- **UI iteration budget:** For features with significant UI (new pages, complex forms, interactive grids), note that UI specifications are provisional — expect 30-50% additional work for visual refinement based on user feedback. Specify what "good enough for v1" looks like vs. future polish. This prevents scope creep from being classified as plan failure.
 
 ## Phase 5: Generate the Plan
 
@@ -218,6 +231,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Plan size checked:** If >8 tasks, phase boundaries are defined with intermediate commit points. If >12 tasks, split justification is provided or phases are created.
 - [ ] **Likely follow-ups listed:** If the Out of Scope section has items, the Likely Follow-ups section is populated with naturally adjacent work the user may request
 - [ ] **API surface enumeration (if security/access plan):** All parallel API surfaces (REST, WebSocket, DO) that serve the same data are listed with a task for each
+- [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations? N+1 queries were found in 5 of 13 recent implementations.
 
 ## Phase 7: Save Draft and Enter Review Loop
 

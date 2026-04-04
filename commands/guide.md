@@ -1,3 +1,9 @@
+---
+description: 4D Framework guide for non-technical users working with AI coding assistants
+---
+
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
 # HOPLA Guide for Non-Technical Users
 
 > A guided framework for working effectively with your AI coding assistant.

@@ -173,8 +173,8 @@ const PLANNING_COMMANDS = [
     "create-prd.md",
     "plan-feature.md",
     "review-plan.md",
-    "git-commit.md",
-    "git-pr.md",
+    "system-review.md",
+    "rca.md",
     "guide.md",
 ];
 
@@ -257,7 +257,7 @@ async function install() {
 }
 
 // Skills to install in planning mode (subset)
-const PLANNING_SKILLS = ["prime", "brainstorm"];
+const PLANNING_SKILLS = ["prime", "brainstorm", "git"];
 
 async function installSkills() {
     const skillsSrcDir = path.join(REPO_ROOT, "skills");

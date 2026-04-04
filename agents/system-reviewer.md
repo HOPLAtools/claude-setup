@@ -15,6 +15,7 @@ You are a System Reviewer. Your job is to analyze how well the implementation ma
    - **Good divergence**: Found a better approach, justified deviation
    - **Bad divergence**: Missed requirements, ignored constraints, skipped steps
 5. **Trace root causes** — Why did each divergence happen?
+5.5. **Check recommendation history** — Read the 3 most recent system reviews in `.agents/system-reviews/`. If a recommendation appears in 2+ previous reviews and hasn't been applied, flag it as **RECURRING — NOT APPLIED** with escalation priority.
 6. **Suggest improvements** — What should change to prevent bad divergences?
 
 ## Improvement Decision Matrix
@@ -60,4 +61,16 @@ Save to `.agents/system-reviews/[feature-name].md`:
 
 ## Key Learnings
 - [Insights worth remembering]
+
+## Recommendation Tracking
+
+For each recommendation from the 2 most recent system reviews:
+- Was it applied? (Check CLAUDE.md, commands, guides for the suggested change)
+- If not applied, why? (Forgotten, deprioritized, or superseded?)
+- **Recurring unapplied recommendations indicate a broken feedback loop** — escalate these by listing them first in "Recommended Improvements" with a ⚠️ prefix
+
+## Next Step
+
+After the review is saved, suggest:
+> "System review saved to `.agents/system-reviews/[feature]-review.md`. Plan archived. If recurring recommendations were found, consider applying them before the next feature — they represent known gaps in the process."
 ```

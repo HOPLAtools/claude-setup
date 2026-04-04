@@ -94,6 +94,9 @@ After creating, show the PR URL to the user.
 
 **Never merge automatically** — the PR is for human review.
 
+After showing the PR URL, suggest:
+> "PR created. To complete the cycle, run `/hopla-execution-report` (if not done yet) and `/hopla-system-review` after the PR is merged."
+
 ## Step 7: Post-Merge Cleanup
 
 After the user confirms the PR was approved and merged on GitHub, run the cleanup workflow based on the branch type:
@@ -106,6 +109,8 @@ git pull origin [base-branch]
 git branch -d [merged-branch]
 git push origin --delete [merged-branch] 2>/dev/null  # skip if GitHub already deleted it
 ```
+
+**Important:** When `dev` is merged to `main` via PR, do NOT pull `main` back into `dev` — `dev` already has all the commits. Only sync `main` → `dev` for hotfix/release branches (see below).
 
 ### Additional steps for `hotfix/*` and `release/*`:
 

@@ -87,3 +87,8 @@ Present the design document for user review.
 - Always ground proposals in the existing codebase (not abstract theory)
 - If the feature is trivial (< 30 minutes of work), skip the full process — just confirm approach and proceed
 - In planning mode (non-technical users): focus on product decisions, not technical details
+
+## Integration
+
+- If the user hasn't defined requirements yet, suggest: "Before brainstorming, consider running `/hopla-create-prd` to define the product requirements. This gives us clearer constraints to design against."
+- If the user is brainstorming a bug fix rather than a new feature, suggest: "This sounds like a bug rather than a new feature. Consider running the `debug` skill for systematic root cause analysis instead."

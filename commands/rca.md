@@ -1,6 +1,11 @@
-# Root Cause Analysis
+---
+description: Investigate a bug or issue and produce a structured RCA document
+argument-hint: "<issue-description-or-github-url>"
+---
 
-> Investigate a bug or issue and produce a structured RCA document.
+> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+
+# Root Cause Analysis
 
 > 💡 **Tip**: Use Extended Thinking mode for complex bugs with multiple possible causes.
 

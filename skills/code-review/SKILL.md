@@ -37,6 +37,7 @@ For each changed file, look for:
 - Stale closures — callbacks passed to imperative APIs (grids, charts, maps) that capture stale state instead of using refs or stable references
 - Unhandled promise rejections — `.then()` without `.catch()`, async calls without `try/catch` in non-void contexts
 - Side effects inside JSX render — mutations of arrays/objects inside `.map()` in JSX (breaks React strict mode, causes double-execution bugs)
+- Stale dependency arrays — for every new `useState`/`useRef` variable introduced in the diff, verify it appears in the dependency arrays of `useEffect`, `useCallback`, or `useMemo` that reference it. Missing deps cause stale closures — this was the #1 React bug category across 28 implementations
 
 **2. Security Issues**
 - Exposed secrets or API keys
@@ -44,10 +45,11 @@ For each changed file, look for:
 - Missing input validation on API endpoints — required fields, format constraints (regex, length), payload size limits
 - Insecure data handling — raw user input in queries, responses exposing internal data or stack traces
 - XSS vulnerabilities (frontend)
+- Multi-user authorization context — for multi-tenant apps, verify each endpoint filters by the correct context (e.g., active org vs personal org, admin vs viewer). Check that middleware/auth guards match the intended audience for each route
 
 **3. Performance Problems**
 - Unnecessary re-renders (React)
-- N+1 queries or redundant API calls
+- N+1 queries — database queries or API calls inside loops (`for`, `.map`, `.forEach`), duplicate existence checks before mutations, sequential operations that could use `Promise.all()` or batch SQL. This was found in 5 of 13 recent implementations
 - Memory leaks
 
 **4. Code Quality**
