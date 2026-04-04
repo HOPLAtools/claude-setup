@@ -62,3 +62,13 @@ Reference `/hopla-validate` for project-specific validation commands.
 - **Applies to**: Any declaration of completion, whether mid-conversation or at end of task
 - **Does NOT apply to**: Intermediate progress updates ("I've finished editing file X, moving to file Y")
 - **Partial completion**: You may say "file X is updated" without full validation, but "the feature is complete" requires the full gate
+
+## Plan Execution Check
+
+When verifying completion of a plan execution (not just a standalone task):
+
+1. **Divergences documented?** — Ask: "Were there any tasks added, skipped, or changed from the original plan?" If yes, verify they are documented in the completion report.
+2. **Unplanned files?** — Run `git diff --name-only` and compare against the plan's task list. Flag any files changed that aren't in any task.
+3. **All acceptance criteria met?** — Read the plan's acceptance criteria and verify each one has fresh evidence.
+
+These checks prevent the common pattern where implementation is "done" but divergences are silently omitted from the report.

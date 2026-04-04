@@ -175,9 +175,6 @@ After each PIV loop, run `/execution-report` + `/system-review` to find process 
 | `review-plan` | Review a plan before execution — get a concise summary and approve |
 | `execute` | Execute a structured plan from start to finish with validation |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
-| `end-to-end` | Full PIV loop in one command: prime → brainstorm → plan → execute → validate → commit |
-| `git-commit` | Create a Conventional Commit with Git Flow awareness |
-| `git-pr` | Create a GitHub Pull Request with a structured description |
 | `code-review-fix` | Fix issues found in a code review report |
 | `rca` | Root Cause Analysis — investigate a bug systematically and generate an RCA doc |
 | `guide` | 4D Framework guide for non-technical users (Description, Discernment, Delegation, Diligence) |
@@ -189,7 +186,7 @@ After each PIV loop, run `/execution-report` + `/system-review` to find process 
 
 | Skill | Auto-activates when you say... |
 |---|---|
-| `git` | "commit this", "create a PR", "save the changes" |
+| `git` | "commit this", "create a PR", "push changes", "save to git" |
 | `prime` | "orient yourself", "catch me up", "what is this project" |
 | `code-review` | "review the code", "code review", "check these changes" |
 | `execution-report` | "generate the report", "document what was done", "summarize the work" |
@@ -238,7 +235,7 @@ After each PIV loop, run `/execution-report` + `/system-review` to find process 
 ```
 /create-prd          → define what you're building (PRD.md)
 /init-project        → reads PRD, recommends stack, creates CLAUDE.md + .agents/
-/git-commit          → saves Layer 1 foundation to git
+"commit this"        → git skill saves Layer 1 foundation to git
 ```
 
 ### Feature development (PIV loop)
@@ -252,13 +249,7 @@ After each PIV loop, run `/execution-report` + `/system-review` to find process 
 /code-review-fix       → fix issues found
 /rca                   → root cause analysis if a bug is found
 "generate the report"  → execution-report skill documents what was built
-/git-commit            → save to git
-/git-pr                → open pull request on GitHub
-```
-
-### Full automation (one command)
-```
-/end-to-end            → runs the entire PIV loop: prime → brainstorm → plan → execute → validate → commit
+"commit this"          → git skill handles commits and PRs
 ```
 
 ### After implementation
@@ -284,7 +275,6 @@ Commands are modular — the output of one becomes the input of the next. Some c
 | Command | Argument | Example |
 |---|---|---|
 | `/execute` | Path to plan file | `/execute .agents/plans/auth-feature.md` |
-| `/end-to-end` | Feature description | `/end-to-end add user authentication` |
 | `/code-review-fix` | Path to review report or description | `/code-review-fix .agents/code-reviews/auth-review.md` |
 | `/rca` | Bug description or error message | `/rca "login fails with 403 after token refresh"` |
 | `/system-review` | Plan file + execution report | `/system-review .agents/plans/auth-feature.md .agents/execution-reports/auth-feature.md` |
@@ -316,17 +306,11 @@ Commands are modular — the output of one becomes the input of the next. Some c
 # 7. Document (auto-triggered skill — just say "generate the report")
 → saves: .agents/execution-reports/add-user-authentication.md
 
-# 8. Commit
-/git-commit
+# 8. Commit and PR (auto-triggered — just say "commit this" then "create a PR")
 
-# 9. Pull request
-/git-pr
-
-# 10. Process improvement (after PR merge)
+# 9. Process improvement (after PR merge)
 /system-review .agents/plans/add-user-authentication.md .agents/execution-reports/add-user-authentication.md
 ```
-
-> **Or do it all in one command:** `/end-to-end add user authentication`
 
 ---
 

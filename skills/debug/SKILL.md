@@ -71,3 +71,11 @@ When the bug is fixed, briefly report:
 - **Fix**: What was changed and why
 - **Test**: What test verifies the fix
 - **Prevention**: How to prevent similar bugs (if applicable)
+
+## Escalation
+
+If the 3-Strike Rule activates (3 fixes failed), suggest:
+> "This bug may need deeper investigation. Run `/hopla-rca` to produce a structured Root Cause Analysis document with evidence, proposed fix, and prevention steps."
+
+If the bug is fixed, suggest:
+> "Bug fixed. Run `/hopla-validate` to verify no regressions, then `/hopla-git-commit` to save the fix."

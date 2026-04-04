@@ -29,6 +29,13 @@ Verify that the plan's documented assumptions still hold. **You are not re-audit
 
 See `.agents/guides/data-audit.md` for detailed criteria on what to check.
 
+**Concrete verification:** For each table or API endpoint mentioned in the plan's tasks, run ONE verification command before writing code. Examples:
+- Schema: `grep -n 'CREATE TABLE\|ALTER.*tablename' migrations/*.sql | tail -3`
+- API route: Read the route file and confirm the endpoint signature
+- Component: Read the component and confirm its props interface
+
+If ANY assumption from the plan doesn't match current code, file a Blocker Report immediately. Do not proceed with tasks that depend on incorrect assumptions.
+
 If a discrepancy is found, stop immediately and file a Blocker Report below. You may continue with tasks that are not blocked by the discrepancy.
 
 #### Blocker Report
@@ -98,6 +105,7 @@ Work through each task in the plan sequentially. For each task:
 **Git strategy:**
 - **Plans with 1–7 tasks:** Do not commit after individual tasks. Keep all changes staged but uncommitted until the full plan passes validation (Step 5). This allows a clean revert if later tasks fail.
 - **Plans with 8+ tasks (or plans with `## Phase Boundaries`):** Commit at each phase boundary defined in the plan. Run Level 1–2 validation (lint + types) before each intermediate commit. Use commit message format: `feat(<scope>): <feature> — phase N of M`. This prevents losing work on large implementations if later phases fail.
+     For plans with 8+ tasks, the **first intermediate commit** should happen after the first 3-4 tasks pass validation — do not wait until a full phase boundary if one isn't defined. Losing work on large implementations was a recurring problem when commits were deferred too long.
 
 **Pause and report if, during implementation:**
 - A task is ambiguous or has multiple valid implementations
@@ -106,6 +114,15 @@ Work through each task in the plan sequentially. For each task:
 - A new API route might shadow or be shadowed by an existing parameterized route (check route ordering — e.g., `/users/all` must be defined before `/users/:id`)
 
 Do not improvise silently. When in doubt, stop and ask.
+
+### Destructive Command Guard
+
+**NEVER** run destructive database or state commands during plan execution:
+- `db:reset`, `db:push --force`, `DROP TABLE`, `DELETE FROM` without WHERE
+- `rm -rf` on data directories
+- `git reset --hard`, `git clean -fd`
+
+If a migration fails or data needs to be reset, **stop and report to the user**. The cost of pausing is low; the cost of data loss is catastrophic. This rule exists because a `db:reset` during execution caused complete local data loss in a past implementation.
 
 ### Scope Guard
 

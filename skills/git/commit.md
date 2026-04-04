@@ -42,7 +42,18 @@ Present the proposed commit message to the user **before executing**:
 
 Wait for explicit approval before running `git commit`.
 
-## Step 5: Execute Commit
+## Step 5: Version Bump (if configured)
+
+Before committing, check the project's `CLAUDE.md` for a `## Versioning` section. If it exists:
+
+1. Read the versioning configuration (command, trigger, files)
+2. Check if the **trigger condition** matches (e.g., specific branches, always, etc.)
+3. If it matches, run the version bump command
+4. Stage the version files alongside the other changes
+
+If no `## Versioning` section exists in the project's `CLAUDE.md`, skip this step entirely.
+
+## Step 6: Execute Commit
 
 Once approved, create the commit:
 
@@ -50,10 +61,13 @@ Once approved, create the commit:
 git commit -m "<type>(<scope>): <description>"
 ```
 
-## Step 6: Push Reminder
+## Step 7: Push Reminder
 
 After committing, remind the user:
 
 > "Commit created locally. Do you want to push to `origin/<branch>`?"
 
 **Never push automatically** — wait for explicit confirmation.
+
+If the user confirms the push (or if the branch was already pushed), suggest:
+> "Ready to create a Pull Request? Run `/hopla-git-pr` to create one."
