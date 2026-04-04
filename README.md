@@ -332,13 +332,15 @@ project/
 ├── PRD.md                         ← Product scope (from /create-prd)
 ├── CLAUDE.md                      ← Project rules and stack (from /init-project)
 ├── .agents/
-│   ├── plans/                     ← Implementation plans (commit these)
-│   ├── specs/                     ← Design specs from brainstorming (commit these)
-│   ├── guides/                    ← On-demand reference guides (commit these)
-│   ├── rca/                       ← Root cause analysis docs (commit these)
-│   ├── execution-reports/         ← Post-implementation reports (don't commit)
-│   ├── code-reviews/              ← Code review reports (don't commit)
-│   └── system-reviews/            ← Process improvement reports (don't commit)
+│   ├── plans/                     ← Implementation plans (commit)
+│   │   ├── done/                  ← Archived plans after system-review (commit)
+│   │   └── backlog/               ← Deferred ideas from Scope Guard (commit)
+│   ├── specs/                     ← Design specs from brainstorming (commit)
+│   ├── guides/                    ← On-demand reference guides (commit)
+│   ├── rca/                       ← Root cause analysis docs (commit)
+│   ├── execution-reports/         ← Post-implementation reports (commit)
+│   ├── system-reviews/            ← Process improvement reports (commit)
+│   └── code-reviews/              ← Code review reports (don't commit — ephemeral)
 └── .claude/
     └── commands/                  ← Project-specific commands (optional)
 ```
