@@ -427,18 +427,20 @@ Create the following directories (with `.gitkeep` where needed):
 
 ```
 .agents/
-├── plans/          <- /hopla-plan-feature saves here (commit these)
-├── guides/         <- on-demand reference guides (commit these)
-├── execution-reports/   <- /hopla-execution-report saves here (do NOT commit)
-├── code-reviews/        <- /hopla-code-review saves here (do NOT commit)
-└── system-reviews/      <- /hopla-system-review saves here (do NOT commit)
+├── plans/               <- /hopla-plan-feature saves here (commit)
+│   ├── done/            <- /hopla-system-review archives completed plans here (commit)
+│   └── backlog/         <- /hopla-execute Scope Guard defers ideas here (commit)
+├── specs/               <- brainstorm skill saves design docs here (commit)
+├── guides/              <- on-demand reference guides (commit)
+├── rca/                 <- /hopla-rca saves root cause analysis docs here (commit)
+├── execution-reports/   <- /hopla-execution-report saves here (commit — needed for cross-session learning)
+├── system-reviews/      <- /hopla-system-review saves here (commit — needed for feedback loop)
+└── code-reviews/        <- /hopla-code-review saves here (do NOT commit — ephemeral, consumed by code-review-fix)
 ```
 
 Add to `.gitignore` (create if it doesn't exist):
 ```
-.agents/execution-reports/
 .agents/code-reviews/
-.agents/system-reviews/
 ```
 
 ## Step 7: Create .claude/commands/ (optional but recommended)
