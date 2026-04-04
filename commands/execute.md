@@ -67,10 +67,12 @@ Do not proceed until the working tree is clean.
 
 ### Branch check
 
-Check that the current branch follows Git Flow:
-- **Never execute on `main` or `master`** — stop and warn the user
-- **If on `develop`/`dev`** — ask: "You're on `develop`. Should I create a feature branch first? (recommended: `feature/[plan-name]`)"
+Check the current branch and determine the appropriate action:
 - **If on a `feature/`, `fix/`, or `hotfix/` branch** — proceed
+- **If on `develop`/`dev`** — ask: "You're on `develop`. Should I create a feature branch first? (recommended: `feature/[plan-name]`)"
+- **If on `main` or `master`** — check if `develop`/`dev` exists:
+  - If `develop`/`dev` exists: warn "You're on `main` but `develop` exists. Switch to `develop` first, or create a feature branch from `main` if this is a hotfix."
+  - If NO `develop`/`dev` exists (GitHub Flow project): ask "You're on `main` (no develop branch detected). Should I create a feature branch? (recommended: `feature/[plan-name]`)"
 - **If the plan specifies a base branch** (in `## Git Strategy`) — verify the current branch was created from that base. If not, warn the user:
   > "The plan specifies base branch `[X]` but the current branch was created from `[Y]`. This may cause the PR to target the wrong branch. Continue anyway?"
 

@@ -30,11 +30,16 @@ Read the following if they exist:
 | `hotfix/*` | `main` |
 | `release/*` | `main` |
 
-To resolve `develop` vs `dev`: run `git branch -r` and look for `origin/develop` or `origin/dev`. Use whichever exists.
+To resolve the base branch:
+1. Run `git branch -r` to check which branches exist remotely
+2. If `origin/develop` exists → use `develop`
+3. Else if `origin/dev` exists → use `dev`
+4. Else if only `origin/main` exists (GitHub Flow project) → use `main` for `feature/*` and `fix/*` branches
+5. If none match → ask the user
 
 **Guard rails:**
 - If the current branch is `main`, `master`, `develop`, or `dev` → stop and warn: "You're on `[branch]` — PRs should come from feature branches."
-- If the branch name doesn't match any Git Flow prefix → ask the user: "I can't determine the base branch from `[branch]`. Should this PR target `develop` or `main`?"
+- If the branch name doesn't match any known prefix → ask the user: "I can't determine the base branch from `[branch]`. Should this PR target `main`?"
 - **Always show the resolved base branch in Step 5** so the user can catch mistakes before the PR is created.
 
 ## Step 3: Check Push Status

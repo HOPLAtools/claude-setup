@@ -43,14 +43,28 @@
 
 ---
 
-## 4. Git Workflow (Git Flow)
+## 4. Git Workflow
 
 ### Branch Strategy
-- `main` → production only, never commit directly
+
+Detect which model the project uses by checking if a `develop` or `dev` branch exists (`git branch -r`):
+
+**GitHub Flow (main-only — no develop/dev branch):**
+- `main` → primary branch, always deployable
+- Feature branches: `feature/short-description` → created from `main`, merged back via PR
+- Bug fix branches: `fix/short-description` → created from `main`
+- Hotfix branches: `hotfix/short-description` → created from `main` (for urgent production fixes)
+- All PRs target `main`
+
+**Git Flow (with develop branch):**
+- `main` → production releases only, never commit directly
 - `develop` / `dev` → active development branch
-- Feature branches: `feature/short-description`
-- Bug fix branches: `fix/short-description`
-- Hotfix branches: `hotfix/short-description`
+- Feature branches: `feature/short-description` → created from `develop`, merged back via PR
+- Bug fix branches: `fix/short-description` → created from `develop`
+- Hotfix branches: `hotfix/short-description` → created from `main`, merged to both `main` and `develop`
+- Feature/fix PRs target `develop`; hotfix PRs target `main`
+
+**Auto-detection:** When creating branches or PRs, check which branches exist remotely. If only `origin/main` exists, use GitHub Flow. If `origin/develop` or `origin/dev` exists, use Git Flow.
 
 ### Commit Format — Conventional Commits
 ```
@@ -124,8 +138,7 @@ When a skill applies to your current task, you MUST use it. Check available skil
 2. `/hopla-review-plan` — Review plan before execution
 3. `/hopla-execute` — Execute plan with validation
 4. `/hopla-validate` — Run full validation pyramid
-5. `/hopla-git-commit` — Create conventional commit
-6. `/hopla-git-pr` — Create GitHub PR
+5. `git` skill — Say "commit" or "create PR" to trigger automatically
 
 ### Other commands
 - `/hopla-create-prd` — Create or update Product Requirements Document
