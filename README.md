@@ -1,6 +1,6 @@
 # @hopla/claude-setup
 
-Hopla team agentic coding system for Claude Code. Installs commands, skills, agents, hooks, and reference guides — available as a **Claude Code plugin** or via **npm CLI**.
+Hopla team agentic coding system for Claude Code. Delivers commands, skills, agents, hooks, and reference guides via a **Claude Code plugin** (primary channel), with an optional **npm CLI** for first-time global rules setup.
 
 ## Install
 
@@ -29,30 +29,30 @@ claude-setup --force
 
 > **Note:** The global rules (`~/.claude/CLAUDE.md`) can only be installed via the CLI because the plugin system doesn't have access to write machine-level files.
 
-### Option B: npm CLI only
+### Option B: npm CLI only (global rules + permissions)
 
 ```bash
 npm install -g @hopla/claude-setup
 claude-setup
 ```
 
-Installs everything including `~/.claude/CLAUDE.md`. Use this if you don't want the plugin channel or need the `--planning` mode.
-
-### Planning-only install — for the planner/non-technical role (Robert)
-
-```bash
-npm install -g @hopla/claude-setup
-claude-setup --planning
-```
-
-Installs only planning commands: `init-project`, `create-prd`, `plan-feature`, `review-plan`, `guide`, `git-commit`, `git-pr`. Also installs planning skills (`prime`, `brainstorm`). No execution or review commands. No bash permission prompts during planning.
+Installs only `~/.claude/CLAUDE.md` (global rules template) and configures bash permissions in `~/.claude/settings.json`. Commands, skills, agents, and hooks are **not** installed — use the plugin for those.
 
 To overwrite existing files without prompting:
 
 ```bash
 claude-setup --force
-claude-setup --planning --force
 ```
+
+### Migrating from CLI to plugin
+
+If you previously installed via CLI and now use the plugin, remove the duplicate files:
+
+```bash
+claude-setup --migrate
+```
+
+This removes legacy `hopla-*` commands, skills, and hook entries from `~/.claude/` without touching your global rules.
 
 ## Update
 
@@ -72,7 +72,7 @@ cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull
 
 > **Known issue:** Claude Code does not automatically `git pull` the marketplace when reinstalling a plugin. The manual `git pull` in step 1 is required to pick up new versions.
 
-### CLI channel (for global rules)
+### CLI (for global rules update)
 
 ```bash
 npm install -g @hopla/claude-setup@latest --prefer-online && claude-setup --force
@@ -94,14 +94,14 @@ claude-setup --uninstall
 
 ## Naming Convention
 
-Skills and commands use short names in source (e.g., `prime`, `execute`, `git`). Each distribution channel adds its own namespace:
+Skills and commands use short names in source (e.g., `prime`, `execute`, `git`). The plugin channel adds the `hopla:` namespace automatically:
 
-| Channel | Skills | Commands |
-|---|---|---|
-| **Plugin** | `/hopla:prime`, `/hopla:git` | `/hopla:execute`, `/hopla:plan-feature` |
-| **CLI** | `hopla-prime`, `hopla-git` | `/hopla-execute`, `/hopla-plan-feature` |
+| Type | Example |
+|---|---|
+| **Skills** | `hopla:prime`, `hopla:git`, `hopla:debug` |
+| **Commands** | `/hopla:execute`, `/hopla:plan-feature` |
 
-The plugin channel uses the plugin name (`hopla:`) as namespace. The CLI channel adds a `hopla-` prefix during installation.
+> **Note:** The CLI no longer installs commands or skills. If you see `hopla-*` duplicates alongside `hopla:*`, run `claude-setup --migrate` to clean up.
 
 ---
 
@@ -110,7 +110,7 @@ The plugin channel uses the plugin name (`hopla:`) as namespace. The CLI channel
 The system uses three levels of CLAUDE.md, each scoped differently:
 
 ```
-~/.claude/CLAUDE.md        ← Machine-level (installed by claude-setup)
+~/.claude/CLAUDE.md        ← Machine-level (installed by CLI)
     └── applies to ALL projects on this machine
 
 CLAUDE.md (project root)   ← Project-level (created with /init-project)
@@ -120,7 +120,7 @@ CLAUDE.md (project root)   ← Project-level (created with /init-project)
     └── your personal tweaks, not shared with team
 ```
 
-**Machine-level rules** cover: language preferences, tech defaults, Git Flow, Conventional Commits, autonomy behavior, context management, and available commands/skills reference.
+**Machine-level rules** cover: language preferences, tech defaults, autonomy behavior, and context management tips.
 
 **Project-level rules** cover: specific stack versions, architecture patterns, naming conventions, logging, testing, dev commands, and task-specific reference guides.
 

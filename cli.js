@@ -7,7 +7,7 @@ import readline from "readline";
 
 const FORCE = process.argv.includes("--force");
 const UNINSTALL = process.argv.includes("--uninstall");
-const PLANNING = process.argv.includes("--planning");
+const MIGRATE = process.argv.includes("--migrate");
 const VERSION = process.argv.includes("--version") || process.argv.includes("-v");
 
 if (VERSION) {
@@ -15,11 +15,11 @@ if (VERSION) {
     console.log(`@hopla/claude-setup v${pkg.version}`);
     process.exit(0);
 }
+
 const CLAUDE_DIR = path.join(os.homedir(), ".claude");
 const COMMANDS_DIR = path.join(CLAUDE_DIR, "commands");
 const SKILLS_DIR = path.join(CLAUDE_DIR, "skills");
 const HOOKS_DIR = path.join(CLAUDE_DIR, "hooks");
-const AGENTS_DIR = path.join(CLAUDE_DIR, "agents");
 const REPO_ROOT = import.meta.dirname;
 
 const GREEN = "\x1b[32m";
@@ -61,72 +61,137 @@ async function installFile(src, dest, label) {
     log(`  ${GREEN}✓${RESET}  ${exists ? "Updated" : "Installed"}: ${label}`);
 }
 
-function removeFile(dest, label) {
-    if (fs.existsSync(dest)) {
-        fs.rmSync(dest);
-        log(`  ${RED}✕${RESET}  Removed: ${label}`);
-    } else {
-        log(`  ${YELLOW}↷${RESET}  Not found: ${label}`);
+// Known hopla hook commands installed by previous CLI versions
+const LEGACY_HOOK_COMMANDS = [
+    "tsc-check.js",
+    "env-protect.js",
+    "session-prime.js",
+];
+
+function removeLegacyFiles() {
+    let removed = [];
+
+    // Remove hopla-* commands from ~/.claude/commands/
+    if (fs.existsSync(COMMANDS_DIR)) {
+        for (const file of fs.readdirSync(COMMANDS_DIR)) {
+            const filePath = path.join(COMMANDS_DIR, file);
+            if (file.startsWith("hopla-") && fs.statSync(filePath).isFile()) {
+                fs.rmSync(filePath);
+                removed.push(`~/.claude/commands/${file}`);
+            }
+        }
     }
+
+    // Remove hopla-* skills from ~/.claude/skills/
+    if (fs.existsSync(SKILLS_DIR)) {
+        for (const entry of fs.readdirSync(SKILLS_DIR)) {
+            const entryPath = path.join(SKILLS_DIR, entry);
+            if (entry.startsWith("hopla-") && fs.statSync(entryPath).isDirectory()) {
+                fs.rmSync(entryPath, { recursive: true });
+                removed.push(`~/.claude/skills/${entry}/`);
+            }
+        }
+    }
+
+    // Remove hopla hook files from ~/.claude/hooks/
+    if (fs.existsSync(HOOKS_DIR)) {
+        for (const hookFile of LEGACY_HOOK_COMMANDS) {
+            const hookPath = path.join(HOOKS_DIR, hookFile);
+            if (fs.existsSync(hookPath)) {
+                fs.rmSync(hookPath);
+                removed.push(`~/.claude/hooks/${hookFile}`);
+            }
+        }
+        // Remove hooks dir if empty
+        try {
+            const remaining = fs.readdirSync(HOOKS_DIR);
+            if (remaining.length === 0) {
+                fs.rmSync(HOOKS_DIR, { recursive: true });
+            }
+        } catch { /* ignore */ }
+    }
+
+    // Remove hopla hook entries from settings.json
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    if (fs.existsSync(settingsPath)) {
+        try {
+            const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+            let changed = false;
+
+            if (settings.hooks) {
+                for (const [event, matchers] of Object.entries(settings.hooks)) {
+                    if (!Array.isArray(matchers)) continue;
+                    const filtered = matchers.filter((m) => {
+                        if (!m.hooks || !Array.isArray(m.hooks)) return true;
+                        // Remove entries where ALL hooks are hopla hooks
+                        const isHopla = m.hooks.every((h) =>
+                            LEGACY_HOOK_COMMANDS.some((cmd) => h.command && h.command.includes(cmd))
+                        );
+                        return !isHopla;
+                    });
+                    if (filtered.length !== matchers.length) {
+                        settings.hooks[event] = filtered;
+                        if (filtered.length === 0) delete settings.hooks[event];
+                        changed = true;
+                    }
+                }
+                if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+            }
+
+            if (changed) {
+                fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+                removed.push("hooks from ~/.claude/settings.json");
+            }
+        } catch { /* ignore parse errors */ }
+    }
+
+    return removed;
+}
+
+function detectPlugin() {
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    if (!fs.existsSync(settingsPath)) return false;
+    try {
+        const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+        const plugins = settings.enabledPlugins || {};
+        return Object.keys(plugins).some((key) => key.startsWith("hopla@"));
+    } catch {
+        return false;
+    }
+}
+
+async function migrate() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Migrate (remove legacy CLI duplicates)\n`);
+
+    const removed = removeLegacyFiles();
+
+    if (removed.length === 0) {
+        log(`${GREEN}✓${RESET}  No legacy files found. Nothing to clean up.\n`);
+        return;
+    }
+
+    log(`${CYAN}Removed legacy CLI files:${RESET}`);
+    for (const item of removed) {
+        log(`  ${RED}✕${RESET}  ${item}`);
+    }
+    log(`\n${GREEN}${BOLD}Done!${RESET} Legacy duplicates removed. The plugin now handles commands, skills, and hooks.\n`);
 }
 
 async function uninstall() {
     log(`\n${BOLD}@hopla/claude-setup${RESET} — Uninstall\n`);
 
-    const srcEntries = fs.readdirSync(path.join(REPO_ROOT, "commands"));
-    const srcFiles = srcEntries.filter((f) => {
-        if (f.startsWith(".")) return false;
-        return fs.statSync(path.join(REPO_ROOT, "commands", f)).isFile();
-    });
-    const srcDirs = srcEntries.filter((f) =>
-        fs.statSync(path.join(REPO_ROOT, "commands", f)).isDirectory()
-    );
+    const itemsToRemove = [];
 
-    // Map source files to their installed names (with hopla- prefix)
-    const installedNames = new Set(srcFiles.map((f) => withPrefix(f)));
-
-    // Also include any hopla-* files in ~/.claude/commands/ not in current source
-    // (leftovers from previous versions)
-    const installedHoplaFiles = fs.existsSync(COMMANDS_DIR)
-        ? fs.readdirSync(COMMANDS_DIR).filter((f) =>
-            f.startsWith("hopla-") && fs.statSync(path.join(COMMANDS_DIR, f)).isFile() && !installedNames.has(f)
-        )
-        : [];
-
-    const itemsToRemove = [
-        { dest: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md", isDir: false },
-        ...srcFiles.map((file) => ({
-            dest: path.join(COMMANDS_DIR, withPrefix(file)),
-            label: `~/.claude/commands/${withPrefix(file)}`,
-            isDir: false,
-        })),
-        ...installedHoplaFiles.map((file) => ({
-            dest: path.join(COMMANDS_DIR, file),
-            label: `~/.claude/commands/${file}`,
-            isDir: false,
-        })),
-        ...srcDirs.map((dir) => ({
-            dest: path.join(COMMANDS_DIR, dir),
-            label: `~/.claude/commands/${dir}/`,
-            isDir: true,
-        })),
-    ];
-
-    // Also remove skills, agents, and hooks installed by hopla
-    if (fs.existsSync(SKILLS_DIR)) {
-        itemsToRemove.push({ dest: SKILLS_DIR, label: "~/.claude/skills/", isDir: true });
-    }
-    if (fs.existsSync(AGENTS_DIR)) {
-        itemsToRemove.push({ dest: AGENTS_DIR, label: "~/.claude/agents/", isDir: true });
-    }
-    if (fs.existsSync(HOOKS_DIR)) {
-        itemsToRemove.push({ dest: HOOKS_DIR, label: "~/.claude/hooks/", isDir: true });
+    // Global rules
+    if (fs.existsSync(path.join(CLAUDE_DIR, "CLAUDE.md"))) {
+        itemsToRemove.push({ path: path.join(CLAUDE_DIR, "CLAUDE.md"), label: "~/.claude/CLAUDE.md", isDir: false });
     }
 
     log(`The following will be removed:`);
     for (const { label } of itemsToRemove) {
         log(`  ${RED}✕${RESET}  ${label}`);
     }
+    log(`  ${YELLOW}+${RESET}  Legacy hopla-* commands, skills, hooks (if any)`);
 
     const ok = await confirm(`\nContinue? (y/N) `);
     if (!ok) {
@@ -135,313 +200,40 @@ async function uninstall() {
     }
 
     log("");
-    for (const { dest, label, isDir } of itemsToRemove) {
-        if (fs.existsSync(dest)) {
-            fs.rmSync(dest, { recursive: isDir });
+
+    // Remove listed items
+    for (const { path: itemPath, label, isDir } of itemsToRemove) {
+        if (fs.existsSync(itemPath)) {
+            fs.rmSync(itemPath, { recursive: isDir });
             log(`  ${RED}✕${RESET}  Removed: ${label}`);
-        } else {
-            log(`  ${YELLOW}↷${RESET}  Not found: ${label}`);
         }
+    }
+
+    // Remove legacy CLI files
+    const removed = removeLegacyFiles();
+    for (const item of removed) {
+        log(`  ${RED}✕${RESET}  Removed: ${item}`);
+    }
+
+    // Remove hopla permissions from settings.json
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    if (fs.existsSync(settingsPath)) {
+        try {
+            const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+            if (settings.permissions && Array.isArray(settings.permissions.allow)) {
+                const before = settings.permissions.allow.length;
+                settings.permissions.allow = settings.permissions.allow.filter(
+                    (p) => !HOPLA_PERMISSIONS.includes(p)
+                );
+                if (settings.permissions.allow.length !== before) {
+                    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+                    log(`  ${RED}✕${RESET}  Removed: hopla permissions from settings.json`);
+                }
+            }
+        } catch { /* ignore */ }
     }
 
     log(`\n${GREEN}${BOLD}Done!${RESET} Files removed.\n`);
-}
-
-function removeStaleCommands(currentCommandFiles) {
-    if (!fs.existsSync(COMMANDS_DIR)) return;
-    const currentSet = new Set(currentCommandFiles.map((f) => withPrefix(f)));
-    const removed = [];
-    for (const file of fs.readdirSync(COMMANDS_DIR)) {
-        const filePath = path.join(COMMANDS_DIR, file);
-        if (!fs.statSync(filePath).isFile()) continue;
-        if (file.startsWith("hopla-") && !currentSet.has(file)) {
-            fs.rmSync(filePath);
-            removed.push(file);
-        }
-    }
-    if (removed.length > 0) {
-        log(`${CYAN}Removing stale commands from previous versions...${RESET}`);
-        for (const file of removed) {
-            log(`  ${YELLOW}↷${RESET}  Removed: ~/.claude/commands/${file}`);
-        }
-        log("");
-    }
-}
-
-const PLANNING_COMMANDS = [
-    "init-project.md",
-    "create-prd.md",
-    "plan-feature.md",
-    "review-plan.md",
-    "system-review.md",
-    "rca.md",
-    "guide.md",
-];
-
-// CLI channel adds hopla- prefix so skills/commands keep their namespace
-function withPrefix(name) {
-    return `hopla-${name}`;
-}
-
-async function install() {
-    const modeLabel = PLANNING ? "Planning Mode (Robert)" : "Full Install";
-    log(`\n${BOLD}@hopla/claude-setup${RESET} — Agentic Coding System ${CYAN}[${modeLabel}]${RESET}\n`);
-
-    // Create directories if needed
-    fs.mkdirSync(CLAUDE_DIR, { recursive: true });
-    fs.mkdirSync(COMMANDS_DIR, { recursive: true });
-
-    // Determine which command files will be installed
-    const allCommandEntries = fs.readdirSync(path.join(REPO_ROOT, "commands"));
-    const allCommandFiles = allCommandEntries.filter((f) => {
-        if (f.startsWith(".")) return false;
-        const stat = fs.statSync(path.join(REPO_ROOT, "commands", f));
-        return stat.isFile();
-    });
-    const allCommandDirs = allCommandEntries.filter((f) => {
-        const stat = fs.statSync(path.join(REPO_ROOT, "commands", f));
-        return stat.isDirectory();
-    });
-    const commandFiles = PLANNING
-        ? allCommandFiles.filter((f) => PLANNING_COMMANDS.includes(f))
-        : allCommandFiles;
-
-    // Remove stale hopla-* commands not in the current version
-    removeStaleCommands(commandFiles);
-
-    log(`${CYAN}Installing global rules...${RESET}`);
-    await installFile(
-        path.join(REPO_ROOT, "global-rules.md"),
-        path.join(CLAUDE_DIR, "CLAUDE.md"),
-        "~/.claude/CLAUDE.md"
-    );
-
-    log(`\n${CYAN}Installing commands...${RESET}`);
-    for (const file of commandFiles.sort()) {
-        const destFile = withPrefix(file);
-        await installFile(
-            path.join(REPO_ROOT, "commands", file),
-            path.join(COMMANDS_DIR, destFile),
-            `~/.claude/commands/${destFile}`
-        );
-    }
-    // Install subdirectories (e.g. guides/)
-    for (const dir of allCommandDirs.sort()) {
-        const srcDir = path.join(REPO_ROOT, "commands", dir);
-        const destDir = path.join(COMMANDS_DIR, dir);
-        fs.mkdirSync(destDir, { recursive: true });
-        for (const file of fs.readdirSync(srcDir).sort()) {
-            await installFile(
-                path.join(srcDir, file),
-                path.join(destDir, file),
-                `~/.claude/commands/${dir}/${file}`
-            );
-        }
-    }
-
-    log(`\n${GREEN}${BOLD}Done!${RESET} Commands available in any Claude Code session:\n`);
-    for (const file of commandFiles.sort()) {
-        const name = withPrefix(file).replace(".md", "");
-        log(`  ${CYAN}/${name}${RESET}`);
-    }
-    if (PLANNING) {
-        log(`\n${YELLOW}Planning mode:${RESET} Only planning commands installed. Run without ${BOLD}--planning${RESET} for the full set.\n`);
-    } else {
-        log(`\nRun with ${BOLD}--force${RESET} to overwrite all files without prompting.\n`);
-    }
-
-    await setupPermissions();
-    await installSkills();
-    await installAgents();
-    await installHooks();
-}
-
-// Skills to install in planning mode (subset)
-const PLANNING_SKILLS = ["prime", "brainstorm", "git"];
-
-async function installSkills() {
-    const skillsSrcDir = path.join(REPO_ROOT, "skills");
-    if (!fs.existsSync(skillsSrcDir)) return;
-
-    fs.mkdirSync(SKILLS_DIR, { recursive: true });
-
-    const skillDirs = fs.readdirSync(skillsSrcDir).filter((entry) => {
-        return fs.statSync(path.join(skillsSrcDir, entry)).isDirectory();
-    });
-
-    const skillsToInstall = PLANNING
-        ? skillDirs.filter((d) => PLANNING_SKILLS.includes(d))
-        : skillDirs;
-
-    if (skillsToInstall.length === 0) return;
-
-    log(`\n${CYAN}Installing skills...${RESET}`);
-    for (const skillName of skillsToInstall.sort()) {
-        const srcDir = path.join(skillsSrcDir, skillName);
-        const destName = withPrefix(skillName);
-        const destDir = path.join(SKILLS_DIR, destName);
-        fs.mkdirSync(destDir, { recursive: true });
-        for (const file of fs.readdirSync(srcDir).sort()) {
-            await installFile(
-                path.join(srcDir, file),
-                path.join(destDir, file),
-                `~/.claude/skills/${destName}/${file}`
-            );
-        }
-    }
-
-    log(`\n${GREEN}${BOLD}Skills installed!${RESET} Auto-activate without a slash command:\n`);
-    for (const skillName of skillsToInstall.sort()) {
-        log(`  ${CYAN}${withPrefix(skillName)}${RESET}`);
-    }
-}
-
-async function installAgents() {
-    const agentsSrcDir = path.join(REPO_ROOT, "agents");
-    if (!fs.existsSync(agentsSrcDir)) return;
-
-    fs.mkdirSync(AGENTS_DIR, { recursive: true });
-
-    const agentFiles = fs.readdirSync(agentsSrcDir).filter((f) => f.endsWith(".md"));
-    if (agentFiles.length === 0) return;
-
-    log(`\n${CYAN}Installing agents...${RESET}`);
-    for (const file of agentFiles.sort()) {
-        await installFile(
-            path.join(agentsSrcDir, file),
-            path.join(AGENTS_DIR, file),
-            `~/.claude/agents/${file}`
-        );
-    }
-
-    log(`\n${GREEN}${BOLD}Agents installed!${RESET} Available for use:\n`);
-    for (const file of agentFiles.sort()) {
-        const name = file.replace(".md", "");
-        log(`  ${CYAN}${name}${RESET}`);
-    }
-}
-
-async function installHooks() {
-    const hooksSrcDir = path.join(REPO_ROOT, "hooks");
-    if (!fs.existsSync(hooksSrcDir)) return;
-
-    const hookFiles = fs.readdirSync(hooksSrcDir).filter((f) => f.endsWith(".js"));
-    if (hookFiles.length === 0) return;
-
-    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
-
-    // Read existing settings
-    let settings = {};
-    if (fs.existsSync(settingsPath)) {
-        try {
-            settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-        } catch {
-            // keep defaults
-        }
-    }
-
-    const existingHooks = settings.hooks || {};
-    const tscHookCmd = `${HOOKS_DIR}/tsc-check.js`;
-    const envHookCmd = `${HOOKS_DIR}/env-protect.js`;
-    const sessionHookCmd = `${HOOKS_DIR}/session-prime.js`;
-
-    // Check what's already configured
-    const postToolUseHooks = existingHooks.PostToolUse || [];
-    const preToolUseHooks = existingHooks.PreToolUse || [];
-    const sessionStartHooks = existingHooks.SessionStart || [];
-
-    const hasTsc = postToolUseHooks.some((h) =>
-        h.hooks?.some((hh) => hh.command === tscHookCmd)
-    );
-    const hasEnv = preToolUseHooks.some((h) =>
-        h.hooks?.some((hh) => hh.command === envHookCmd)
-    );
-    const hasSession = sessionStartHooks.some((h) =>
-        h.hooks?.some((hh) => hh.command === sessionHookCmd)
-    );
-
-    const toAdd = [];
-    if (!hasTsc) toAdd.push(`PostToolUse(Write|Edit|MultiEdit) → tsc-check.js`);
-    if (!hasEnv) toAdd.push(`PreToolUse(Read|Grep) → env-protect.js`);
-
-    log(`\n${CYAN}Configuring hooks...${RESET}`);
-
-    if (toAdd.length === 0 && hasSession) {
-        log(`${GREEN}✓${RESET}  Hooks already configured.\n`);
-        return;
-    }
-
-    if (toAdd.length > 0) {
-        log(`  The following hooks will be added to ~/.claude/settings.json:\n`);
-        for (const h of toAdd) {
-            log(`  ${CYAN}+${RESET}  ${h}`);
-        }
-    }
-
-    // Ask about session-prime separately (opt-in)
-    let installSessionPrime = false;
-    if (!hasSession) {
-        log(`\n  ${YELLOW}Optional:${RESET} session-prime.js auto-loads project context on session start.`);
-        installSessionPrime = await confirm(`  Enable session-prime hook? (y/N) `);
-    }
-
-    if (toAdd.length === 0 && !installSessionPrime) {
-        log(`  ${YELLOW}↷${RESET}  Skipped hooks — you can configure ~/.claude/settings.json manually\n`);
-        return;
-    }
-
-    const ok = toAdd.length > 0
-        ? await confirm(`\n  Install these hooks? (y/N) `)
-        : true;
-
-    if (!ok) {
-        log(`  ${YELLOW}↷${RESET}  Skipped hooks — you can configure ~/.claude/settings.json manually\n`);
-        return;
-    }
-
-    // Copy hook files
-    fs.mkdirSync(HOOKS_DIR, { recursive: true });
-    for (const file of hookFiles) {
-        await installFile(
-            path.join(hooksSrcDir, file),
-            path.join(HOOKS_DIR, file),
-            `~/.claude/hooks/${file}`
-        );
-        // Make executable
-        try {
-            fs.chmodSync(path.join(HOOKS_DIR, file), 0o755);
-        } catch {
-            // Non-critical
-        }
-    }
-
-    // Build updated hooks config
-    if (!settings.hooks) settings.hooks = {};
-
-    if (!hasTsc) {
-        if (!settings.hooks.PostToolUse) settings.hooks.PostToolUse = [];
-        settings.hooks.PostToolUse.push({
-            matcher: "Write|Edit|MultiEdit",
-            hooks: [{ type: "command", command: tscHookCmd }],
-        });
-    }
-    if (!hasEnv) {
-        if (!settings.hooks.PreToolUse) settings.hooks.PreToolUse = [];
-        settings.hooks.PreToolUse.push({
-            matcher: "Read|Grep",
-            hooks: [{ type: "command", command: envHookCmd }],
-        });
-    }
-    if (installSessionPrime && !hasSession) {
-        if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
-        settings.hooks.SessionStart.push({
-            matcher: "startup",
-            hooks: [{ type: "command", command: sessionHookCmd }],
-        });
-    }
-
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-    log(`  ${GREEN}✓${RESET}  Hooks configured.\n`);
 }
 
 const HOPLA_PERMISSIONS = [
@@ -455,88 +247,79 @@ const HOPLA_PERMISSIONS = [
     "Bash(echo *)",
 ];
 
-const PLANNING_PERMISSIONS = [
-    "Bash(git branch*)",
-    "Bash(git log*)",
-    "Bash(git status*)",
-];
-
-const ALL_HOPLA_PERMISSIONS = new Set([...HOPLA_PERMISSIONS, ...PLANNING_PERMISSIONS]);
-
 async function setupPermissions() {
     const settingsPath = path.join(CLAUDE_DIR, "settings.json");
 
-    // Read existing settings
     let settings = { permissions: { allow: [] } };
     if (fs.existsSync(settingsPath)) {
         try {
             settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-        } catch {
-            // If parsing fails, keep defaults
-        }
+        } catch { /* keep defaults */ }
     }
     if (!settings.permissions) settings.permissions = {};
     if (!settings.permissions.allow) settings.permissions.allow = [];
 
-    const targetPermissions = PLANNING ? PLANNING_PERMISSIONS : HOPLA_PERMISSIONS;
+    const existing = new Set(settings.permissions.allow);
+    const toAdd = HOPLA_PERMISSIONS.filter((p) => !existing.has(p));
 
-    if (PLANNING) {
-        // Replace: remove all hopla-owned permissions, then add planning-only ones
-        const cleaned = settings.permissions.allow.filter((p) => !ALL_HOPLA_PERMISSIONS.has(p));
-        const toAdd = targetPermissions.filter((p) => !cleaned.includes(p));
-        const toRemove = settings.permissions.allow.filter((p) => ALL_HOPLA_PERMISSIONS.has(p) && !targetPermissions.includes(p));
-
-        if (toAdd.length === 0 && toRemove.length === 0) {
-            log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
-            return;
-        }
-
-        log(`${CYAN}Configuring permissions (planning mode)...${RESET}`);
-        log(`  The following changes will be made to ~/.claude/settings.json:\n`);
-        for (const p of toRemove) {
-            log(`  ${RED}-${RESET}  ${p}`);
-        }
-        for (const p of toAdd) {
-            log(`  ${CYAN}+${RESET}  ${p}`);
-        }
-
-        const ok = await confirm(`\n  Apply these permission changes? (y/N) `);
-        if (!ok) {
-            log(`  ${YELLOW}↷${RESET}  Skipped — you can edit ~/.claude/settings.json manually\n`);
-            return;
-        }
-
-        settings.permissions.allow = [...cleaned, ...targetPermissions];
-    } else {
-        // Merge: add missing ones
-        const existing = new Set(settings.permissions.allow);
-        const toAdd = targetPermissions.filter((p) => !existing.has(p));
-
-        if (toAdd.length === 0) {
-            log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
-            return;
-        }
-
-        log(`${CYAN}Configuring permissions...${RESET}`);
-        log(`  The following will be added to ~/.claude/settings.json:\n`);
-        for (const p of toAdd) {
-            log(`  ${CYAN}+${RESET}  ${p}`);
-        }
-
-        const ok = await confirm(`\n  Add these permissions? (y/N) `);
-        if (!ok) {
-            log(`  ${YELLOW}↷${RESET}  Skipped — you can add them manually to ~/.claude/settings.json\n`);
-            return;
-        }
-
-        settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
+    if (toAdd.length === 0) {
+        log(`${GREEN}✓${RESET}  Permissions already configured.\n`);
+        return;
     }
 
+    log(`${CYAN}Configuring permissions...${RESET}`);
+    log(`  The following will be added to ~/.claude/settings.json:\n`);
+    for (const p of toAdd) {
+        log(`  ${CYAN}+${RESET}  ${p}`);
+    }
+
+    const ok = await confirm(`\n  Add these permissions? (y/N) `);
+    if (!ok) {
+        log(`  ${YELLOW}↷${RESET}  Skipped — you can add them manually to ~/.claude/settings.json\n`);
+        return;
+    }
+
+    settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
     log(`  ${GREEN}✓${RESET}  Permissions configured.\n`);
 }
 
-const run = UNINSTALL ? uninstall : install;
+async function install() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Global Rules Setup\n`);
+
+    // Detect plugin
+    if (detectPlugin()) {
+        log(`${CYAN}ℹ${RESET}  Plugin detected — commands, skills, and hooks are managed by the plugin.`);
+        log(`   This CLI only installs global rules (~/.claude/CLAUDE.md) and permissions.\n`);
+    }
+
+    // Clean up legacy CLI files if present
+    const legacyRemoved = removeLegacyFiles();
+    if (legacyRemoved.length > 0) {
+        log(`${CYAN}Cleaned up legacy CLI files:${RESET}`);
+        for (const item of legacyRemoved) {
+            log(`  ${YELLOW}↷${RESET}  Removed: ${item}`);
+        }
+        log("");
+    }
+
+    // Create directory if needed
+    fs.mkdirSync(CLAUDE_DIR, { recursive: true });
+
+    // Install global rules
+    log(`${CYAN}Installing global rules...${RESET}`);
+    await installFile(
+        path.join(REPO_ROOT, "global-rules.md"),
+        path.join(CLAUDE_DIR, "CLAUDE.md"),
+        "~/.claude/CLAUDE.md"
+    );
+
+    log(`\n${GREEN}${BOLD}Done!${RESET} Global rules installed.\n`);
+
+    await setupPermissions();
+}
+
+const run = UNINSTALL ? uninstall : (MIGRATE ? migrate : install);
 run().catch((err) => {
     console.error("Failed:", err.message);
     process.exit(1);

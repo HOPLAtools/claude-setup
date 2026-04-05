@@ -13,6 +13,38 @@ function run(cmd) {
     }
 }
 
+function discoverSkills() {
+    // Try plugin context first: ../skills/ relative to this script
+    const hookDir = import.meta.dirname;
+    const skillsDir = path.join(hookDir, "..", "skills");
+
+    if (!fs.existsSync(skillsDir)) {
+        return null;
+    }
+
+    const skills = [];
+    for (const entry of fs.readdirSync(skillsDir).sort()) {
+        const skillDir = path.join(skillsDir, entry);
+        if (!fs.statSync(skillDir).isDirectory()) continue;
+
+        const skillFile = path.join(skillDir, "SKILL.md");
+        if (!fs.existsSync(skillFile)) continue;
+
+        // Extract description from SKILL.md frontmatter
+        const content = fs.readFileSync(skillFile, "utf8");
+        const descMatch = content.match(/^description:\s*"?(.+?)"?\s*$/m);
+        if (descMatch) {
+            // Truncate to first sentence for brevity
+            const desc = descMatch[1].split(".")[0];
+            skills.push(`- ${entry}: ${desc}`);
+        } else {
+            skills.push(`- ${entry}`);
+        }
+    }
+
+    return skills.length > 0 ? skills : null;
+}
+
 async function main() {
     const lines = [];
 
@@ -40,18 +72,13 @@ async function main() {
         lines.push(`Project rules (CLAUDE.md excerpt):\n${content}`);
     }
 
-    // Available skills reminder
-    lines.push(`📦 HOPLA Skills Available:
-- prime: Project orientation (trigger: "orient", "get context", "load project")
-- git: Git operations (trigger: "commit", "PR", "push")
-- code-review: Code review (trigger: "review code", "code review")
-- execution-report: Post-implementation docs (trigger: "generate report")
-- verify: Completion verification (trigger: any "done"/"listo"/"finished" claim)
-- brainstorm: Design exploration (trigger: "new feature", "brainstorm", "explore options")
-- debug: Systematic debugging (trigger: "bug", "error", "debug")
-- tdd: Test-driven development (trigger: implementing with tests)
-
-⚠️ If a skill applies to the current task, you MUST use it.`);
+    // Auto-discover available skills
+    const skills = discoverSkills();
+    if (skills) {
+        lines.push(`📦 HOPLA Skills Available:\n${skills.join("\n")}\n\n⚠️ If a skill applies to the current task, you MUST use it.`);
+    } else {
+        lines.push(`📦 HOPLA skills are available. Check your session's skill list for details.\n\n⚠️ If a skill applies to the current task, you MUST use it.`);
+    }
 
     if (lines.length > 0) {
         process.stdout.write(lines.join("\n\n"));

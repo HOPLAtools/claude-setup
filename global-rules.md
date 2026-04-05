@@ -24,6 +24,7 @@
 ## 3. Behavior & Autonomy
 
 **Always ask before:**
+
 - Running `git commit`
 - Running `git push`
 - Installing new dependencies (`npm install <pkg>`, `pip install <pkg>`, etc.)
@@ -31,12 +32,14 @@
 - Any destructive or hard-to-reverse operation
 
 **Proactively suggest commits** at logical save points:
+
 - After completing a feature or fix
 - Before starting a risky refactor
 - After passing all validation checks
 - Explain WHY it's a good moment to commit so the team understands
 
 **Never:**
+
 - Auto-commit or auto-push without explicit approval
 - Skip validation steps to save time
 - Add features, refactors, or improvements beyond what was asked
@@ -45,59 +48,17 @@
 
 ## 4. Git Workflow
 
-### Branch Strategy
+Follow **Conventional Commits** (`type(scope): description`). Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `style`.
 
-Detect which model the project uses by checking if a `develop` or `dev` branch exists (`git branch -r`):
+Branch strategy (GitHub Flow vs Git Flow) is **auto-detected** by the git skill based on whether `origin/develop` or `origin/dev` exists. See the git skill for full details.
 
-**GitHub Flow (main-only — no develop/dev branch):**
-- `main` → primary branch, always deployable
-- Feature branches: `feature/short-description` → created from `main`, merged back via PR
-- Bug fix branches: `fix/short-description` → created from `main`
-- Hotfix branches: `hotfix/short-description` → created from `main` (for urgent production fixes)
-- All PRs target `main`
-
-**Git Flow (with develop branch):**
-- `main` → production releases only, never commit directly
-- `develop` / `dev` → active development branch
-- Feature branches: `feature/short-description` → created from `develop`, merged back via PR
-- Bug fix branches: `fix/short-description` → created from `develop`
-- Hotfix branches: `hotfix/short-description` → created from `main`, merged to both `main` and `develop`
-- Feature/fix PRs target `develop`; hotfix PRs target `main`
-
-**Auto-detection:** When creating branches or PRs, check which branches exist remotely. If only `origin/main` exists, use GitHub Flow. If `origin/develop` or `origin/dev` exists, use Git Flow.
-
-### Commit Format — Conventional Commits
-```
-<type>(<optional scope>): <short description>
-
-[optional body]
-```
-
-**Types:**
-- `feat:` — new feature
-- `fix:` — bug fix
-- `refactor:` — code restructure without behavior change
-- `docs:` — documentation only
-- `test:` — adding or fixing tests
-- `chore:` — build, config, dependencies
-- `style:` — formatting, no logic change
-
-**Examples:**
-```
-feat(auth): add JWT token validation
-fix(api): handle null response from products endpoint
-chore: update dependencies to latest versions
-```
-
-### When to Suggest a Commit
-Explain in plain language when suggesting a commit, adapting to the user's language, e.g.:
-> "This would be a good moment to commit — we finished feature X and all tests pass. Should we commit before continuing?"
+When suggesting a commit, explain in plain language why it's a good moment, adapting to the user's language.
 
 ---
 
 ## 5. Code Quality
 
-- Validate before considering anything done (lint → types → tests)
+- Validate before declaring done (lint → types → tests). The verify skill enforces this at completion.
 - Write tests alongside implementation, not after
 - Flag security issues immediately — never leave them for later
 - If the same validation failure repeats, signal it as a system improvement opportunity
@@ -107,11 +68,13 @@ Explain in plain language when suggesting a commit, adapting to the user's langu
 ## 📋 Context Management
 
 ### Three levels of CLAUDE.md
+
 - **Machine-level** (`~/.claude/CLAUDE.md`): These global rules — apply to all projects
 - **Project-level** (`CLAUDE.md` at repo root): Shared with team via git — project-specific rules
 - **Local-level** (`CLAUDE.local.md`): Personal overrides — NOT committed to git
 
 ### Context control
+
 - Use `@filename` to include specific files in context (works in chat and inside CLAUDE.md)
 - Use `/compact` between related tasks (preserves learned knowledge)
 - Use `/clear` between unrelated tasks (full reset)
@@ -130,18 +93,10 @@ Explain in plain language when suggesting a commit, adapting to the user's langu
 
 ---
 
-## 🛠️ Available HOPLA Commands
+## 🛠️ HOPLA Skills
+
+HOPLA skills are auto-triggered based on context — no slash command needed. The session-prime hook lists available skills at the start of each session.
+
 When a skill applies to your current task, you MUST use it. Check available skills before responding.
 
-### Workflow: Plan → Implement → Validate
-1. `/hopla-plan-feature` — Research codebase and create implementation plan
-2. `/hopla-review-plan` — Review plan before execution
-3. `/hopla-execute` — Execute plan with validation
-4. `/hopla-validate` — Run full validation pyramid
-5. `git` skill — Say "commit" or "create PR" to trigger automatically
-
-### Other commands
-- `/hopla-create-prd` — Create or update Product Requirements Document
-- `/hopla-init-project` — Initialize project with CLAUDE.md and .agents/ structure
-- `/hopla-code-review-fix` — Fix issues from code review report
-- `/hopla-system-review` — Analyze plan vs execution for process improvements
+Use the `plan-feature` command to start the full Plan → Implement → Validate workflow.
