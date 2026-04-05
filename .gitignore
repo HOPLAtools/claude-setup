@@ -2,3 +2,6 @@
 .claude/
 files/
 .agents/code-reviews/
+.agents/plans/
+.agents/execution-reports/
+.agents/system-reviews/
