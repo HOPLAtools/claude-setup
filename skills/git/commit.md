@@ -20,7 +20,10 @@ git log --oneline -5
 - Identify what was added, modified, or deleted
 - Determine the appropriate commit type: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `style`
 - Identify the scope if relevant (e.g., `auth`, `api`, `ui`)
-- Check current branch — confirm it follows Git Flow naming (`feature/`, `fix/`, `hotfix/`, `develop`, `dev`)
+- Resolve branch context using `flow-detection.md` (same directory):
+  - Confirm the current branch is NOT a base branch (`main`/`master`/`develop`/`dev`) — if it is, warn the user before committing
+  - Confirm the branch prefix matches `feature/`, `fix/`, `hotfix/`, or `release/` — otherwise ask the user
+  - Detect whether you are inside a worktree (via `git rev-parse --git-dir` vs `--git-common-dir`) and report the location to the user for context
 
 ## Step 3: Stage Files
 

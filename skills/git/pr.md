@@ -21,26 +21,16 @@ Read the following if they exist:
 
 **If the user specified a base branch**, use it.
 
-**Otherwise, infer from Git Flow branch naming:**
+**Otherwise**, resolve it using `flow-detection.md` (same directory):
 
-| Current branch prefix | Base branch |
-|---|---|
-| `feature/*` | `develop` or `dev` |
-| `fix/*` | `develop` or `dev` |
-| `hotfix/*` | `main` |
-| `release/*` | `main` |
+1. Detect the branching model and `$DEFAULT_BASE` (Step 1 of flow-detection.md)
+2. Map the current branch prefix → base branch (Step 2 of flow-detection.md)
+3. Verify the resolved base exists remotely (Step 4 of flow-detection.md)
+4. Apply the standard warnings (Step 5 of flow-detection.md)
 
-To resolve the base branch:
-1. Run `git branch -r` to check which branches exist remotely
-2. If `origin/develop` exists → use `develop`
-3. Else if `origin/dev` exists → use `dev`
-4. Else if only `origin/main` exists (GitHub Flow project) → use `main` for `feature/*` and `fix/*` branches
-5. If none match → ask the user
+**Always show the resolved base branch in Step 5** so the user can catch mistakes before the PR is created.
 
-**Guard rails:**
-- If the current branch is `main`, `master`, `develop`, or `dev` → stop and warn: "You're on `[branch]` — PRs should come from feature branches."
-- If the branch name doesn't match any known prefix → ask the user: "I can't determine the base branch from `[branch]`. Should this PR target `main`?"
-- **Always show the resolved base branch in Step 5** so the user can catch mistakes before the PR is created.
+Also detect if you are inside a worktree (Step 3 of flow-detection.md) — this is needed for post-merge cleanup in Step 7.
 
 ## Step 3: Check Push Status
 
@@ -104,9 +94,39 @@ After showing the PR URL, suggest:
 
 ## Step 7: Post-Merge Cleanup
 
-After the user confirms the PR was approved and merged on GitHub, run the cleanup workflow based on the branch type:
+After the user confirms the PR was approved and merged on GitHub, detect whether the branch lives in a worktree and run the appropriate cleanup.
 
-### For all branch types:
+### Detect worktree
+
+Apply Step 3 of `flow-detection.md`:
+
+```bash
+GIT_DIR=$(git rev-parse --git-dir)
+GIT_COMMON_DIR=$(git rev-parse --git-common-dir)
+MAIN_REPO=$(dirname "$GIT_COMMON_DIR")
+```
+
+If `GIT_DIR` ≠ `GIT_COMMON_DIR`, the branch is in a worktree — use **Path A**. Otherwise use **Path B**.
+
+### Path A — Cleanup from a worktree
+
+Capture the worktree path before moving out:
+
+```bash
+WORKTREE_PATH=$(git rev-parse --show-toplevel)
+cd "$MAIN_REPO"
+
+git checkout [base-branch]
+git pull origin [base-branch]
+
+git worktree remove "$WORKTREE_PATH"
+git branch -d [merged-branch]
+git push origin --delete [merged-branch] 2>/dev/null  # skip if GitHub already deleted it
+```
+
+If `git worktree remove` fails because the tree has uncommitted work, stop and ask the user — do **not** pass `--force` without explicit confirmation.
+
+### Path B — Cleanup from the main repo
 
 ```bash
 git checkout [base-branch]
@@ -117,7 +137,7 @@ git push origin --delete [merged-branch] 2>/dev/null  # skip if GitHub already d
 
 **Important:** When `dev` is merged to `main` via PR, do NOT pull `main` back into `dev` — `dev` already has all the commits. Only sync `main` → `dev` for hotfix/release branches (see below).
 
-### Additional steps for `hotfix/*` and `release/*`:
+### Additional steps for `hotfix/*` and `release/*`
 
 These branches were merged to `main` but `develop` also needs the changes:
 
@@ -137,4 +157,4 @@ git push origin v[version]
 
 Ask the user for the version number before tagging.
 
-**Always confirm each destructive action** (branch deletion, tag creation) before executing.
+**Always confirm each destructive action** (branch deletion, worktree removal, tag creation) before executing.
