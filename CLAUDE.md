@@ -4,13 +4,16 @@
 
 - `global-rules.md` is a **template** installed to users' `~/.claude/CLAUDE.md` — it is NOT this project's rules
 - `commands/*.md` are Claude Code slash commands for users — Markdown files, not scripts
-- `skills/*/SKILL.md` are auto-triggered skills discovered by Claude Code's plugin system
+- `skills/<name>/SKILL.md` is each skill's entry point. A skill may include extra files (e.g. `commit.md`, `pr.md`, `flow-detection.md` in `skills/git/`) that the `SKILL.md` references as workflows or shared libraries
+- Shared references across skills: a file inside one skill can be cited by another (e.g. `skills/worktree/SKILL.md` references `../git/flow-detection.md`). Centralize Git Flow, branching, and similar logic in one place and reference it — do not duplicate
 - `agents/*.md` are specialized subagent definitions
 - `hooks/*.js` are event-driven hooks; `hooks/hooks.json` declares them for the plugin system
 - `cli.js` is a single-file Node.js ESM script — keep it that way, no external dependencies
 - This repo serves **two distribution channels**: Claude Code plugin (primary) AND npm CLI (global rules only)
+- **The GitHub repo MUST be public** — the plugin channel clones it via `/plugin marketplace add`. A private repo makes the plugin install fail silently for anyone outside the org
 - Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
 - Bump `version` in **all three files** before every release: `package.json`, `.claude-plugin/plugin.json`, AND `.claude-plugin/marketplace.json`
+- Known issue: after `npm publish`, the Claude Code plugin does NOT auto-update. Users must `cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull` then reinstall the plugin. Document this in release notes or the README, not only here
 
 ---
 
@@ -35,7 +38,9 @@ global-rules.md      ← Global rules template → installed to ~/.claude/CLAUDE
 commands/            ← Slash commands (auto-discovered by plugin)
 │   └── guides/      ← Reference guides loaded on-demand
 skills/              ← Auto-triggered skills (auto-discovered by plugin)
-│   └── <name>/SKILL.md
+│   ├── <name>/SKILL.md            ← required entry point
+│   └── <name>/<extra>.md          ← optional workflow or shared-reference files
+│                                    e.g. skills/git/{commit.md, pr.md, flow-detection.md}
 agents/              ← Subagent definitions (auto-discovered by plugin)
 │   └── *.md
 hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
@@ -58,16 +63,24 @@ README.md            ← Public documentation
 **CLI install flow (cli.js):**
 ```
 create ~/.claude/ dir
-→ removeLegacyFiles()         ← cleans up old CLI-installed commands/skills/hooks
+→ removeLegacyFiles()         ← cleans residuals from older CLI versions:
+                                • ~/.claude/commands/hopla-* (pre-v1.12)
+                                • ~/.claude/skills/hopla-*/ (pre-v1.12)
+                                • ~/.claude/hooks/{tsc-check,env-protect,session-prime}.js (pre-v1.13)
+                                • ~/.claude/agents/{code-reviewer,codebase-researcher,system-reviewer}.md (v1.11–v1.12)
+                                • hopla hook entries in settings.json AND settings.local.json
 → install global-rules.md     → ~/.claude/CLAUDE.md
-→ setupPermissions()          → ~/.claude/settings.json
+→ setupPermissions()          → ~/.claude/settings.json (adds current HOPLA_PERMISSIONS)
 ```
+
+The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERMISSIONS` (e.g. PLANNING_PERMISSIONS from v1.11.0) from both settings files, and prints an advisory when the plugin or marketplace cache is still present — the CLI cannot remove those, so the user is told how.
 
 **Key rules:**
 
 - Commands, skills, agents, and hooks are **only delivered by the plugin** — the CLI no longer copies them
 - **Never duplicate** a command and a skill with the same name — both appear in Claude's autocomplete, causing duplicates. Use commands for explicit `/slash` invocation only; use skills for auto-triggered behavior
 - `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` paths for the plugin channel
+- When removing an installed artifact (command, skill, agent, hook, permission) in a new version, add its old name/path to the legacy cleanup lists in `cli.js` so existing users get it cleaned on next `install` / `--migrate` / `--uninstall`
 
 ---
 
@@ -89,16 +102,27 @@ create ~/.claude/ dir
 No automated tests. Test manually after any change:
 
 ```bash
-node cli.js            # interactive install flow (global rules + permissions only)
-node cli.js --force    # install without prompts
-node cli.js --uninstall  # verify uninstall (includes legacy cleanup)
-node cli.js --migrate  # remove legacy CLI duplicates only
-node cli.js --version  # verify version string
+node cli.js                            # interactive install flow (global rules + permissions only)
+node cli.js --force                    # install without prompts
+node cli.js --uninstall                # verify uninstall (includes legacy cleanup)
+node cli.js --migrate                  # remove legacy CLI duplicates only
+node cli.js --version                  # verify version string
+node cli.js --dry-run --uninstall --force   # preview what uninstall would remove, without touching disk
+node cli.js --dry-run --force          # preview what install would do, without touching disk
 ```
 
-Verify `~/.claude/CLAUDE.md` was installed. Verify no `hopla-*` files in `~/.claude/commands/` or `~/.claude/skills/`.
+**`--dry-run`** composes with any other flag and prints what would change without writing anything. Use it before testing destructive paths on a real `~/.claude/` directory.
 
-For the plugin channel, verify `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are valid JSON and versions match `package.json`.
+**Post-install verification:**
+- `~/.claude/CLAUDE.md` is installed and `diff` matches `global-rules.md`
+- No `hopla-*` files in `~/.claude/commands/` or `~/.claude/skills/`
+- No residual legacy agents in `~/.claude/agents/` (`code-reviewer.md`, `codebase-researcher.md`, `system-reviewer.md` must only exist if installed by the plugin, not by the CLI)
+- `settings.json` has the current `HOPLA_PERMISSIONS` and no obsolete `LEGACY_PERMISSIONS`
+- User-owned permissions (not in the HOPLA lists) are preserved untouched
+
+**Plugin channel verification:**
+- `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` are valid JSON
+- Versions in `package.json`, `plugin.json`, and `marketplace.json` match exactly
 
 ---
 
@@ -109,9 +133,17 @@ node cli.js              # Run CLI locally (global rules + permissions)
 node cli.js --force      # Force install, overwrite without prompting
 node cli.js --uninstall  # Uninstall global rules + clean up legacy files
 node cli.js --migrate    # Remove legacy CLI duplicates only
+node cli.js --dry-run    # Preview changes without writing (composes with any other flag)
 node cli.js --version    # Print package version
 npm publish              # Publish to npm (bump version in package.json + plugin.json + marketplace.json first)
 ```
+
+**Release flow:**
+
+1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match)
+2. `git commit` + `git push origin main`
+3. `npm publish`
+4. After publish, users on the plugin channel must run `cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull` then reinstall — Claude Code does not auto-update the marketplace cache
 
 ---
 
