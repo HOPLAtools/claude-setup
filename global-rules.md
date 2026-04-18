@@ -85,11 +85,21 @@ When suggesting a commit, explain in plain language why it's a good moment, adap
 ---
 
 ## 🔌 MCP Servers
-<!-- List your configured MCP servers here so the agent knows what tools are available -->
-<!-- Example: -->
-<!-- - Playwright: Browser automation for E2E testing -->
-<!-- - Supabase: Database management -->
-<!-- When planning features, explicitly include MCP integration points in the plan -->
+
+Declare MCP servers in your project's `.mcp.json` so Claude Code picks them up automatically. Copy the starter template from the plugin:
+
+```bash
+# Inside your project root
+cp ~/.claude/plugins/marketplaces/hopla-marketplace/.claude-plugin/.mcp.json.example .mcp.json
+# Then edit — uncomment the servers you need, set env vars in your shell
+```
+
+List the servers you actually enabled here so the agent knows what tools are available, e.g.:
+- Playwright — browser automation for E2E testing and UI inspection
+- GitHub — PR/issue access (read and write depending on token scope)
+- Linear — workspace tickets, cycles, projects
+
+When planning features, explicitly include MCP integration points in the plan.
 
 ---
 
