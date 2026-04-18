@@ -87,6 +87,21 @@ function logRemoved(label) {
     log(`  ${RED}✕${RESET}  ${verb}: ${label}`);
 }
 
+// Safe parser for settings.json-style files. Returns null when the file is
+// missing. Warns (and returns null) when the file exists but is not valid JSON
+// — previously these failures were silently swallowed, causing cleanup and
+// permission updates to skip with no signal to the user.
+function parseSettingsFile(settingsPath) {
+    if (!fs.existsSync(settingsPath)) return null;
+    try {
+        return JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    } catch (err) {
+        log(`  ${YELLOW}⚠${RESET}  Could not parse ${settingsPath}: ${err.message}`);
+        log(`     Skipping this file. Fix the JSON and re-run to apply changes.`);
+        return null;
+    }
+}
+
 function logInstalled(label, exists) {
     const verb = DRY_RUN
         ? (exists ? "Would update" : "Would install")
@@ -220,35 +235,34 @@ function removeLegacyFiles() {
 
     // hopla hook entries from settings.json AND settings.local.json
     for (const settingsPath of SETTINGS_FILES) {
-        if (!fs.existsSync(settingsPath)) continue;
-        try {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-            let changed = false;
+        const settings = parseSettingsFile(settingsPath);
+        if (!settings) continue;
 
-            if (settings.hooks) {
-                for (const [event, matchers] of Object.entries(settings.hooks)) {
-                    if (!Array.isArray(matchers)) continue;
-                    const filtered = matchers.filter((m) => {
-                        if (!m.hooks || !Array.isArray(m.hooks)) return true;
-                        const isHopla = m.hooks.every((h) =>
-                            LEGACY_HOOK_COMMANDS.some((cmd) => h.command && h.command.includes(cmd))
-                        );
-                        return !isHopla;
-                    });
-                    if (filtered.length !== matchers.length) {
-                        settings.hooks[event] = filtered;
-                        if (filtered.length === 0) delete settings.hooks[event];
-                        changed = true;
-                    }
+        let changed = false;
+
+        if (settings.hooks) {
+            for (const [event, matchers] of Object.entries(settings.hooks)) {
+                if (!Array.isArray(matchers)) continue;
+                const filtered = matchers.filter((m) => {
+                    if (!m.hooks || !Array.isArray(m.hooks)) return true;
+                    const isHopla = m.hooks.every((h) =>
+                        LEGACY_HOOK_COMMANDS.some((cmd) => h.command && h.command.includes(cmd))
+                    );
+                    return !isHopla;
+                });
+                if (filtered.length !== matchers.length) {
+                    settings.hooks[event] = filtered;
+                    if (filtered.length === 0) delete settings.hooks[event];
+                    changed = true;
                 }
-                if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
             }
+            if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+        }
 
-            if (changed) {
-                safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-                removed.push(`hooks from ${path.basename(settingsPath)}`);
-            }
-        } catch { /* ignore parse errors */ }
+        if (changed) {
+            safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+            removed.push(`hooks from ${path.basename(settingsPath)}`);
+        }
     }
 
     return removed;
@@ -257,31 +271,27 @@ function removeLegacyFiles() {
 function removeHoplaPermissions() {
     const removed = [];
     for (const settingsPath of SETTINGS_FILES) {
-        if (!fs.existsSync(settingsPath)) continue;
-        try {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-            if (!settings.permissions || !Array.isArray(settings.permissions.allow)) continue;
-            const before = settings.permissions.allow.length;
-            settings.permissions.allow = settings.permissions.allow.filter(
-                (p) => !ALL_HOPLA_PERMISSIONS.has(p)
-            );
-            if (settings.permissions.allow.length !== before) {
-                safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-                removed.push(`permissions from ${path.basename(settingsPath)}`);
-            }
-        } catch { /* ignore */ }
+        const settings = parseSettingsFile(settingsPath);
+        if (!settings) continue;
+        if (!settings.permissions || !Array.isArray(settings.permissions.allow)) continue;
+        const before = settings.permissions.allow.length;
+        settings.permissions.allow = settings.permissions.allow.filter(
+            (p) => !ALL_HOPLA_PERMISSIONS.has(p)
+        );
+        if (settings.permissions.allow.length !== before) {
+            safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+            removed.push(`permissions from ${path.basename(settingsPath)}`);
+        }
     }
     return removed;
 }
 
 function detectPlugin() {
     for (const settingsPath of SETTINGS_FILES) {
-        if (!fs.existsSync(settingsPath)) continue;
-        try {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-            const plugins = settings.enabledPlugins || {};
-            if (Object.keys(plugins).some((key) => key.startsWith("hopla@"))) return true;
-        } catch { /* ignore */ }
+        const settings = parseSettingsFile(settingsPath);
+        if (!settings) continue;
+        const plugins = settings.enabledPlugins || {};
+        if (Object.keys(plugins).some((key) => key.startsWith("hopla@"))) return true;
     }
     return false;
 }
@@ -373,11 +383,16 @@ async function uninstall() {
 async function setupPermissions() {
     const settingsPath = path.join(CLAUDE_DIR, "settings.json");
 
-    let settings = { permissions: { allow: [] } };
-    if (fs.existsSync(settingsPath)) {
-        try {
-            settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-        } catch { /* keep defaults */ }
+    // Use parseSettingsFile so malformed JSON is reported instead of silently
+    // overwritten. When the file is missing we start from defaults.
+    let settings = parseSettingsFile(settingsPath);
+    if (!settings) {
+        if (fs.existsSync(settingsPath)) {
+            // Malformed JSON — do NOT overwrite (user needs to fix first)
+            log(`  ${YELLOW}↷${RESET}  Skipped permissions setup — settings.json is not valid JSON.`);
+            return;
+        }
+        settings = { permissions: { allow: [] } };
     }
     if (!settings.permissions) settings.permissions = {};
     if (!settings.permissions.allow) settings.permissions.allow = [];
