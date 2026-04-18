@@ -233,6 +233,9 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `brainstorm` | "let's brainstorm", "explore approaches" |
 | `debug` | "debug this", "find the bug", "why is this failing" |
 | `tdd` | "write tests first", "TDD", "red-green-refactor" |
+| `refactoring` | "refactor", "clean up", "simplify", "extract", "deduplicate" |
+| `performance` | "slow", "optimize", "bottleneck", "lento", "tarda mucho" |
+| `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
 | `subagent-execution` | "use subagents", plans with 5+ tasks |
 | `parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
 
@@ -441,6 +444,7 @@ project/
 │   ├── rca/                       ← Root cause analysis docs (commit)
 │   ├── execution-reports/         ← Post-implementation reports (commit)
 │   ├── system-reviews/            ← Process improvement reports (commit)
+│   ├── audits/                    ← Persistent audit reports (commit — opt-in)
 │   └── code-reviews/              ← Code review reports (don't commit — ephemeral)
 └── .claude/
     └── commands/                  ← Project-specific commands (optional)

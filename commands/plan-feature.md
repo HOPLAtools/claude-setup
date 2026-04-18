@@ -27,8 +27,9 @@ Read the following to understand the project:
 2. `README.md` — project overview and setup
 3. `package.json` or `pyproject.toml` — stack, dependencies, scripts
 4. `.agents/guides/` — if this directory exists, read any guides relevant to the feature being planned (e.g. `@.agents/guides/api-guide.md` when planning an API endpoint)
-5. `MEMORY.md` (if it exists at project root or `~/.claude/`) — check for user preferences that affect this feature (UI patterns like modal vs inline, keyboard shortcuts, component conventions)
-6. `.agents/execution-reports/` — if this directory exists, scan recent reports (last 3-5) for technical patterns discovered and gotchas relevant to the feature being planned. These contain real-world learnings from previous implementations that prevent re-discovering known issues.
+5. `.agents/specs/` — if this directory exists, scan for design specs that match the feature name. These come from the `brainstorm` skill and already document the chosen approach, files affected, edge cases, and open questions. If a matching spec exists, it is the authoritative design — the plan turns that design into tasks. If no spec exists and the feature is non-trivial, suggest running the `brainstorm` skill first.
+6. `MEMORY.md` (if it exists at project root or `~/.claude/`) — check for user preferences that affect this feature (UI patterns like modal vs inline, keyboard shortcuts, component conventions)
+7. `.agents/execution-reports/` — if this directory exists, scan recent reports (last 3-5) for technical patterns discovered and gotchas relevant to the feature being planned. These contain real-world learnings from previous implementations that prevent re-discovering known issues.
 
 Then run:
 
