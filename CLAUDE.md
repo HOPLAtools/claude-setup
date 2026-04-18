@@ -44,10 +44,13 @@ skills/              ← Auto-triggered skills (auto-discovered by plugin)
 agents/              ← Subagent definitions (auto-discovered by plugin)
 │   └── *.md
 hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
-│   ├── hooks.json   ← Plugin hook declarations (uses ${CLAUDE_PLUGIN_ROOT})
-│   ├── tsc-check.js
-│   ├── env-protect.js
-│   └── session-prime.js
+│   ├── hooks.json              ← Plugin hook declarations (uses ${CLAUDE_PLUGIN_ROOT})
+│   ├── tsc-check.js            ← PostToolUse: tsc --noEmit after edits
+│   ├── env-protect.js          ← PreToolUse: block reads of .env (Read/Grep/Bash)
+│   ├── session-prime.js        ← SessionStart: git context + skills list + compact-snapshot replay
+│   ├── prompt-route.js         ← UserPromptSubmit: skill routing hints
+│   ├── precompact-snapshot.js  ← PreCompact: dump state to .claude/compact-snapshot.json
+│   └── statusline.js           ← Statusline renderer (opt-in via settings.json)
 package.json         ← npm metadata and version
 CLAUDE.md            ← THIS FILE — project dev rules (not installed to users)
 README.md            ← Public documentation

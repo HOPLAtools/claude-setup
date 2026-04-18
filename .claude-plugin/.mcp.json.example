@@ -1,0 +1,41 @@
+{
+  "_comment": "Copy this file to your project root as .mcp.json and uncomment the servers you want Claude Code to use. Each server is standalone — enable only what you need. Set the required env vars in your shell or .envrc (NOT committed). Restart Claude Code after editing.",
+
+  "mcpServers": {
+    "_playwright_example": {
+      "_note": "Browser automation for E2E testing and UI inspection. No credentials needed.",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"]
+    },
+
+    "_github_example": {
+      "_note": "GitHub API access for reading repos, issues, PRs. Requires a token with the scopes you need.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+
+    "_linear_example": {
+      "_note": "Linear workspace access (issues, projects, cycles). Get an API key at linear.app/settings/api.",
+      "command": "npx",
+      "args": ["-y", "@tacticlaunch/mcp-linear"],
+      "env": {
+        "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+      }
+    },
+
+    "_postgres_example": {
+      "_note": "Read-only Postgres access for database introspection and ad-hoc queries.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+    },
+
+    "_filesystem_example": {
+      "_note": "Constrained filesystem access outside the current workspace (e.g. to inspect ~/Documents/specs).",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/ABSOLUTE/PATH/TO/ALLOWED/DIR"]
+    }
+  }
+}

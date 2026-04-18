@@ -101,7 +101,29 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 | `claude-setup --force` | Install without prompts |
 | `claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
 | `claude-setup --uninstall` | Remove global rules + legacy files |
+| `claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
 | `claude-setup --version` | Print package version |
+
+---
+
+## Optional: Hopla statusline
+
+The plugin ships a statusline script that shows your branch, worktree indicator, uncommitted count, and active plan file (`📋 plan-name`) in Claude Code's status bar.
+
+Enable it by adding to `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.claude/plugins/marketplaces/hopla-marketplace/hooks/statusline.js"
+  }
+}
+```
+
+Then run `/reload-plugins` or restart Claude Code.
+
+Sample output: ` feature/auth · 3M · 📋 add-authentication`
 
 ---
 

@@ -65,6 +65,26 @@ async function main() {
         lines.push("Working tree is clean.");
     }
 
+    // Re-inject pre-compact snapshot if recent (< 2 hours old)
+    const snapshotPath = path.join(process.cwd(), ".claude", "compact-snapshot.json");
+    if (fs.existsSync(snapshotPath)) {
+        try {
+            const snap = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
+            const ageMs = Date.now() - Date.parse(snap.timestamp);
+            if (Number.isFinite(ageMs) && ageMs < 2 * 60 * 60 * 1000) {
+                const parts = [
+                    `Resuming from pre-compact snapshot (${Math.round(ageMs / 60000)} min ago):`,
+                ];
+                if (snap.branch) parts.push(`- branch: ${snap.branch}${snap.inWorktree ? " (worktree)" : ""}`);
+                if (snap.activePlan) parts.push(`- active plan: .agents/plans/${snap.activePlan}`);
+                if (snap.uncommitted) parts.push(`- uncommitted at snapshot:\n${snap.uncommitted}`);
+                lines.push(parts.join("\n"));
+            }
+        } catch {
+            // Ignore malformed snapshot
+        }
+    }
+
     // CLAUDE.md summary (first 20 lines)
     const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
     if (fs.existsSync(claudeMdPath)) {
