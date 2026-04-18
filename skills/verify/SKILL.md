@@ -47,13 +47,7 @@ Instead, run the verification and report actual results.
 
 ## Integration with Validation Pyramid
 
-When completing a feature (not just a single file edit), run the full validation pyramid:
-
-1. **Level 1**: Lint & format
-2. **Level 2**: Type check
-3. **Level 3**: Unit tests
-4. **Level 4**: Integration tests (if applicable)
-5. **Level 5**: Human review suggestion
+When completing a feature (not just a single file edit), run levels **1–4 + 7** from `commands/guides/validation-pyramid.md` (Lint, Types, Unit, Integration, Human review).
 
 Reference `/hopla:validate` for project-specific validation commands.
 
@@ -72,3 +66,14 @@ When verifying completion of a plan execution (not just a standalone task):
 3. **All acceptance criteria met?** — Read the plan's acceptance criteria and verify each one has fresh evidence.
 
 These checks prevent the common pattern where implementation is "done" but divergences are silently omitted from the report.
+
+## Authoritative post-implementation sequence
+
+When verification passes, follow this order to avoid redundant work and skill overlap:
+
+1. **`verify`** (this skill) — confirm fresh evidence for every completion claim.
+2. **`code-review`** — run technical review on changed files. Fix `critical`/`high` issues before proceeding.
+3. **`execution-report`** — document what was built, bugs found, divergences, patterns discovered.
+4. **`git`** — commit (and PR when ready).
+
+Each step cites the next, so at any point you should be routing to exactly one subsequent skill. If multiple skills are triggering simultaneously on a completion claim, this is the canonical ordering.

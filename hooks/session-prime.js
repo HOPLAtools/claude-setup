@@ -13,6 +13,18 @@ function run(cmd) {
     }
 }
 
+function excerptClaudeMd(content) {
+    const lines = content.split("\n");
+    // Prefer the first `---` separator after the opening heading and first section
+    for (let i = 5; i < Math.min(lines.length, 120); i++) {
+        if (lines[i].trim() === "---") {
+            return lines.slice(0, i).join("\n").trimEnd();
+        }
+    }
+    // No separator within a reasonable window — cap at 60 lines
+    return lines.slice(0, Math.min(lines.length, 60)).join("\n").trimEnd();
+}
+
 function discoverSkills() {
     // Try plugin context first: ../skills/ relative to this script
     const hookDir = import.meta.dirname;
@@ -85,11 +97,11 @@ async function main() {
         }
     }
 
-    // CLAUDE.md summary (first 20 lines)
+    // CLAUDE.md excerpt — cut at a natural boundary, not a fixed line count
     const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
     if (fs.existsSync(claudeMdPath)) {
-        const content = fs.readFileSync(claudeMdPath, "utf8").split("\n").slice(0, 20).join("\n");
-        lines.push(`Project rules (CLAUDE.md excerpt):\n${content}`);
+        const excerpt = excerptClaudeMd(fs.readFileSync(claudeMdPath, "utf8"));
+        lines.push(`Project rules (CLAUDE.md excerpt):\n${excerpt}`);
     }
 
     // Auto-discover available skills

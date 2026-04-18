@@ -14,36 +14,9 @@ If a `.claude/commands/validate.md` exists at the project root, use the commands
 
 ## Step 2: Run the Validation Pyramid
 
-Execute each level in order. **Do not skip levels. Do not proceed if a level fails — fix it first.**
+Execute levels **1–4** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails — fix it first.
 
-### Level 1 — Lint & Format
-
-Run the project's lint and format commands (e.g. `npm run lint`, `uv run ruff check .`).
-
-If issues are found:
-- Fix them automatically if the tool supports it (e.g. `--fix`)
-- Re-run to confirm clean
-
-### Level 2 — Type Check
-
-Run the project's type checker (e.g. `npm run typecheck`, `uv run mypy .`).
-
-Fix all type errors before continuing.
-
-### Level 3 — Unit Tests
-
-Run the project's test suite (e.g. `npm run test`, `uv run pytest`).
-
-If tests fail:
-- Investigate the root cause
-- Fix the code (not the tests, unless the test is wrong)
-- Re-run until all pass
-
-### Level 4 — Integration Tests
-
-Run integration tests if the project has them (e.g. `npm run test:e2e`).
-
-If not available, skip and note it in the report.
+Use the exact commands from the project's `CLAUDE.md` "Development Commands" section. If a `.claude/commands/validate.md` exists at the project root, use the commands defined there instead.
 
 ## Step 3: Summary Report
 
@@ -72,4 +45,4 @@ If anything failed and could not be fixed, list the remaining issues and suggest
 ## Next Step
 
 After validation passes, suggest:
-> "All validation levels passed. Consider running the `code-review` skill for a deeper analysis — code review catches bugs in 79% of implementations that pass automated validation (stale closures, missing input validation, route shadowing, unhandled promise rejections). Run the `code-review` skill to check, or the `git` skill (say "commit") to commit directly."
+> "All validation levels passed. Consider triggering the `code-review` skill for a deeper analysis — it catches classes of bugs that lint/types/tests miss (stale closures, missing input validation, route shadowing, unhandled promise rejections). Say 'review the code' to trigger it, or say 'commit' to use the `git` skill directly."

@@ -47,7 +47,7 @@ Investigate the areas of the codebase relevant to this feature:
 - Locate similar features already implemented to use as reference
 - Find the entry points that will need to be modified or extended
 - Identify potential conflicts or dependencies
-- **DRY check:** Before specifying new utility functions, constants, or helpers in the plan, search for existing implementations that can be reused or extended. DRY violations were the #1 code review finding across 28 implementations.
+- **DRY check:** Before specifying new utility functions, constants, or helpers in the plan, search for existing implementations that can be reused or extended.
 
 Use the Grep tool to find relevant files (pattern: relevant keyword, case-insensitive).
 
@@ -60,7 +60,7 @@ For each existing table, API endpoint, or component the plan will modify, verify
 - **API endpoints:** Read the actual route handler. Confirm the request/response shape matches your assumptions.
 - **Components:** Read the component file. Confirm props, state, and data flow match your assumptions.
 
-Document verified assumptions in the plan's **Context References** with the exact file and line number. This prevents the #1 cause of mid-implementation redesigns: plans that assumed a field name, type, or constraint that didn't match reality.
+Document verified assumptions in the plan's **Context References** with the exact file and line number. This prevents mid-implementation redesigns caused by plans that assumed a field name, type, or constraint that did not match reality.
 
 ### Data audit (required for features that consume existing data)
 
@@ -79,17 +79,17 @@ Based on research, define:
 - Any risks, edge cases, or gotchas to flag
 - What tests are needed
 - **Derived/computed values:** If any value is calculated from other fields, specify the exact formula including how stored values are interpreted (sign, units, semantics), AND how derived values propagate when inputs change (event system, reactivity, polling, etc.)
-- **Interaction states & edge cases:** For features involving interactive UI (forms, grids, keyboard navigation, wizards, CLI interactions), define a matrix of user interactions and their expected behavior. Cover: all keyboard shortcuts (both directions — e.g., Tab AND Shift+Tab), state transitions (empty → editing → saved → error), and boundary conditions (first item, last item, empty list, maximum items). This prevents iterative fix rounds that consumed up to 40% of session time in past implementations.
-- **API input validation:** For every API endpoint being created or modified, specify: required fields, field format constraints (e.g., "IMEI must be exactly 15 digits"), payload size limits, and what the user sees on validation failure. This was the #2 most common gap in past plans — validation was only added after code review in 4 of 7 implementations.
-- **Bidirectional data interactions:** If feature A updates data that feature B displays, does B need to react? If adding an item triggers validation, does editing trigger re-validation? Map all data mutation → side effect chains, not just keyboard navigation. Missed bidirectional interactions were a recurring planning blind spot.
+- **Interaction states & edge cases:** For features involving interactive UI (forms, grids, keyboard navigation, wizards, CLI interactions), define a matrix of user interactions and their expected behavior. Cover: all keyboard shortcuts (both directions — e.g., Tab AND Shift+Tab), state transitions (empty → editing → saved → error), and boundary conditions (first item, last item, empty list, maximum items).
+- **API input validation:** For every API endpoint being created or modified, specify: required fields, field format constraints (e.g., "IMEI must be exactly 15 digits"), payload size limits, and what the user sees on validation failure.
+- **Bidirectional data interactions:** If feature A updates data that feature B displays, does B need to react? If adding an item triggers validation, does editing trigger re-validation? Map all data mutation → side effect chains, not just keyboard navigation.
 - **AI/LLM prompt tasks:** If the plan involves creating or modifying AI prompts (system prompts, prompt templates, LLM-based features), add an explicit task for testing against real data with 2-3 iteration cycles budgeted. AI prompt engineering rarely works on the first attempt.
-- **User preferences check:** Before specifying UI architecture (modal vs. inline, page vs. panel, dialog vs. drawer), verify against MEMORY.md and conversation history for established preferences. In past implementations, plans that specified modals were rejected because the user preferred inline panels — this caused rework. When no preference exists, note it as a decision point for the user to confirm.
-- **Reuse context analysis:** When a new view reuses an existing component in a different context (e.g., a list component in a "history" view vs. an "active" view), the plan MUST list what's different about the new context's requirements: different columns, different data filters, different interactions, different toolbar layout. Missed context differences caused 40%+ of unplanned work in past implementations.
+- **User preferences check:** Before specifying UI architecture (modal vs. inline, page vs. panel, dialog vs. drawer), verify against `MEMORY.md` and conversation history for established preferences. When no preference exists, note it as a decision point for the user to confirm.
+- **Reuse context analysis:** When a new view reuses an existing component in a different context (e.g., a list component in a "history" view vs. an "active" view), the plan MUST list what's different about the new context's requirements: different columns, different data filters, different interactions, different toolbar layout.
 - **Multi-phase plan guidance:** For features requiring 3+ phases, create an architectural plan (`backlog/NN-feature.md`) with schema, phase boundaries, and target architecture. When executing each phase, create a standalone plan (`phase-NX-description.md`) with full task-level detail following this template. The architectural plan is the spec; phase plans are the execution instructions. Each phase should have its own feature branch and PR.
-- **API surface enumeration (security/access control plans):** When the plan modifies access control, authorization, or data visibility, enumerate ALL API surfaces that serve the same data — REST endpoints, WebSocket handlers, Durable Object methods, and any other data paths. Each surface must be updated consistently. In past implementations, updating only the WebSocket path while missing the parallel REST endpoint caused a security gap that was only caught by code review. Add a task for each surface, not just the primary one.
-- **Role access matrix:** For features involving multiple user roles or multi-tenant access (admin, member, viewer, buyer, external user), define a matrix: what data does each role see? What endpoints does each role call? What filters apply per role? In past implementations, plans that didn't specify role-level access had authorization bugs discovered only during code review.
-- **External integration buffer:** If the feature integrates an external API or third-party service, budget 2x the estimated time. Document: do we have working test credentials? Is the SDK tested in our runtime (Workers, Node, edge, etc.)? Are there known deprecations or version constraints? External integrations consistently took 2-3x longer than planned in past implementations.
-- **UI iteration budget:** For features with significant UI (new pages, complex forms, interactive grids), note that UI specifications are provisional — expect 30-50% additional work for visual refinement based on user feedback. Specify what "good enough for v1" looks like vs. future polish. This prevents scope creep from being classified as plan failure.
+- **API surface enumeration (security/access control plans):** When the plan modifies access control, authorization, or data visibility, enumerate ALL API surfaces that serve the same data — REST endpoints, WebSocket handlers, Durable Object methods, and any other data paths. Each surface must be updated consistently. Add a task for each surface, not just the primary one.
+- **Role access matrix:** For features involving multiple user roles or multi-tenant access (admin, member, viewer, buyer, external user), define a matrix: what data does each role see? What endpoints does each role call? What filters apply per role?
+- **External integration buffer:** If the feature integrates an external API or third-party service, budget 2x the estimated time. Document: do we have working test credentials? Is the SDK tested in our runtime (Workers, Node, edge, etc.)? Are there known deprecations or version constraints?
+- **UI iteration budget:** For features with significant UI (new pages, complex forms, interactive grids), note that UI specifications are provisional — visual polish typically needs iteration on user feedback. Specify what "good enough for v1" looks like vs. future polish so scope creep is not classified as plan failure.
 
 ## Phase 5: Generate the Plan
 
@@ -112,7 +112,7 @@ Use this structure:
 - [Anything explicitly excluded]
 
 ## Likely Follow-ups
-[Features or changes naturally adjacent to this work that the user may request during or after execution. Historical data: 71% of sessions had scope expansion. Listing these upfront helps the executing agent handle them via the Scope Guard rather than improvising.]
+[Features or changes naturally adjacent to this work that the user may request during or after execution. Listing these upfront helps the executing agent handle scope expansion via the Scope Guard rather than improvising.]
 - [Follow-up 1]
 - [Follow-up 2]
 
@@ -195,7 +195,7 @@ Scoring guide:
 ## Notes for Executing Agent
 [Any important context, warnings, or decisions made during planning that the executing agent needs to know]
 
-> **UI Styling Note:** UI styling specifications (colors, sizes, variants, labels, spacing) are `[provisional]` proposals. Historical data shows these change in 50%+ of implementations based on user feedback. Implement as specified but do not over-invest in pixel-perfect adherence — expect iteration.
+> **UI Styling Note:** UI styling specifications (colors, sizes, variants, labels, spacing) are `[provisional]` proposals — expect them to change once the user sees the implementation. Implement as specified but do not over-invest in pixel-perfect adherence; plan for iteration.
 ```
 
 ---
@@ -206,7 +206,7 @@ After generating the plan, count the implementation tasks (excluding test tasks)
 
 - **3–7 tasks:** Optimal size. Proceed as-is.
 - **8–11 tasks:** Consider grouping tasks into logical phases with intermediate commit points. Add a `## Phase Boundaries` section to the plan listing where commits should happen.
-- **12+ tasks:** The plan should be split into multiple plans or phased with mandatory intermediate commits. Historical data: plans with 12+ tasks scored 6/10 alignment vs 10/10 for 3–7 task plans. Add phase boundaries and consider whether independent task groups can be separate plans.
+- **12+ tasks:** The plan should be split into multiple plans or phased with mandatory intermediate commits. Large plans tend to drift during execution; phase boundaries give reviewers and the executing agent natural checkpoints. Consider whether independent task groups can be separate plans.
 
 ---
 
@@ -231,7 +231,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Plan size checked:** If >8 tasks, phase boundaries are defined with intermediate commit points. If >12 tasks, split justification is provided or phases are created.
 - [ ] **Likely follow-ups listed:** If the Out of Scope section has items, the Likely Follow-ups section is populated with naturally adjacent work the user may request
 - [ ] **API surface enumeration (if security/access plan):** All parallel API surfaces (REST, WebSocket, DO) that serve the same data are listed with a task for each
-- [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations? N+1 queries were found in 5 of 13 recent implementations.
+- [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations?
 
 ## Phase 7: Save Draft and Enter Review Loop
 

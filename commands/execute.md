@@ -98,7 +98,7 @@ Work through each task in the plan sequentially. For each task:
 
 1. **Announce** the task you are starting (e.g., "Starting Task 2: Create the filter component")
 2. **Follow the pattern** referenced in the plan — do not invent new patterns
-3. **Check for existing implementations** — before creating new functions, constants, or utility modules, search the codebase for existing implementations that serve the same purpose. Reuse or extend rather than duplicate. DRY violations were the #1 code quality issue across 28 implementations.
+3. **Check for existing implementations** — before creating new functions, constants, or utility modules, search the codebase for existing implementations that serve the same purpose. Reuse or extend rather than duplicate.
 4. **Implement** only what the task specifies — nothing more
 5. **Validate** the task using the method specified in the plan's validate field
 6. **Report completion** with a brief status: what was done, what was skipped, any decision made
@@ -137,54 +137,15 @@ If the user requests changes that are NOT in the plan during execution:
    - Suggest committing the current planned work first
    - Then create a new branch or add it to the backlog
    - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `.agents/plans/backlog/` instead?"
-5. **Never** silently add significant unplanned work — scope creep caused the lowest alignment score (6/10) in past implementations
+5. **Never** silently add significant unplanned work — it mixes unreviewed changes into an otherwise reviewed plan and breaks the audit trail
 
 ## Step 5: Run Full Validation Pyramid
 
-After all tasks are complete, run the full validation sequence in order.
-**Do not skip levels. Do not proceed if a level fails.**
+After all tasks are complete, run **Levels 1–7** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails.
 
-Use the exact commands from the plan's **Validation Checklist**. If not specified, read `CLAUDE.md` section "Development Commands" to find the correct commands.
+Use the exact commands from the plan's **Validation Checklist**. If not specified, read `CLAUDE.md` "Development Commands" to find the correct commands.
 
-### Level 1 — Lint & Format
-Run the project's lint and format check (e.g. `npm run lint`, `uv run ruff check .`).
-Fix any issues before continuing.
-
-### Level 2 — Type Check
-Run the project's type checker (e.g. `npm run type-check`, `uv run mypy .`).
-Fix all type errors before continuing.
-
-### Level 3 — Unit Tests
-Run the project's unit test suite (e.g. `npm run test`, `uv run pytest`).
-If tests fail:
-- Investigate the root cause
-- Fix the code (not the tests)
-- Re-run until all pass
-
-### Level 4 — Integration Tests
-Run integration tests or manual verification as specified in the plan (e.g. `npm run test:e2e`, manual curl).
-Verify the feature works end-to-end.
-
-### Level 5 — Code Review
-Run a code review on all changed files following the the `code-review` skill process. This catches bugs that linting, types, and tests miss (security issues, logic errors, pattern violations).
-
-If the review finds critical or high severity issues, **fix them before proceeding**.
-
-### Level 6 — File Drift Check
-Compare the files actually changed against the plan's task list:
-
-```bash
-git diff --name-only
-git ls-files --others --exclude-standard
-```
-
-Flag any files that were changed but are **not listed in any task**. These are potential scope leaks — unplanned additions that didn't get the same scrutiny as planned tasks. Report them in the completion summary so the user can review.
-
-### Level 7 — Human Review (flag for user)
-List what the user should manually verify:
-- Specific behaviors to test in the browser or CLI
-- Edge cases to check
-- Any decisions made during implementation that the user should review
+Level 5 triggers the `code-review` skill (not a slash command). Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 
 ## Step 6: Completion Report
 
