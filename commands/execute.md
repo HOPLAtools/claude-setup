@@ -166,7 +166,7 @@ Run integration tests or manual verification as specified in the plan (e.g. `npm
 Verify the feature works end-to-end.
 
 ### Level 5 — Code Review
-Run a code review on all changed files following the `/hopla-code-review` process. This catches bugs that linting, types, and tests miss (security issues, logic errors, pattern violations).
+Run a code review on all changed files following the the `code-review` skill process. This catches bugs that linting, types, and tests miss (security issues, logic errors, pattern violations).
 
 If the review finds critical or high severity issues, **fix them before proceeding**.
 
@@ -220,7 +220,7 @@ Provide a summary of what was done:
 ## Step 7: Suggest Next Steps
 
 After the summary, suggest:
-1. Run `/hopla-code-review` for a standalone review of the changes (recommended — a fresh review catches issues the executing agent may have missed)
-2. If issues are found, run `/hopla-code-review-fix` to fix them
-3. Run `/hopla-execution-report` to document the implementation
-4. Run `/hopla-git-commit` to commit the changes
+1. Run the `code-review` skill for a standalone review of the changes (recommended — a fresh review catches issues the executing agent may have missed)
+2. If issues are found, run `/hopla:code-review-fix` to fix them
+3. Run the `execution-report` skill to document the implementation
+4. Run the `git` skill (say "commit") to commit the changes

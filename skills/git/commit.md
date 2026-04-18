@@ -73,4 +73,4 @@ After committing, remind the user:
 **Never push automatically** — wait for explicit confirmation.
 
 If the user confirms the push (or if the branch was already pushed), suggest:
-> "Ready to create a Pull Request? Run `/hopla-git-pr` to create one."
+> "Ready to create a Pull Request? Run the `git` skill (say "create PR") to create one."

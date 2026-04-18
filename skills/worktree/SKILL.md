@@ -113,6 +113,6 @@ git branch -D <prefix>/<name>
 
 ## Integration
 
-- Combine with `/hopla-execute` — run execution from inside the worktree
+- Combine with `/hopla:execute` — run execution from inside the worktree
 - Combine with the `git` skill — commit and PR from inside the worktree; cleanup happens post-merge
 - Combine with parallel dispatch — multiple worktrees active simultaneously

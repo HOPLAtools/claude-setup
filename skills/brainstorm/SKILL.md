@@ -72,14 +72,14 @@ Conceptual design details
 - Anything still unclear
 
 ## Next Step
-Run `/hopla-plan-feature` to create the implementation plan from this design
+Run `/hopla:plan-feature` to create the implementation plan from this design
 ```
 
 ### Step 6: Review Loop
 Present the design document for user review.
 - Accept feedback using the `<? ... >` comment syntax
 - Iterate until the user approves
-- Only then suggest: "Design approved! Ready to create the plan with `/hopla-plan-feature`?"
+- Only then suggest: "Design approved! Ready to create the plan with `/hopla:plan-feature`?"
 
 ## Rules
 - Never skip to planning without design approval
@@ -90,5 +90,5 @@ Present the design document for user review.
 
 ## Integration
 
-- If the user hasn't defined requirements yet, suggest: "Before brainstorming, consider running `/hopla-create-prd` to define the product requirements. This gives us clearer constraints to design against."
+- If the user hasn't defined requirements yet, suggest: "Before brainstorming, consider running `/hopla:create-prd` to define the product requirements. This gives us clearer constraints to design against."
 - If the user is brainstorming a bug fix rather than a new feature, suggest: "This sounds like a bug rather than a new feature. Consider running the `debug` skill for systematic root cause analysis instead."

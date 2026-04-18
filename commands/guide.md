@@ -45,19 +45,19 @@ Three categories for every task:
 ## Your Available Commands
 
 ### For Planning & Product
-- `/hopla-create-prd` — Create a Product Requirements Document through guided conversation
-- `/hopla-plan-feature` — Create an implementation plan (AI researches, you approve)
-- `/hopla-review-plan` — Review a plan before execution
+- `/hopla:create-prd` — Create a Product Requirements Document through guided conversation
+- `/hopla:plan-feature` — Create an implementation plan (AI researches, you approve)
+- `/hopla:review-plan` — Review a plan before execution
 
 ### For Oversight
-- `/hopla-system-review` — Analyze how well the AI followed the plan
-- `/hopla-guide` — Show this guide again
+- `/hopla:system-review` — Analyze how well the AI followed the plan
+- `/hopla:guide` — Show this guide again
 
 ## Getting Started
 
-1. Start with `/hopla-create-prd` to define your project scope
-2. Use `/hopla-plan-feature "your feature idea"` to plan each feature
-3. Review the plan with `/hopla-review-plan`
+1. Start with `/hopla:create-prd` to define your project scope
+2. Use `/hopla:plan-feature "your feature idea"` to plan each feature
+3. Review the plan with `/hopla:review-plan`
 4. Hand off to a developer for execution, or ask the AI to execute
 
 ## Tips for Better Results

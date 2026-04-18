@@ -50,14 +50,31 @@ function safeRm(target, opts = {}) {
     fs.rmSync(target, opts);
 }
 
+// Atomic write: stage to a tmp file and rename over the target.
+// Protects ~/.claude/settings.json from corruption if the process crashes mid-write.
 function safeWrite(target, content) {
     if (DRY_RUN) return;
-    fs.writeFileSync(target, content);
+    const tmp = `${target}.tmp.${process.pid}.${Date.now()}`;
+    try {
+        fs.writeFileSync(tmp, content);
+        fs.renameSync(tmp, target);
+    } catch (err) {
+        try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
+        throw err;
+    }
 }
 
+// Atomic copy: copy to a tmp path and rename over the destination.
 function safeCopy(src, dest) {
     if (DRY_RUN) return;
-    fs.copyFileSync(src, dest);
+    const tmp = `${dest}.tmp.${process.pid}.${Date.now()}`;
+    try {
+        fs.copyFileSync(src, tmp);
+        fs.renameSync(tmp, dest);
+    } catch (err) {
+        try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
+        throw err;
+    }
 }
 
 function safeMkdir(dir, opts) {

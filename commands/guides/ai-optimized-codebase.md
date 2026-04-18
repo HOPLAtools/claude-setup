@@ -1,7 +1,7 @@
 # AI-Optimized Codebase Guide
 
 ## When to Use This Guide
-Reference this guide when initializing a project with `/hopla-init-project` or when optimizing an existing codebase for better AI-assisted development.
+Reference this guide when initializing a project with `/hopla:init-project` or when optimizing an existing codebase for better AI-assisted development.
 
 ## Principles
 

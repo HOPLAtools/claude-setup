@@ -170,7 +170,7 @@ Run in this order — do not proceed if a level fails:
 
 - [ ] **Level 1 — Lint & Format:** `[project lint command]`
 - [ ] **Level 2 — Type Check:** `[project type check command]`
-- [ ] **Level 2.5 — Code Review:** Run `/hopla-code-review` on changed files
+- [ ] **Level 2.5 — Code Review:** Run the `code-review` skill on changed files
 - [ ] **Level 3 — Unit Tests:** `[project unit test command]`
 - [ ] **Level 4 — Integration Tests:** `[project integration test or manual curl/check]`
 - [ ] **Level 5 — Human Review:** Verify behavior matches requirements above
@@ -260,4 +260,4 @@ Before saving the draft, review the plan against these criteria:
 
 **Finalize:**
 1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md` (overwrite if it already exists)
-2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla-review-plan .agents/plans/[feature-name].md` to review it, then `/hopla-execute .agents/plans/[feature-name].md` to implement it."
+2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla:review-plan .agents/plans/[feature-name].md` to review it, then `/hopla:execute .agents/plans/[feature-name].md` to implement it."
