@@ -435,8 +435,14 @@ Create the following directories (with `.gitkeep` where needed):
 ├── rca/                 <- /hopla:rca saves root cause analysis docs here (commit)
 ├── execution-reports/   <- the `execution-report` skill saves here (commit — needed for cross-session learning)
 ├── system-reviews/      <- /hopla:system-review saves here (commit — needed for feedback loop)
+├── audits/              <- persistent audit reports worth preserving (commit — opt-in; copy a code review here when you want to keep it)
 └── code-reviews/        <- the `code-review` skill saves here (do NOT commit — ephemeral, consumed by code-review-fix)
 ```
+
+**Policy — `audits/` vs `code-reviews/`:**
+
+- `code-reviews/` is **ephemeral working state**. Every run overwrites/adds files; `code-review-fix` consumes them and they become stale fast. Never commit.
+- `audits/` is **persistent**. Move or copy a review here when it documents a finding the team should remember (security issue, architectural concern, post-mortem evidence). Commit.
 
 Add to `.gitignore` (create if it doesn't exist):
 ```
