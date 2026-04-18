@@ -54,7 +54,7 @@ If there are pending plans, list them clearly after the prose summary:
 ```
 Pending plans:
 - inventory-page.draft.md ← draft, not finalized yet
-- add-user-authentication.md ← ready to execute with /hopla-execute
+- add-user-authentication.md ← ready to execute with /hopla:execute
 ```
 
 End with a sentence like: "All caught up — what are we working on today?"

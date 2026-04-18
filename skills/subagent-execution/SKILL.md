@@ -63,7 +63,7 @@ Report your status as DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT, or BLOCKED.
 - Commit at phase boundaries (every 3-5 tasks)
 - Always validate before committing
 
-## Integration with /hopla-execute
+## Integration with /hopla:execute
 This skill is an ALTERNATIVE to inline execution. Suggest it when:
 - The plan has 5+ tasks
 - The user expresses concern about quality in long sessions

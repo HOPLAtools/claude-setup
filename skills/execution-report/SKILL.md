@@ -115,4 +115,4 @@ Based on this implementation, what should change for next time?
 ## Next Step
 
 After the report is saved, suggest:
-> "Execution report saved to `.agents/execution-reports/[name].md`. Run `/hopla-git-commit` to commit your changes."
+> "Execution report saved to `.agents/execution-reports/[name].md`. Run the `git` skill (say "commit") to commit your changes."

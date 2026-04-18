@@ -427,15 +427,15 @@ Create the following directories (with `.gitkeep` where needed):
 
 ```
 .agents/
-├── plans/               <- /hopla-plan-feature saves here (commit)
-│   ├── done/            <- /hopla-system-review archives completed plans here (commit)
-│   └── backlog/         <- /hopla-execute Scope Guard defers ideas here (commit)
+├── plans/               <- /hopla:plan-feature saves here (commit)
+│   ├── done/            <- /hopla:system-review archives completed plans here (commit)
+│   └── backlog/         <- /hopla:execute Scope Guard defers ideas here (commit)
 ├── specs/               <- brainstorm skill saves design docs here (commit)
 ├── guides/              <- on-demand reference guides (commit)
-├── rca/                 <- /hopla-rca saves root cause analysis docs here (commit)
-├── execution-reports/   <- /hopla-execution-report saves here (commit — needed for cross-session learning)
-├── system-reviews/      <- /hopla-system-review saves here (commit — needed for feedback loop)
-└── code-reviews/        <- /hopla-code-review saves here (do NOT commit — ephemeral, consumed by code-review-fix)
+├── rca/                 <- /hopla:rca saves root cause analysis docs here (commit)
+├── execution-reports/   <- the `execution-report` skill saves here (commit — needed for cross-session learning)
+├── system-reviews/      <- /hopla:system-review saves here (commit — needed for feedback loop)
+└── code-reviews/        <- the `code-review` skill saves here (do NOT commit — ephemeral, consumed by code-review-fix)
 ```
 
 Add to `.gitignore` (create if it doesn't exist):
@@ -476,6 +476,6 @@ Once confirmed:
 1. Save `CLAUDE.md` to the project root
 2. Create `.agents/` directory structure
 3. Update `.gitignore`
-4. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla-create-prd` next to define the product scope, or `/hopla-plan-feature` to start planning a feature."
-   If a PRD already exists, tell the user: "Project initialized. Run `/hopla-plan-feature` to start planning the first feature."
-5. Suggest running `/hopla-git-commit` to save everything
+4. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla:create-prd` next to define the product scope, or `/hopla:plan-feature` to start planning a feature."
+   If a PRD already exists, tell the user: "Project initialized. Run `/hopla:plan-feature` to start planning the first feature."
+5. Suggest running the `git` skill (say "commit") to save everything

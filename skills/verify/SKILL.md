@@ -55,7 +55,7 @@ When completing a feature (not just a single file edit), run the full validation
 4. **Level 4**: Integration tests (if applicable)
 5. **Level 5**: Human review suggestion
 
-Reference `/hopla-validate` for project-specific validation commands.
+Reference `/hopla:validate` for project-specific validation commands.
 
 ## Scope
 

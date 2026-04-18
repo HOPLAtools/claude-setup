@@ -5,17 +5,17 @@ Reference this guide when planning features that involve external tools or servi
 
 ## MCP in the PIV Loop
 
-### During Planning (`/hopla-plan-feature`)
+### During Planning (`/hopla:plan-feature`)
 - Check what MCP servers are configured (listed in CLAUDE.md under "MCP Servers")
 - For each external integration point, specify which MCP tool to use
 - Example: "Step 3: Use Playwright MCP to verify the component renders correctly"
 
-### During Execution (`/hopla-execute`)
+### During Execution (`/hopla:execute`)
 - Before starting, verify MCP servers are available and responsive
 - When a task involves an MCP tool, use it explicitly (don't fall back to manual alternatives)
 - If an MCP server is unavailable, document it and skip that validation step
 
-### During Validation (`/hopla-validate`)
+### During Validation (`/hopla:validate`)
 - Use Playwright MCP for E2E browser validation if configured
 - Use database MCPs to verify data state after migrations
 - Document which validations were done via MCP vs. manual

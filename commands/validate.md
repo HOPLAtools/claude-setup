@@ -66,10 +66,10 @@ If anything failed and could not be fixed, list the remaining issues and suggest
 
 ## After Validation Passes
 
-- Suggest running `/hopla-code-review` if not already done
+- Suggest running the `code-review` skill if not already done
 - Remind that completion claims must be backed by this fresh validation evidence (see hopla-verify skill)
 
 ## Next Step
 
 After validation passes, suggest:
-> "All validation levels passed. Consider running `/hopla-code-review` for a deeper analysis — code review catches bugs in 79% of implementations that pass automated validation (stale closures, missing input validation, route shadowing, unhandled promise rejections). Run `/hopla-code-review` to check, or `/hopla-git-commit` to commit directly."
+> "All validation levels passed. Consider running the `code-review` skill for a deeper analysis — code review catches bugs in 79% of implementations that pass automated validation (stale closures, missing input validation, route shadowing, unhandled promise rejections). Run the `code-review` skill to check, or the `git` skill (say "commit") to commit directly."

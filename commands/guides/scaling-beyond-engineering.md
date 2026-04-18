@@ -10,21 +10,18 @@ According to Anthropic's 2026 Agentic Coding Trends Report:
 - The barrier between "people who code" and "people who don't" is becoming permeable
 - Domain experts implementing solutions directly removes bottlenecks
 
-## HOPLA's Planning Mode
+## HOPLA for Non-Technical Users
 
-HOPLA already supports non-technical users via `--planning` mode:
-- Restricted command set (planning and review only)
-- Limited git permissions (read-only)
-- Focus on product decisions, not implementation
+Non-technical users can adopt HOPLA today by installing the plugin and focusing on product-planning commands. The 4D Framework guide (`/hopla:guide`) walks them through Description → Discernment → Delegation → Diligence without requiring them to write or review code directly.
 
 ## Expanding the Model
 
 ### Phase 1: Product Planning (Current)
 Non-technical users can:
-- Create PRDs with `/hopla-create-prd`
-- Plan features with `/hopla-plan-feature`
-- Review plans with `/hopla-review-plan`
-- Guide workflow with `/hopla-guide` (4D Framework)
+- Create PRDs with `/hopla:create-prd`
+- Plan features with `/hopla:plan-feature`
+- Review plans with `/hopla:review-plan`
+- Guide workflow with `/hopla:guide` (4D Framework)
 
 ### Phase 2: Assisted Creation (Future)
 Non-technical users could:

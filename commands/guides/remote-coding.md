@@ -50,9 +50,9 @@ jobs:
         run: |
           npx claude-code --print "
             Read issue #${{ github.event.issue.number }}.
-            /hopla-plan-feature based on the issue requirements.
-            /hopla-execute the plan.
-            /hopla-validate
+            /hopla:plan-feature based on the issue requirements.
+            /hopla:execute the plan.
+            /hopla:validate
             Create a PR with the results.
           "
 ```

@@ -222,4 +222,4 @@ Do not ask clarifying questions about changes — just apply them and confirm wh
 1. Rename `PRD.draft.md` → `PRD.md` (overwrite if it existed)
 2. Rename any `.draft` context documents to their final names
 3. Delete all `.draft` files
-4. Confirm: "✅ `PRD.md` saved. Run `/hopla-git-commit` to save it to the repository."
+4. Confirm: "✅ `PRD.md` saved. Run the `git` skill (say "commit") to save it to the repository."

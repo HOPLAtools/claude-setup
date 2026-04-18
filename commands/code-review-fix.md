@@ -58,4 +58,4 @@ Provide a summary of:
 ## Next Step
 
 After all fixes pass validation, suggest:
-> "All review issues fixed and validation passed. Run `/hopla-execution-report` to document the implementation, then `/hopla-git-commit` to commit."
+> "All review issues fixed and validation passed. Run the `execution-report` skill to document the implementation, then the `git` skill (say "commit") to commit."

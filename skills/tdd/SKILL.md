@@ -44,7 +44,7 @@ description: "Test-driven development workflow using the RED-GREEN-REFACTOR cycl
 - Boilerplate with no logic
 - Legacy code without existing test infrastructure
 
-## Integration with /hopla-execute
+## Integration with /hopla:execute
 
 When executing a plan with TDD:
 1. For each implementation task that has associated tests:

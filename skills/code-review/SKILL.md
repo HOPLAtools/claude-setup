@@ -96,4 +96,4 @@ If no issues found: "Code review passed. No technical issues detected."
 ## Next Step
 
 After the review, suggest:
-> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, run `/hopla-code-review-fix .agents/code-reviews/[name].md` to fix them. If the review passed clean, proceed to `/hopla-execution-report`."
+> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, run `/hopla:code-review-fix .agents/code-reviews/[name].md` to fix them. If the review passed clean, proceed to the `execution-report` skill."

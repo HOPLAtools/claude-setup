@@ -48,5 +48,5 @@ After the summary, ask (in the user's language):
 
 **Review loop:**
 - If the user has questions → answer them based on the plan content
-- If the user requests changes → note them and tell the user to ask Robert to update the plan, or apply minor clarifications directly if they are unambiguous
-- If the user approves → confirm: "✅ Plan approved. Run `/hopla-execute $1` to start."
+- If the user requests changes → note them and suggest re-running `/hopla:plan-feature` to update the plan, or apply minor clarifications directly if they are unambiguous
+- If the user approves → confirm: "✅ Plan approved. Run `/hopla:execute $1` to start."

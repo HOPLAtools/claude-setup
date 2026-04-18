@@ -60,9 +60,9 @@ What needs to change to resolve this
 How to prevent similar issues in the future
 
 ## Next Steps
-- [ ] Implement fix (run `/hopla-execute` with a plan, or fix directly if simple)
+- [ ] Implement fix (run `/hopla:execute` with a plan, or fix directly if simple)
 - [ ] Add regression test
-- [ ] Validate with `/hopla-validate`
+- [ ] Validate with `/hopla:validate`
 ```
 
 ## Output

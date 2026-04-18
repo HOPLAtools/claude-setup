@@ -168,7 +168,7 @@ Plan → Implement → Validate → (repeat)
 
 ### System Evolution
 
-After each PIV loop, run `/hopla:execution-report` + `/hopla:system-review` to find process improvements. Don't just fix bugs — fix the system that allowed them.
+After each PIV loop, run the `execution-report` skill + `/hopla:system-review` to find process improvements. Don't just fix bugs — fix the system that allowed them.
 
 ---
 

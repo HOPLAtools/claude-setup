@@ -24,8 +24,8 @@ Key rules:
 ## Reference Files
 
 Follow these as patterns:
-- `files/commands/hopla-git-commit.md` — simpler, single-purpose command
-- `files/commands/hopla-plan-feature.md` — complex multi-step command
+- `files/commandsthe `git` skill (say "commit").md` — simpler, single-purpose command
+- `files/commands/hopla:plan-feature.md` — complex multi-step command
 
 ---
 
