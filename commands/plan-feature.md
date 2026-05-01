@@ -90,7 +90,23 @@ Based on research, define:
 - **API surface enumeration (security/access control plans):** When the plan modifies access control, authorization, or data visibility, enumerate ALL API surfaces that serve the same data — REST endpoints, WebSocket handlers, Durable Object methods, and any other data paths. Each surface must be updated consistently. Add a task for each surface, not just the primary one.
 - **Role access matrix:** For features involving multiple user roles or multi-tenant access (admin, member, viewer, buyer, external user), define a matrix: what data does each role see? What endpoints does each role call? What filters apply per role?
 - **External integration buffer:** If the feature integrates an external API or third-party service, budget 2x the estimated time. Document: do we have working test credentials? Is the SDK tested in our runtime (Workers, Node, edge, etc.)? Are there known deprecations or version constraints?
-- **UI iteration budget:** For features with significant UI (new pages, complex forms, interactive grids), note that UI specifications are provisional — visual polish typically needs iteration on user feedback. Specify what "good enough for v1" looks like vs. future polish so scope creep is not classified as plan failure.
+- **UI iteration budget (MANDATORY when UI is detected):** If the feature touches a visible UI surface (see "UI detection heuristic" below), the plan's "Out of Scope" OR "Notes for Executing Agent" section MUST include the line `Expected UX iterations: N`, where N is an honest positive integer (default 2-4 for new components, 1-2 for tweaks to existing components). Do NOT write `0` — manual smoke surfaces 2-4 deviations on average for any plan that adds or modifies a label, panel, modal, or interactive flow. Plans that don't budget for this perceive routine UX feedback as scope creep. The original "what 'good enough for v1' looks like" guidance still applies — specify it alongside the iteration count.
+- **UI detection heuristic:** A feature touches UI when ANY of the following matches the user's request OR the files the plan will create/modify:
+  - **Vocabulary triggers:** `component`, `panel`, `modal`, `dialog`, `card`, `badge`, `banner`, `label`, `button`, `flow`, `screen`, `page`, `view`, `render`, `layout`, `status indicator`, `tooltip`, `wizard`, `form`, `grid`, `table` (when interactive), `icon`
+  - **File path triggers:** `src/components/`, `src/pages/`, `src/views/`, `src/modules/*/components/`, `src/screens/`, files ending in `.tsx`, `.jsx`, `.vue`, `.svelte`
+  - **Plan task triggers:** any task with Action `create | modify` whose File path matches the above
+  - When uncertain, err on inclusion: a 2-line UX iteration budget costs nothing; a missing one re-classifies normal feedback as scope creep.
+- **Domain Assumptions (MANDATORY when domain vocabulary is detected):** If the feature uses project-specific domain terms (see "Domain vocabulary detection heuristic" below), the plan MUST include a `## Domain Assumptions` subsection in the plan template — placed BEFORE `## Implementation Tasks` — listing each user-confirmable assumption as a bullet. Each bullet describes ONE inference the planner made about meaning, behavior, or business rule. The user confirms or corrects each bullet before implementation begins. This is distinct from `Verified Assumptions` (Phase 3, technical state) — Domain Assumptions cover semantic meaning that only the user can validate.
+- **Domain vocabulary detection heuristic:** A feature uses domain vocabulary when ANY of the following category-based triggers fires (the categories below are universal — examples vary by project):
+  - **Entity state semantics:** any term describing a state, condition, or status of an entity in the project's domain. Generic examples: `Active` / `Inactive`, `Pending` / `Approved` / `Rejected`, `Open` / `Closed`, `Available` / `Unavailable`. Project-specific examples come from the project's own vocabulary.
+  - **Lifecycle states:** `draft` / `published` / `archived`, `created` / `processed` / `completed`, `submitted` / `reviewed` / `accepted`. Any sequence of states an entity passes through over time.
+  - **Grades / tiers / quality levels:** `A` / `B` / `C` grading, `premium` / `standard` / `basic`, `hot` / `warm` / `cold`, condition tiers, severity levels. Any ordinal classification with semantic boundaries.
+  - **Roles / permissions / multi-tenant access:** `admin` / `member` / `viewer` / `owner`, internal vs external users, buyer vs seller. Anything where access or behavior depends on who the actor is.
+  - **Color-coded UI states with semantic meaning:** green=ok / amber=warning / red=error, or any project-specific color → state mapping. The mapping itself is a domain assumption.
+  - **Business rules:** "when X happens, then Y is forbidden / required / triggered". Any conditional behavior that encodes a policy decision rather than a technical constraint.
+  - **Project-specific vocabulary harvest:** read the project's root `CLAUDE.md`. If a `Domain`, `Glossary`, `Vocabulary`, or similar section exists, harvest its terms. Any of those terms appearing in the user's request triggers the heuristic. **Fallback when no such section exists:** rely on the category-based triggers above.
+  - **Sentinel check:** if the planner wrote sentences in the plan that describe behavior using nouns or adjectives that are NOT in the user's verbatim request, those are inferred meanings — surface them as Domain Assumptions.
+  - When uncertain, err on inclusion: a `Domain Assumptions` subsection with 1-2 bullets is cheaper than a misaligned implementation surfaced during manual smoke.
 
 ## Phase 5: Generate the Plan
 
@@ -125,6 +141,16 @@ Use this structure:
 Key files the executing agent must read before starting:
 - `[path/to/file]` — [why it's relevant]
 - `[path/to/file]` — [why it's relevant]
+
+## Domain Assumptions (if applicable)
+
+> Include this section when the feature uses domain vocabulary (entity states, lifecycle, grades/tiers, roles, color-coded states, business rules, or any project-specific terms in the project's CLAUDE.md). **Skip entirely** (do not write "N/A") when no domain semantics are involved.
+
+Each bullet is a user-confirmable assumption the planner made about meaning, behavior, or business rule. The user MUST confirm or correct each bullet BEFORE execution begins.
+
+- [Assumption 1 — entity state: e.g., "An entity with `status='archived'` is excluded from active list queries — confirm."]
+- [Assumption 2 — derived/computed value: e.g., "The `expired` badge shows when `expiresAt < today` AND `status != 'archived'` — confirm formula."]
+- [Assumption 3 — grade / tier / business rule: e.g., "Tier B users have read access to the audit log but cannot export it — confirm boundary."]
 
 ## Implementation Tasks
 
@@ -197,6 +223,8 @@ Scoring guide:
 [Any important context, warnings, or decisions made during planning that the executing agent needs to know]
 
 > **UI Styling Note:** UI styling specifications (colors, sizes, variants, labels, spacing) are `[provisional]` proposals — expect them to change once the user sees the implementation. Implement as specified but do not over-invest in pixel-perfect adherence; plan for iteration.
+>
+> **Expected UX iterations: N** — *(include this line when the feature touches a visible UI surface — component, panel, modal, label, card, dialog, button, or interactive flow; **omit entirely otherwise** — do not write "N/A")*. N is the honest number of visual iterations the planner expects on this feature during manual smoke. Forbidden: `0`. Default: `2-4` for new components, `1-2` for tweaks. The user should not classify iterations within this budget as scope creep.
 ```
 
 ---
@@ -233,6 +261,8 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Likely follow-ups listed:** If the Out of Scope section has items, the Likely Follow-ups section is populated with naturally adjacent work the user may request
 - [ ] **API surface enumeration (if security/access plan):** All parallel API surfaces (REST, WebSocket, DO) that serve the same data are listed with a task for each
 - [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations?
+- [ ] **UX iteration budget declared:** If the feature touches UI per the Phase 4 heuristic, the plan includes `Expected UX iterations: N` (with N a positive integer ≥ 1) in Out of Scope or Notes for Executing Agent. If UI is NOT involved, the line is correctly absent (no `N/A`, no empty placeholder).
+- [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
 
 ## Phase 7: Save Draft and Enter Review Loop
 
