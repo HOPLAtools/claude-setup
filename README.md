@@ -113,20 +113,32 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 
 The plugin ships a statusline script that shows your branch, worktree indicator, uncommitted count, and active plan file (`📋 plan-name`) in Claude Code's status bar.
 
-Enable it by adding to `~/.claude/settings.json`:
+**Enable it (one-time):**
 
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "node ~/.claude/plugins/marketplaces/hopla-marketplace/hooks/statusline.js"
-  }
-}
+```bash
+hopla-claude-setup --setup-statusline
 ```
 
-Then run `/reload-plugins` or restart Claude Code.
+This writes the right `statusLine` block to `~/.claude/settings.json`, pointing at the installed plugin's `statusline.js`. Run `/reload-plugins` (or restart Claude Code) to see it.
+
+**Disable it:**
+
+```bash
+hopla-claude-setup --remove-statusline
+```
 
 Sample output: ` feature/auth · 3M · 📋 add-authentication`
+
+> **Manual setup (fallback):** if you don't have the CLI installed, add this to `~/.claude/settings.json` yourself:
+> ```json
+> {
+>   "statusLine": {
+>     "type": "command",
+>     "command": "node ~/.claude/plugins/marketplaces/hopla-marketplace/hooks/statusline.js"
+>   }
+> }
+> ```
+> Replace `hopla-marketplace` with the actual marketplace name if you registered it differently.
 
 ---
 

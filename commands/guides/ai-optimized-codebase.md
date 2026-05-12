@@ -1,3 +1,7 @@
+---
+description: Guide for structuring codebases to be navigable and editable by AI agents (file layout, naming, comments, doc placement).
+---
+
 # AI-Optimized Codebase Guide
 
 ## When to Use This Guide

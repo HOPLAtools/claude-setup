@@ -1,3 +1,7 @@
+---
+description: Shared reference for the full validation sequence (lint, types, tests, code review, manual smoke). Used by execute, validate, and verify.
+---
+
 # Validation Pyramid
 
 Shared reference for the full validation sequence. Callers (`commands/execute.md`, `commands/validate.md`, `skills/verify/SKILL.md`, plus plans' `Validation Checklist`) pick the levels that apply to their scope.

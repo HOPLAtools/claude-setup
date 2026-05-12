@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-05-12
+
+### Added
+- `hopla-claude-setup --setup-statusline` and `--remove-statusline` flags: the CLI now wires the Hopla statusline into `~/.claude/settings.json` automatically. `uninstall` removes it. Manual JSON snippet is documented as a fallback only.
+- `node:test` test suite (`npm test`) — 34 unit + integration tests covering `cli.js` helpers (`parseSettingsFile`, `safeWrite`, the new `setupStatusline`/`removeStatusline`) and the three core hooks (`env-protect`, `tsc-check`, `prompt-route`). Zero external dependencies — uses Node's built-in test runner.
+- GitHub Actions CI (`.github/workflows/ci.yml`): runs on every PR and push to main — JSON validation, version sync check, `npm test`, CLI dry-runs, and the `hook-audit` manual smoke test.
+- `CONTRIBUTING.md` with local development, testing, and PR guidelines.
+- `SECURITY.md` with the vulnerability disclosure process and the plugin's threat model (which hooks intercept which tool calls).
+- `CODE_OF_CONDUCT.md` (Contributor Covenant v2.1).
+- `.github/PULL_REQUEST_TEMPLATE.md` and `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md`.
+- Frontmatter `description:` on the 9 guides in `commands/guides/` so they appear with hints in the slash-command autocomplete.
+
+### Changed
+- **i18n cleanup** — the plugin is now language-agnostic. Spanish trigger phrases removed from the descriptions of `brainstorm`, `verify`, `performance`, `debug` skills. Users configure their preferred response language in their own `~/.claude/CLAUDE.md`.
+- **`hooks/prompt-route.js` refactored to a hybrid matcher**: the hardcoded `SKILL_TRIGGERS` array is gone. The hook discovers skills at runtime by reading `SKILL.md` files; matching uses an optional `triggers:` frontmatter override, falling back to auto-derive from the skill name and quoted phrases in the description. New skills are matched without code changes.
+- **`hooks/tsc-check.js` filters by file extension**: editing a `.md` file no longer triggers `tsc --noEmit`. Only `.ts`, `.tsx`, `.js`, `.jsx`, `.mts`, `.cts`, `.mjs`, `.cjs` files invoke the check.
+- `cli.js`: `parseSettingsFile` and `safeWrite` are now exported for testing. The main dispatcher is gated by an `isMainModule` check so the file can be imported as a library by tests.
+- `hooks/statusline.js` header comment points users at the new CLI flag rather than a hardcoded JSON snippet.
+- README "Optional: Hopla statusline" section recommends the CLI flag; manual JSON setup kept as a fallback note.
+- `CLAUDE.md` §5 (Testing) and §6 (Release flow) now describe `npm test` and the CI verification step.
+- `hooks/prompt-route.js` `triggers:` override added to `skills/code-review/SKILL.md` so phrases like "review my code" (with words between "review" and "code") match the skill.
+
+### Removed
+- Temporary `.DS_Store` artifact at repo root (already in `.gitignore`).
+
+### Notes for plugin authors
+- Skill discovery in Claude Code v1.24 does **not** support nested `skills/<subdir>/<name>/SKILL.md` paths. The 9 reference guides remain in `commands/guides/*.md` and ship with `description:` frontmatter. A future migration to `skills/` will revisit this if the platform adds support.
+
 ## [2.0.0] - 2026-05-12
 
 ### Added

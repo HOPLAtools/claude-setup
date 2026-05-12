@@ -1,3 +1,7 @@
+---
+description: Forward-looking guide for remote agentic coding workflows — long-running agents, async coordination, sandboxed execution.
+---
+
 # Remote Agentic Coding Guide (Future)
 
 ## When to Use This Guide

@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 // Hopla statusline: branch · worktree indicator · uncommitted count · active plan.
-// Wire it up by adding to ~/.claude/settings.json:
-//   "statusLine": {
-//     "type": "command",
-//     "command": "node ~/.claude/plugins/marketplaces/hopla-marketplace/hooks/statusline.js"
-//   }
+// Wire it up by running:
+//   hopla-claude-setup --setup-statusline
+// Remove with: hopla-claude-setup --remove-statusline
 
 import { execSync } from "child_process";
 import fs from "fs";

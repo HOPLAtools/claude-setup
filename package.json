@@ -1,6 +1,6 @@
 {
   "name": "@hopla/claude-setup",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Agentic coding system for Claude Code — CLI for global rules + permissions (plugin available via /plugin marketplace add HOPLAtools/claude-setup)",
   "type": "module",
   "bin": {
@@ -26,8 +26,9 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "prepublishOnly": "node scripts/check-versions.js",
-    "check-versions": "node scripts/check-versions.js"
+    "prepublishOnly": "node scripts/check-versions.js && npm test",
+    "check-versions": "node scripts/check-versions.js",
+    "test": "node --test tests/*.test.js tests/hooks/*.test.js"
   },
   "engines": {
     "node": ">=18"

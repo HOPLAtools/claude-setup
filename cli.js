@@ -13,6 +13,8 @@ const VERSION = process.argv.includes("--version") || process.argv.includes("-v"
 const DRY_RUN = process.argv.includes("--dry-run");
 const STATUS = process.argv.includes("status");
 const JSON_OUT = process.argv.includes("--json");
+const SETUP_STATUSLINE = process.argv.includes("--setup-statusline");
+const REMOVE_STATUSLINE = process.argv.includes("--remove-statusline");
 
 if (VERSION) {
     const pkg = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8"));
@@ -27,6 +29,10 @@ const HOOKS_DIR = path.join(CLAUDE_DIR, "hooks");
 const AGENTS_DIR = path.join(CLAUDE_DIR, "agents");
 const PLUGINS_DIR = path.join(CLAUDE_DIR, "plugins");
 const MARKETPLACE_CACHE = path.join(PLUGINS_DIR, "marketplaces", "hopla-marketplace");
+const STATUSLINE_SCRIPT = path.join(MARKETPLACE_CACHE, "hooks", "statusline.js");
+// Substring used to identify a statusLine block managed by this plugin.
+// Survives manual renames of the marketplace as long as users keep "hopla" in the path.
+const STATUSLINE_MARKER = "hopla-marketplace";
 const SETTINGS_FILES = [
     path.join(CLAUDE_DIR, "settings.json"),
     path.join(CLAUDE_DIR, "settings.local.json"),
@@ -55,8 +61,9 @@ function safeRm(target, opts = {}) {
 
 // Atomic write: stage to a tmp file and rename over the target.
 // Protects ~/.claude/settings.json from corruption if the process crashes mid-write.
-function safeWrite(target, content) {
-    if (DRY_RUN) return;
+// Exported for testing — when imported as a library, callers can pass dryRun explicitly.
+export function safeWrite(target, content, { dryRun = DRY_RUN } = {}) {
+    if (dryRun) return;
     const tmp = `${target}.tmp.${process.pid}.${Date.now()}`;
     try {
         fs.writeFileSync(tmp, content);
@@ -94,7 +101,8 @@ function logRemoved(label) {
 // missing. Warns (and returns null) when the file exists but is not valid JSON
 // — previously these failures were silently swallowed, causing cleanup and
 // permission updates to skip with no signal to the user.
-function parseSettingsFile(settingsPath) {
+// Exported for unit testing.
+export function parseSettingsFile(settingsPath) {
     if (!fs.existsSync(settingsPath)) return null;
     try {
         return JSON.parse(fs.readFileSync(settingsPath, "utf8"));
@@ -372,6 +380,11 @@ async function uninstall() {
         logRemoved(item);
     }
 
+    const statuslineRemoved = removeStatuslineFromSettings();
+    for (const item of statuslineRemoved) {
+        logRemoved(item);
+    }
+
     log(`\n${GREEN}${BOLD}Done!${RESET} ${DRY_RUN ? "Dry-run complete — no files were changed." : "CLI-managed files removed."}\n`);
 
     if (pluginActive) {
@@ -423,6 +436,82 @@ async function setupPermissions() {
     settings.permissions.allow = [...settings.permissions.allow, ...toAdd];
     safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
     log(`  ${GREEN}✓${RESET}  Permissions configured.\n`);
+}
+
+async function setupStatusline() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Setup statusline${dryTag()}\n`);
+
+    if (!fs.existsSync(STATUSLINE_SCRIPT)) {
+        log(`${RED}✕${RESET}  Plugin not detected at ${STATUSLINE_SCRIPT}`);
+        log(`   Install the plugin first inside Claude Code:`);
+        log(`   ${CYAN}/plugin marketplace add HOPLAtools/claude-setup${RESET}`);
+        log(`   ${CYAN}/plugin install hopla@hopla-marketplace${RESET}\n`);
+        process.exit(1);
+    }
+
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    let settings = parseSettingsFile(settingsPath);
+    if (!settings) {
+        if (fs.existsSync(settingsPath)) {
+            log(`  ${YELLOW}↷${RESET}  Skipped — settings.json is not valid JSON. Fix it and re-run.\n`);
+            return;
+        }
+        settings = {};
+    }
+
+    const command = `node ${STATUSLINE_SCRIPT}`;
+    const newBlock = { type: "command", command };
+
+    const existing = settings.statusLine;
+    if (existing && typeof existing === "object") {
+        const isOurs = typeof existing.command === "string" && existing.command.includes(STATUSLINE_MARKER);
+        if (isOurs && existing.command === command) {
+            log(`${GREEN}✓${RESET}  Statusline already configured (idempotent — no changes).\n`);
+            return;
+        }
+        if (!isOurs) {
+            log(`  ${YELLOW}⚠${RESET}  Existing statusLine points elsewhere:`);
+            log(`     ${existing.command || JSON.stringify(existing)}`);
+            const ok = await confirm(`  Overwrite with Hopla statusline? (y/N) `);
+            if (!ok) {
+                log(`  ${YELLOW}↷${RESET}  Kept existing statusLine. No changes.\n`);
+                return;
+            }
+        }
+    }
+
+    settings.statusLine = newBlock;
+    safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+    log(`  ${GREEN}✓${RESET}  ${DRY_RUN ? "Would write" : "Wrote"} statusLine to ~/.claude/settings.json:`);
+    log(`     ${CYAN}${command}${RESET}\n`);
+}
+
+function removeStatuslineFromSettings() {
+    const removed = [];
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    const settings = parseSettingsFile(settingsPath);
+    if (!settings || !settings.statusLine) return removed;
+
+    const cmd = settings.statusLine.command;
+    if (typeof cmd === "string" && cmd.includes(STATUSLINE_MARKER)) {
+        delete settings.statusLine;
+        safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+        removed.push(`statusLine from settings.json`);
+    }
+    return removed;
+}
+
+async function removeStatusline() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Remove statusline${dryTag()}\n`);
+    const removed = removeStatuslineFromSettings();
+    if (removed.length === 0) {
+        log(`${GREEN}✓${RESET}  No Hopla statusline found. Nothing to remove.\n`);
+        return;
+    }
+    for (const item of removed) {
+        logRemoved(item);
+    }
+    log("");
 }
 
 async function install() {
@@ -594,8 +683,21 @@ function status() {
 
 const run = STATUS
     ? async () => status()
+    : SETUP_STATUSLINE
+    ? setupStatusline
+    : REMOVE_STATUSLINE
+    ? removeStatusline
     : (UNINSTALL ? uninstall : (MIGRATE ? migrate : install));
-run().catch((err) => {
-    console.error("Failed:", err.message);
-    process.exit(1);
-});
+
+// Only invoke the dispatcher when this file is executed directly (e.g. via
+// `node cli.js` or the npm bin). When the file is imported as a library
+// (tests), skip — tests call the exported helpers themselves.
+import { pathToFileURL } from "url";
+const isMainModule = process.argv[1]
+    && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMainModule) {
+    run().catch((err) => {
+        console.error("Failed:", err.message);
+        process.exit(1);
+    });
+}

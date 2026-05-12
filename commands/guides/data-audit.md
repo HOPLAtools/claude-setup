@@ -1,3 +1,7 @@
+---
+description: Reference for auditing existing data sources (schema, value semantics, null cases, derived value propagation) before implementing data-consuming features.
+---
+
 # Guide: Data Audit and Value Semantics
 
 Use this guide when a feature reads from, calculates with, or references existing data or code patterns. Applies during planning (full audit) and execution (verification of documented findings).
