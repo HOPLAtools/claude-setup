@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-05-12
+
+### Fixed
+- `hopla-claude-setup --migrate` and `--uninstall` now clean up legacy guide duplicates left in `~/.claude/commands/guides/` by pre-plugin CLI versions (≤ v1.11.x). Removes only files whose name matches a plugin-shipped guide — custom user guides in the same directory are preserved. Empty `guides/` directories are then removed.
+
+### Notes
+- This addresses the duplicate `/guides:*` entries (marked `(user)`) that appeared alongside `/hopla:guides:*` (marked `(hopla)`) in the slash-command autocomplete after upgrading from a pre-plugin install.
+
 ## [2.1.0] - 2026-05-12
 
 ### Added
