@@ -1,3 +1,7 @@
+---
+description: Guide for creating a project-specific code review checklist (.agents/guides/review-checklist.md) consumed by the code-review skill.
+---
+
 # Guide: Creating a Project-Specific Review Checklist
 
 Use this guide to create a `.agents/guides/review-checklist.md` file in your project with code review checks specific to your tech stack, domain, and known anti-patterns. The the `code-review` skill command loads this file automatically when it exists, applying your custom checks alongside the standard review categories.

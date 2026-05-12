@@ -1,3 +1,7 @@
+---
+description: Internal guide for authoring new skills in this plugin — SKILL.md frontmatter, naming, triggers, organization, when to add triggers override.
+---
+
 # Writing Skills Guide (Internal)
 
 ## When to Use This Guide

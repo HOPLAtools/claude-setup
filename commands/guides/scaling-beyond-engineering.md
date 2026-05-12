@@ -1,3 +1,7 @@
+---
+description: Guide for applying agentic coding workflows beyond software engineering — operations, content, research, customer support.
+---
+
 # Scaling Agentic Coding Beyond Engineering
 
 ## When to Use This Guide
