@@ -147,6 +147,50 @@ test("CLI --remove-statusline is a no-op when settings.json has no Hopla statusL
     }
 });
 
+test("CLI --migrate removes legacy guides from ~/.claude/commands/guides/", () => {
+    const tmp = makeTempDir();
+    try {
+        const guidesDir = path.join(tmp, ".claude", "commands", "guides");
+        fs.mkdirSync(guidesDir, { recursive: true });
+        // Two plugin-shipped guides + one custom user guide
+        fs.writeFileSync(path.join(guidesDir, "hooks-reference.md"), "# Hooks Reference Guide");
+        fs.writeFileSync(path.join(guidesDir, "data-audit.md"), "# Guide: Data Audit");
+        fs.writeFileSync(path.join(guidesDir, "my-custom-guide.md"), "# My personal guide");
+
+        const res = runCli(["--migrate"], { home: tmp });
+        assert.equal(res.status, 0);
+        // Plugin guides removed
+        assert.equal(fs.existsSync(path.join(guidesDir, "hooks-reference.md")), false);
+        assert.equal(fs.existsSync(path.join(guidesDir, "data-audit.md")), false);
+        // Custom user guide preserved
+        assert.equal(fs.existsSync(path.join(guidesDir, "my-custom-guide.md")), true);
+        // Directory still exists because it has the custom guide
+        assert.equal(fs.existsSync(guidesDir), true);
+    } finally {
+        rmDir(tmp);
+    }
+});
+
+test("CLI --migrate removes the legacy guides/ directory entirely when no custom files remain", () => {
+    const tmp = makeTempDir();
+    try {
+        const guidesDir = path.join(tmp, ".claude", "commands", "guides");
+        fs.mkdirSync(guidesDir, { recursive: true });
+        fs.writeFileSync(path.join(guidesDir, "write-skill.md"), "# Writing Skills Guide");
+        fs.writeFileSync(path.join(guidesDir, "mcp-integration.md"), "# MCP Integration Guide");
+
+        const res = runCli(["--migrate"], { home: tmp });
+        assert.equal(res.status, 0);
+        // All plugin guides removed
+        assert.equal(fs.existsSync(path.join(guidesDir, "write-skill.md")), false);
+        assert.equal(fs.existsSync(path.join(guidesDir, "mcp-integration.md")), false);
+        // Now-empty directory cleaned up
+        assert.equal(fs.existsSync(guidesDir), false);
+    } finally {
+        rmDir(tmp);
+    }
+});
+
 test("CLI --remove-statusline removes only a Hopla-marked statusLine", () => {
     const tmp = makeTempDir();
     try {

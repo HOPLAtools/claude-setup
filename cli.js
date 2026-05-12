@@ -155,6 +155,23 @@ const LEGACY_HOOK_COMMANDS = [
     "session-prime.js",
 ];
 
+// Guide files the pre-plugin CLI (≤ v1.11.x) copied to ~/.claude/commands/guides/.
+// The plugin now ships them via commands/guides/, namespaced as /hopla:guides:<name>,
+// so the user-level copies show up as duplicates in autocomplete (no "(hopla)" suffix).
+// Cleanup removes only files whose name matches a plugin-shipped guide, leaving any
+// custom user guides in ~/.claude/commands/guides/ untouched.
+const LEGACY_GUIDE_FILES = [
+    "ai-optimized-codebase.md",
+    "data-audit.md",
+    "hooks-reference.md",
+    "mcp-integration.md",
+    "remote-coding.md",
+    "review-checklist.md",
+    "scaling-beyond-engineering.md",
+    "validation-pyramid.md",
+    "write-skill.md",
+];
+
 // Agents installed directly by v1.11.0 and v1.12.0 (no hopla- prefix)
 // Must be cleaned up so the plugin-provided versions are the only source of truth
 const LEGACY_AGENT_FILES = [
@@ -196,6 +213,26 @@ function removeLegacyFiles() {
                 safeRm(filePath);
                 removed.push(`~/.claude/commands/${file}`);
             }
+        }
+    }
+
+    // Legacy guide duplicates in ~/.claude/commands/guides/ (pre-plugin CLI).
+    // Only remove files matching a guide the plugin currently ships; preserve
+    // any custom user-created guides in the same directory.
+    const legacyGuidesDir = path.join(COMMANDS_DIR, "guides");
+    if (fs.existsSync(legacyGuidesDir)) {
+        for (const guideFile of LEGACY_GUIDE_FILES) {
+            const guidePath = path.join(legacyGuidesDir, guideFile);
+            if (fs.existsSync(guidePath)) {
+                safeRm(guidePath);
+                removed.push(`~/.claude/commands/guides/${guideFile}`);
+            }
+        }
+        if (!DRY_RUN) {
+            try {
+                const remaining = fs.readdirSync(legacyGuidesDir);
+                if (remaining.length === 0) fs.rmSync(legacyGuidesDir, { recursive: true });
+            } catch { /* ignore */ }
         }
     }
 
