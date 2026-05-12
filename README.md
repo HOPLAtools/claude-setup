@@ -37,6 +37,10 @@ claude-setup --force
 
 That's it. Commands show as `/hopla:<name>`, skills auto-trigger when relevant.
 
+**Recommended — enable auto-update for the marketplace** (one-time, inside Claude Code):
+
+Open `/plugin` → **Marketplaces** tab → select `hopla-marketplace` → enable auto-update. From then on, new releases are fetched automatically at session start; Claude Code will prompt you to run `/reload-plugins` when an update is ready. Skip this step and you'll need to refresh manually (see [Update](#update) below).
+
 ### Plugin only (skip global rules)
 
 If you don't want the machine-wide `~/.claude/CLAUDE.md`, just do Step 1. The plugin works on its own.
@@ -51,23 +55,20 @@ If you only want the global rules and not the plugin's commands/skills, just do 
 
 ### Plugin channel
 
-Claude Code caches the marketplace repo locally. To pick up new versions:
+**If auto-update is enabled** (see Quick Start Step 2.5): nothing to do. Claude Code fetches new releases at session start and prompts you to run `/reload-plugins`. That's it.
 
-```bash
-cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull
-```
-
-Then inside Claude Code:
+**Manual refresh** (when auto-update is off, or you want to pull immediately):
 
 ```
-/plugin uninstall hopla@hopla-marketplace
-/plugin install hopla@hopla-marketplace
+/plugin marketplace update hopla-marketplace
+/plugin disable hopla@hopla-marketplace
+/plugin enable hopla@hopla-marketplace
 /reload-plugins
 ```
 
-> **Known issue:** Claude Code does not automatically `git pull` the marketplace when reinstalling a plugin. The manual `git pull` above is required.
+`/plugin marketplace update` refreshes the cached marketplace listing. `disable`/`enable` cycles the plugin so the new files are picked up — faster than a full `uninstall`/`install` because no scope re-selection is needed. `/reload-plugins` ensures hooks and commands are re-registered in the current session.
 
-If the `cd` path does not exist, you never installed the marketplace — do Step 1 of Quick Start instead.
+> The older `cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull` workflow still works but is no longer recommended — the built-in `/plugin marketplace update` is the canonical path since Claude Code v1.24.
 
 ### CLI channel (global rules)
 

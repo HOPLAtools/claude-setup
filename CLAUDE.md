@@ -13,7 +13,7 @@
 - **The GitHub repo MUST be public** — the plugin channel clones it via `/plugin marketplace add`. A private repo makes the plugin install fail silently for anyone outside the org
 - Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
 - Bump `version` in **all three files** before every release: `package.json`, `.claude-plugin/plugin.json`, AND `.claude-plugin/marketplace.json`
-- Known issue: after `npm publish`, the Claude Code plugin does NOT auto-update. Users must `cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull` then reinstall the plugin. Document this in release notes or the README, not only here
+- Plugin update flow (Claude Code v1.24+): auto-update is opt-in per marketplace (third-party marketplaces default to **disabled**). Users who opt in get new versions automatically on session start. Users who don't refresh manually with `/plugin marketplace update hopla-marketplace` → `/plugin disable` → `/plugin enable` → `/reload-plugins`. Document the auto-update opt-in prominently in the README; do **not** prescribe the old `cd … && git pull` dance — `/plugin marketplace update` is the canonical path now
 
 ---
 
@@ -145,10 +145,17 @@ npm publish              # Publish to npm (bump version in package.json + plugin
 
 **Release flow:**
 
-1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match)
+1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match — `scripts/check-versions.js` runs as `prepublishOnly` and blocks publish if they diverge)
 2. `git commit` + `git push origin main`
-3. `npm publish`
-4. After publish, users on the plugin channel must run `cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull` then reinstall — Claude Code does not auto-update the marketplace cache
+3. `npm publish` (only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo)
+4. Plugin-channel users with auto-update enabled get the new version at next session start, automatically. Users without auto-update refresh via:
+   ```
+   /plugin marketplace update hopla-marketplace
+   /plugin disable hopla@hopla-marketplace
+   /plugin enable hopla@hopla-marketplace
+   /reload-plugins
+   ```
+   In commit messages and release notes, reference this canonical flow — **do not** repeat the old `cd … && git pull` dance.
 
 ---
 
