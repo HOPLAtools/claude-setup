@@ -102,7 +102,27 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 
 ## 5. Testing
 
-No automated tests. Test manually after any change:
+Automated unit + integration tests run via Node's built-in `node:test` runner (no external test framework — same "Node built-ins only" rule as `cli.js`). The CI workflow at `.github/workflows/ci.yml` runs them on every PR and push to `main`.
+
+```bash
+npm test                             # full suite (cli.js helpers + 3 hook scripts)
+node --test tests/cli.test.js        # one file
+bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
+```
+
+Tests live in `tests/`:
+
+```
+tests/
+├── cli.test.js                     parseSettingsFile + safeWrite + CLI integration tests
+├── helpers/fixtures.js             tempdir, JSON I/O, cleanup helpers
+└── hooks/
+    ├── env-protect.test.js         block .env reads + benign-Bash allow
+    ├── tsc-check.test.js           extension filter + tsconfig short-circuit
+    └── prompt-route.test.js        hybrid matcher (name + quoted phrases + triggers override)
+```
+
+Manual smoke (use in addition to `npm test` for any change touching the CLI install/uninstall flow):
 
 ```bash
 node cli.js                            # interactive install flow (global rules + permissions only)
@@ -112,6 +132,7 @@ node cli.js --migrate                  # remove legacy CLI duplicates only
 node cli.js --version                  # verify version string
 node cli.js --dry-run --uninstall --force   # preview what uninstall would remove, without touching disk
 node cli.js --dry-run --force          # preview what install would do, without touching disk
+node cli.js --dry-run --setup-statusline --force    # preview statusline setup
 ```
 
 **`--dry-run`** composes with any other flag and prints what would change without writing anything. Use it before testing destructive paths on a real `~/.claude/` directory.
@@ -146,9 +167,11 @@ npm publish              # Publish to npm (bump version in package.json + plugin
 **Release flow:**
 
 1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match — `scripts/check-versions.js` runs as `prepublishOnly` and blocks publish if they diverge)
-2. `git commit` + `git push origin main`
-3. `npm publish` (only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo)
-4. Plugin-channel users with auto-update enabled get the new version at next session start, automatically. Users without auto-update refresh via:
+2. `git commit` + open PR
+3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh`)
+4. Merge PR to `main`
+5. `npm publish` from `main` (only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo)
+6. Plugin-channel users with auto-update enabled get the new version at next session start, automatically. Users without auto-update refresh via:
    ```
    /plugin marketplace update hopla-marketplace
    /plugin disable hopla@hopla-marketplace
