@@ -139,6 +139,31 @@ If the user requests changes that are NOT in the plan during execution:
    - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `.agents/plans/backlog/` instead?"
 5. **Never** silently add significant unplanned work — it mixes unreviewed changes into an otherwise reviewed plan and breaks the audit trail
 
+## Step 4.5: Hook structural audit (Level 1.5 gate)
+
+> **Applies only to React projects.** This gate audits React custom hooks (`src/hooks/use*.ts`) for known bug classes. Skip this entire step if the project does not use React, or if no task in the plan touches a file matching `src/hooks/use*.ts`. For non-React stacks the gate is a no-op — proceed directly to Step 5.
+
+> **This is a per-task gate, not a sequential phase.** Invoke the skill inside Step 4 whenever a task creates or modifies a `src/hooks/use*.ts` file, *before* the task is marked complete. The `4.5` numbering exists so the gate aligns with `Level 1.5` in the validation pyramid; the actual execution interleaves with Step 4 task-by-task — not after all tasks finish.
+
+For every new or modified file matching `src/hooks/use*.ts` in this branch, invoke the `hopla:hook-audit` skill **before completing the task** that touches the file. The skill supports two invocation modes — pick whichever fits the context:
+
+- **Single-file mode** — pass the file path explicitly:
+  ```
+  /hopla:hook-audit src/hooks/<file>.ts
+  ```
+- **Auto-detect mode** — invoke without arguments; the skill runs `git diff --name-only HEAD` internally and audits every matching `src/hooks/use*.ts` it finds:
+  ```
+  /hopla:hook-audit
+  ```
+
+**Block the task** if the audit reports any HIGH-severity finding (missing `useMemo` on the hook's return, `setLoading(false)` inside a stale-id guard, anchored-vs-substring error matchers, missing inFlight map next to a module-level cache, etc.). Fix the finding before continuing.
+
+Medium and low findings surface as warnings — fix them before opening the PR, but they do not block the task.
+
+**Fallback:** if `hopla:hook-audit` is not available (consumer project on a plugin release older than 1.19.0, or marketplace not synced), warn but proceed. The skill ships with `@hopla/claude-setup` from release 1.19.0 onward — a consumer on an older release should run `/plugin marketplace update hopla-marketplace` to pick it up.
+
+**Why:** the same hook bug classes have been fixed multiple times across different consumer projects (stuck spinners from stale-id-guarded `setLoading`, render storms from un-memoised hook returns, error-mis-overshadow from substring matchers, duplicate in-flight requests from missing dedup). The audit is fast (<5s per file) and mechanical. Catching at write-time is cheaper than catching at code-review or production time.
+
 ## Step 5: Run Full Validation Pyramid
 
 After all tasks are complete, run **Levels 1–7** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails.
@@ -164,6 +189,7 @@ Provide a summary of what was done:
 
 ### Validation Results
 - Level 1 Lint:        ✅ / ❌
+- Level 1.5 Hook audit: ✅ / ❌ / N/A (no `src/hooks/use*.ts` touched)
 - Level 2 Type Check:  ✅ / ❌
 - Level 3 Unit Tests:  ✅ [X passed] / ❌ [X failed]
 - Level 4 Integration: ✅ / ❌

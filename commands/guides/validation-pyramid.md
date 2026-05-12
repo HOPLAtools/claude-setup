@@ -19,6 +19,19 @@ If issues are found:
 - Fix them automatically where the tool supports it (e.g. `--fix`)
 - Re-run to confirm clean
 
+## Level 1.5 — Hook structural audit (React projects only)
+
+**Skip this level entirely if the project does not use React** or if no `src/hooks/use*.ts` files were touched. For non-React stacks (Vue, Svelte, Angular, plain backend, etc.) move directly to Level 2.
+
+For every new or modified file matching `src/hooks/use*.ts` in this branch, invoke the `hopla:hook-audit` skill:
+
+- **Single-file mode:** `/hopla:hook-audit src/hooks/<file>.ts`
+- **Auto-detect mode:** `/hopla:hook-audit` (the skill runs `git diff --name-only HEAD` internally)
+
+Block on any HIGH-severity finding (missing `useMemo` on hook return, `setLoading(false)` inside stale-id guard, anchored-vs-substring error matcher, missing inFlight map next to module-level cache). Medium/low findings surface as warnings — fix before the PR but they do not block.
+
+The skill ships with `@hopla/claude-setup` from release 1.19.0 onward. If it is not available (consumer project on an older plugin release, or marketplace not synced), warn and continue — see `commands/execute.md` Step 4.5 for the full gate description and the fallback policy.
+
 ## Level 2 — Type Check
 
 Run the project's type checker (e.g. `npm run typecheck`, `tsc --noEmit`, `uv run mypy .`).
