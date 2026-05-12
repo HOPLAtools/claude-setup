@@ -63,6 +63,23 @@ For each existing table, API endpoint, or component the plan will modify, verify
 
 Document verified assumptions in the plan's **Context References** with the exact file and line number. This prevents mid-implementation redesigns caused by plans that assumed a field name, type, or constraint that did not match reality.
 
+#### Call-chain trace for "automatic side effect" claims
+
+When the plan asserts that a side effect happens **automatically** (without explicit code we control — e.g., "the UI updates in real-time", "the broadcast fires on every write", "the cache invalidates whenever X happens", "the downstream system picks it up"), document the **full call chain** as `file:line` for **each** link. If any link is unverified, the claim is unverified.
+
+Generic shape of a trace (adapt to your stack — REST request, WebSocket frame, queue message, event-bus topic, stateful service / actor, scheduled job, etc.):
+
+1. **Trigger** — `<file>:<line>` — the write / event / command that originates the chain.
+2. **Helper / dispatcher** — `<file>:<line>` — verify the dispatcher is actually invoked, not bypassed by a feature flag or guard.
+3. **Downstream handler** — `<file>:<line>` — the receiving code; verify it covers the specific case (`kind`, `topic`, `type`, etc.) your trigger emits.
+4. **Continuation** — `<file>:<line>` — the next link (broadcast loop, queue worker, downstream call, etc.).
+5. **Consumer subscription** — `<file>:<line>` — the client/hook/subscriber that listens for the event.
+6. **UI / state reaction** — `<file>:<line>` — the visible effect (component re-render, cache refresh, status update).
+
+Paste the full trace in the plan's **Context References** section (consistent with how `### Assumption verification` already documents verified file:line references). **If you cannot complete the trace** because of unfamiliar code, treat that as a signal the claim is too risky — defer the optimization or add a defensive fallback.
+
+**Scope of this rule:** apply to claims that materially shape the plan's scope or eliminate work (e.g., "we don't need to refetch — the broadcast covers it", "we don't need to invalidate — the listener will pick it up"). Do not trace every helper call; the goal is to gate load-bearing automaticity claims. **Why:** partial verification (e.g., confirming only the trigger at link 1 and the consumer at link 5) hides load-bearing gates in the middle of the chain. A conditional deep in a downstream handler — a feature flag, a status guard, a tenant filter, an `if (shouldNotify)` short-circuit — may skip the side effect for the exact case the planner assumed was covered. The bug surfaces only in production, when a user notices the automatic behavior never happened.
+
 ### Data audit (required for features that consume existing data)
 
 Follow the full checklist in `.agents/guides/data-audit.md`.
@@ -70,6 +87,20 @@ Follow the full checklist in `.agents/guides/data-audit.md`.
 **Your responsibility as planner:** Run the complete audit and document ALL findings in the plan's **Context References** and **Gotchas** fields. The executing agent must be able to verify your findings without re-auditing — they should only confirm that what you documented still holds.
 
 **Column removal audit:** When a plan removes a database column, run `grep -r 'column_name' worker/src/` (or equivalent for the project's backend) and include ALL locations in the plan's task list. Do not rely on memory or a single file — columns are often referenced in helper functions, auto-create logic, and ensure-drafts flows across multiple route files. Document the exact count of locations found.
+
+### Empirical verification of "out-of-scope" claims (required)
+
+When the plan defers work to a follow-up because it claims a server-side, cross-repo, or external change is needed — i.e. a NEGATIVE existence claim ("X is not available, so it's out of scope") — document the **exact command** used to verify the claim. Without a verification command, the claim is unverified and must not be relied upon.
+
+Acceptable verification commands by claim type — use the tool that fits your stack:
+
+- **SQL / database:** the project's database CLI with the exact query. Examples per stack: `psql -d <db> -c "SELECT ..."` (Postgres), `mysql -e "SELECT ..."` (MySQL), `sqlite3 <db> "SELECT ..."` (SQLite), `wrangler d1 execute <db> --remote --command "SELECT ..."` (Cloudflare D1), `supabase db query "SELECT ..."` (Supabase), `prisma db execute --stdin` (Prisma).
+- **HTTP endpoint:** `curl -i <full-url>` with the full path and the headers used.
+- **Source code:** `grep -rn "<pattern>" <directory>` with the exact pattern (or `rg` / project equivalent).
+
+Paste both the command and the actual output (positive or negative) into the plan's **Out of Scope** or **Context References** section. If a claim is documented without a verification command, treat it as unverified — pause planning, run the verification, then continue.
+
+**Why:** plans that defer work on a "needs server change" or "endpoint doesn't exist yet" assumption have shipped only to later discover that the endpoint already existed (or the column, or the helper). Without a verification command, the planner cannot distinguish between "truly out of scope" and "I didn't check". This rule covers negative claims; positive claims ("X exists, it returns shape Y") are covered by the Assumption verification section above.
 
 ## Phase 4: Design the Approach
 
@@ -79,6 +110,11 @@ Based on research, define:
 - What the data flow looks like end-to-end
 - Any risks, edge cases, or gotchas to flag
 - What tests are needed
+- **Workflow classification (required before specifying any reactive-effect-based mutations):** classify each workflow being designed as one of:
+  - **`async data-arrival`** — the system reacts to async signals as they arrive (real-time monitoring, push notifications, background sync, WebSocket events, sensor streams). Default to reactive effects that fire when data arrives — e.g., React `useEffect`, Vue `watch` / `watchEffect`, Svelte `$effect`, Angular `effect()`, RxJS subscriptions, event-bus listeners, backend message handlers.
+  - **`sequential user-driven`** — the user (or operator) completes ordered steps and commits at the end (wizard flows, multi-step forms, "connect → fill → confirm" sequences). Default to a single commit handler bound to a user action (button click, form submit, CLI command). Do **not** specify reactive effects that auto-fire on intermediate state.
+
+  Document the classification in the plan's "Requirements Summary". If `sequential user-driven`, the plan body must NOT include "fire an effect when X" tasks unless explicitly justified by a real async source. **Why:** sequential workflows specified as reactive chains invent race conditions that the manual model does not have. The agent ends up writing tens or hundreds of lines of effect coordination that has to be torn out later in favor of a single commit handler. **Mixed workflows:** classify each subsystem separately (e.g., the real-time data ingestion is async; the commit step the user triggers at the end is sequential).
 - **Derived/computed values:** If any value is calculated from other fields, specify the exact formula including how stored values are interpreted (sign, units, semantics), AND how derived values propagate when inputs change (event system, reactivity, polling, etc.)
 - **Interaction states & edge cases:** For features involving interactive UI (forms, grids, keyboard navigation, wizards, CLI interactions), define a matrix of user interactions and their expected behavior. Cover: all keyboard shortcuts (both directions — e.g., Tab AND Shift+Tab), state transitions (empty → editing → saved → error), and boundary conditions (first item, last item, empty list, maximum items).
 - **API input validation:** For every API endpoint being created or modified, specify: required fields, field format constraints (e.g., "IMEI must be exactly 15 digits"), payload size limits, and what the user sees on validation failure.
