@@ -1,0 +1,53 @@
+// SYNTHETIC FIXTURE — triggers all 4 hook-audit rules.
+// Filename is *.example so TypeScript ignores it. This file is read as text by the hook-audit skill.
+
+import { useState, useRef } from 'react';
+
+// Rule D-1: module-level cache without companion inFlight map. BUG.
+const cache = new Map<string, FooResult>();
+
+type FooResult = { ok: boolean; value: string };
+
+export function useFooLookup(fooId: string) {
+  const [data, setData] = useState<FooResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const currentFooRef = useRef<string>(fooId);
+
+  async function load(id: string) {
+    setLoading(true);
+    currentFooRef.current = id;
+    try {
+      const cached = cache.get(id);
+      if (cached) {
+        setData(cached);
+        return;
+      }
+      const result = await fakeFetch(id);
+      cache.set(id, result);
+      if (currentFooRef.current === id) {
+        setData(result);
+      }
+    } catch (error: any) {
+      // Rule E-1: substring match — too permissive. BUG.
+      if (error.message.includes('imei')) {
+        setData({ ok: false, value: 'imei-error' });
+      }
+    } finally {
+      // Rule S-8: setLoading(false) inside stale-id guard. BUG.
+      if (currentFooRef.current === id) {
+        setLoading(false);
+      }
+    }
+  }
+
+  // Rule P-5: object literal return without useMemo. BUG.
+  return {
+    data,
+    loading,
+    load,
+  };
+}
+
+async function fakeFetch(id: string): Promise<FooResult> {
+  return { ok: true, value: id };
+}

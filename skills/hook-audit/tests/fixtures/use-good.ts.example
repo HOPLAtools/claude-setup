@@ -1,0 +1,64 @@
+// SYNTHETIC FIXTURE — clean hook that passes all 4 rules.
+// Mirrors the well-formed consumer-project shape (e.g. useGradingDefinitions.ts).
+
+import { useState, useRef, useMemo } from 'react';
+
+// Rule D-1: cache + companion inFlight map. CLEAN.
+const cache = new Map<string, BarResult>();
+const inFlight = new Map<string, Promise<BarResult>>();
+
+type BarResult = { ok: boolean; value: string };
+
+export function useBarLookup(barId: string) {
+  const [data, setData] = useState<BarResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const currentBarRef = useRef<string>(barId);
+
+  async function load(id: string) {
+    setLoading(true);
+    currentBarRef.current = id;
+    try {
+      const cached = cache.get(id);
+      if (cached) {
+        setData(cached);
+        return;
+      }
+      const inflight = inFlight.get(id);
+      const promise = inflight ?? fakeFetch(id).then((result) => {
+        cache.set(id, result);
+        inFlight.delete(id);
+        return result;
+      });
+      if (!inflight) inFlight.set(id, promise);
+      const result = await promise;
+      if (currentBarRef.current === id) {
+        setData(result);
+      }
+    } catch (error: any) {
+      // Rule E-1: anchored regex — precise. CLEAN.
+      if (/^(invalid )?bar( format)?\b/i.test(error.message)) {
+        setData({ ok: false, value: 'bar-error' });
+      }
+    } finally {
+      if (currentBarRef.current === id) {
+        setData((prev) => prev);
+      }
+      // Rule S-8: setLoading(false) OUTSIDE the stale-id guard. CLEAN.
+      setLoading(false);
+    }
+  }
+
+  // Rule P-5: return wrapped in useMemo with full deps. CLEAN.
+  return useMemo(
+    () => ({
+      data,
+      loading,
+      load,
+    }),
+    [data, loading, load],
+  );
+}
+
+async function fakeFetch(id: string): Promise<BarResult> {
+  return { ok: true, value: id };
+}

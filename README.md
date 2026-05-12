@@ -244,6 +244,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
 | `subagent-execution` | "use subagents", plans with 5+ tasks |
 | `parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
+| `hook-audit` | "audit hook", "check hook", "hook review" — mechanical static audit of `src/hooks/use*.ts` files (memoization, stale-id guards, error-match strictness, cache+dedup integrity) |
 
 **Hooks** — Run automatically:
 
