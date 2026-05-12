@@ -1,7 +1,7 @@
 {
   "name": "hopla",
   "description": "Agentic coding system for Claude Code: PIV loop (Plan → Implement → Validate), TDD, debugging, brainstorming, subagent execution, and team workflows",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "author": {
     "name": "Hopla Tools",
     "email": "julio@hopla.tools"
