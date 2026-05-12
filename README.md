@@ -24,7 +24,7 @@ The full setup is **plugin + CLI** — they deliver different layers:
 **Step 1 — Register the marketplace and install the plugin** (inside Claude Code):
 
 ```
-/plugin marketplace add hopla-marketplace HOPLAtools/claude-setup
+/plugin marketplace add HOPLAtools/claude-setup
 /plugin install hopla@hopla-marketplace
 ```
 
@@ -32,7 +32,7 @@ The full setup is **plugin + CLI** — they deliver different layers:
 
 ```bash
 npm install -g @hopla/claude-setup
-claude-setup --force
+hopla-claude-setup --force
 ```
 
 That's it. Commands show as `/hopla:<name>`, skills auto-trigger when relevant.
@@ -73,7 +73,7 @@ If you only want the global rules and not the plugin's commands/skills, just do 
 ### CLI channel (global rules)
 
 ```bash
-npm install -g @hopla/claude-setup@latest --prefer-online && claude-setup --force
+npm install -g @hopla/claude-setup@latest --prefer-online && hopla-claude-setup --force
 ```
 
 ---
@@ -89,7 +89,7 @@ npm install -g @hopla/claude-setup@latest --prefer-online && claude-setup --forc
 **CLI:**
 
 ```bash
-claude-setup --uninstall
+hopla-claude-setup --uninstall
 ```
 
 Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
@@ -98,14 +98,14 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 
 | Flag | Purpose |
 |---|---|
-| `claude-setup` | Interactive install of global rules + permissions |
-| `claude-setup --force` | Install without prompts |
-| `claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
-| `claude-setup --uninstall` | Remove global rules + legacy files |
-| `claude-setup status` | Read-only inspection of the current project's `.agents/` workflow state (plans, specs, reviews, suggested next step) |
-| `claude-setup status --json` | Same as above, JSON output for agents to parse |
-| `claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
-| `claude-setup --version` | Print package version |
+| `hopla-claude-setup` | Interactive install of global rules + permissions |
+| `hopla-claude-setup --force` | Install without prompts |
+| `hopla-claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
+| `hopla-claude-setup --uninstall` | Remove global rules + legacy files |
+| `hopla-claude-setup status` | Read-only inspection of the current project's `.agents/` workflow state (plans, specs, reviews, suggested next step) |
+| `hopla-claude-setup status --json` | Same as above, JSON output for agents to parse |
+| `hopla-claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
+| `hopla-claude-setup --version` | Print package version |
 
 ---
 
@@ -380,7 +380,7 @@ Commands are modular — the output of one becomes the input of the next. Some a
 ### `/plugin install` doesn't show the `hopla` plugin
 
 - Run `/plugin marketplace list` — confirm `hopla-marketplace` is registered
-- If missing, re-run `/plugin marketplace add hopla-marketplace HOPLAtools/claude-setup`
+- If missing, re-run `/plugin marketplace add HOPLAtools/claude-setup`
 - Restart Claude Code after registering a new marketplace
 
 ### Commands appear as both `hopla-*` and `hopla:*`
@@ -388,7 +388,7 @@ Commands are modular — the output of one becomes the input of the next. Some a
 You have legacy CLI-installed files from before the plugin refactor. Clean up:
 
 ```bash
-claude-setup --migrate
+hopla-claude-setup --migrate
 ```
 
 This removes `hopla-*` duplicates from `~/.claude/commands/` and `~/.claude/skills/` without touching your global rules.
@@ -402,7 +402,7 @@ cd ~/.claude/plugins/marketplaces/hopla-marketplace && git pull
 
 You never registered the marketplace. Run Quick Start Step 1 first.
 
-### `claude-setup: command not found`
+### `hopla-claude-setup: command not found`
 
 The npm global bin is not on your PATH. Check with:
 
@@ -412,6 +412,8 @@ npm config get prefix
 ```
 
 Alternatively, run via npx: `npx @hopla/claude-setup --force`.
+
+> **Migrating from v1.x?** The `claude-setup` bin alias was removed in v2.0.0. Replace any script that calls `claude-setup` with `hopla-claude-setup` (same flags, same behavior).
 
 ### Changes to skills/commands don't take effect
 

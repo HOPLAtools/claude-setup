@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "hopla-marketplace",
   "description": "Hopla Tools plugin marketplace for Claude Code",
   "owner": {
@@ -9,7 +10,7 @@
     {
       "name": "hopla",
       "description": "Agentic coding system: PIV loop, TDD, debugging, brainstorming, subagent execution, and team workflows",
-      "version": "1.19.0",
+      "version": "2.0.0",
       "source": "./",
       "author": {
         "name": "Hopla Tools",

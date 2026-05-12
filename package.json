@@ -1,11 +1,18 @@
 {
   "name": "@hopla/claude-setup",
-  "version": "1.19.0",
-  "description": "Hopla team agentic coding system for Claude Code",
+  "version": "2.0.0",
+  "description": "Agentic coding system for Claude Code — CLI for global rules + permissions (plugin available via /plugin marketplace add HOPLAtools/claude-setup)",
   "type": "module",
   "bin": {
-    "claude-setup": "cli.js",
     "hopla-claude-setup": "cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HOPLAtools/claude-setup.git"
+  },
+  "homepage": "https://github.com/HOPLAtools/claude-setup#readme",
+  "bugs": {
+    "url": "https://github.com/HOPLAtools/claude-setup/issues"
   },
   "files": [
     "cli.js",
@@ -14,7 +21,9 @@
     "skills/",
     "agents/",
     "hooks/",
-    ".claude-plugin/"
+    ".claude-plugin/",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "prepublishOnly": "node scripts/check-versions.js",
