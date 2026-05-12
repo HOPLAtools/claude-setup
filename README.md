@@ -101,6 +101,8 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 | `claude-setup --force` | Install without prompts |
 | `claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
 | `claude-setup --uninstall` | Remove global rules + legacy files |
+| `claude-setup status` | Read-only inspection of the current project's `.agents/` workflow state (plans, specs, reviews, suggested next step) |
+| `claude-setup status --json` | Same as above, JSON output for agents to parse |
 | `claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
 | `claude-setup --version` | Print package version |
 

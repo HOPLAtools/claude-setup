@@ -136,6 +136,8 @@ node cli.js              # Run CLI locally (global rules + permissions)
 node cli.js --force      # Force install, overwrite without prompting
 node cli.js --uninstall  # Uninstall global rules + clean up legacy files
 node cli.js --migrate    # Remove legacy CLI duplicates only
+node cli.js status       # Read-only: inspect current project's .agents/ workflow (plans, specs, reviews, suggested next)
+node cli.js status --json # Same, machine-readable JSON for agents
 node cli.js --dry-run    # Preview changes without writing (composes with any other flag)
 node cli.js --version    # Print package version
 npm publish              # Publish to npm (bump version in package.json + plugin.json + marketplace.json first)

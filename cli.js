@@ -4,12 +4,15 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import readline from "readline";
+import { execSync } from "child_process";
 
 const FORCE = process.argv.includes("--force");
 const UNINSTALL = process.argv.includes("--uninstall");
 const MIGRATE = process.argv.includes("--migrate");
 const VERSION = process.argv.includes("--version") || process.argv.includes("-v");
 const DRY_RUN = process.argv.includes("--dry-run");
+const STATUS = process.argv.includes("status");
+const JSON_OUT = process.argv.includes("--json");
 
 if (VERSION) {
     const pkg = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8"));
@@ -453,7 +456,145 @@ async function install() {
     await setupPermissions();
 }
 
-const run = UNINSTALL ? uninstall : (MIGRATE ? migrate : install);
+// =====================================================================
+// status — read-only inspection of a project's .agents/ workflow state
+// =====================================================================
+
+// Lists *.md files (and *.draft.md) in a directory. Returns [] if missing
+// or unreadable. Sorted alphabetically for stable output.
+function listMarkdownFiles(dir) {
+    if (!fs.existsSync(dir)) return [];
+    try {
+        return fs.readdirSync(dir)
+            .filter((f) => f.endsWith(".md") && !f.startsWith("."))
+            .sort();
+    } catch {
+        return [];
+    }
+}
+
+// Best-effort git inspection — silently degrades when git is unavailable
+// or the cwd is not inside a repo. The status command must never fail
+// because of git.
+function readGitState(cwd) {
+    const exec = (cmd) => {
+        try {
+            return execSync(cmd, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+        } catch {
+            return null;
+        }
+    };
+    const insideRepo = exec("git rev-parse --is-inside-work-tree");
+    if (insideRepo !== "true") return { in_repo: false };
+    const branch = exec("git rev-parse --abbrev-ref HEAD");
+    const statusShort = exec("git status --short");
+    const uncommitted = statusShort ? statusShort.split("\n").filter(Boolean).length : 0;
+    return {
+        in_repo: true,
+        branch: branch || "(detached)",
+        uncommitted,
+    };
+}
+
+function readWorkflowState(cwd) {
+    const agentsDir = path.join(cwd, ".agents");
+    const present = fs.existsSync(agentsDir);
+
+    const plansDir = path.join(agentsDir, "plans");
+    const allPlanFiles = listMarkdownFiles(plansDir);
+    const draft = allPlanFiles.filter((f) => f.endsWith(".draft.md"));
+    const active = allPlanFiles.filter((f) => !f.endsWith(".draft.md"));
+
+    return {
+        agents_dir_present: present,
+        plans: {
+            draft,
+            active,
+            done: listMarkdownFiles(path.join(plansDir, "done")),
+            backlog: listMarkdownFiles(path.join(plansDir, "backlog")),
+        },
+        specs: listMarkdownFiles(path.join(agentsDir, "specs")),
+        code_reviews: listMarkdownFiles(path.join(agentsDir, "code-reviews")),
+        execution_reports: listMarkdownFiles(path.join(agentsDir, "execution-reports")),
+        system_reviews: listMarkdownFiles(path.join(agentsDir, "system-reviews")),
+        rca: listMarkdownFiles(path.join(agentsDir, "rca")),
+        audits: listMarkdownFiles(path.join(agentsDir, "audits")),
+    };
+}
+
+function suggestNext(state) {
+    if (!state.agents_dir_present) {
+        return "No .agents/ found — run /hopla:init-project to scaffold the workflow.";
+    }
+    if (state.plans.draft.length > 0) {
+        return `Plan in draft (${state.plans.draft[0]}) — run /hopla:review-plan or finalize it.`;
+    }
+    if (state.plans.active.length > 0) {
+        const plan = state.plans.active[0];
+        const baseName = plan.replace(/\.md$/, "");
+        const hasReport = state.execution_reports.some((r) => r.includes(baseName));
+        const hasReview = state.code_reviews.some((r) => r.includes(baseName));
+        if (!hasReview) return `Active plan (${plan}) — execute it or run code-review skill on changes.`;
+        if (!hasReport) return `Active plan (${plan}) reviewed — run execution-report skill.`;
+        return `Active plan (${plan}) reviewed and reported — consider /hopla:archive or /hopla:system-review.`;
+    }
+    if (state.code_reviews.length > 0) {
+        return `Pending code reviews — run /hopla:code-review-fix on them.`;
+    }
+    return "Workflow clean — start with /hopla:plan-feature.";
+}
+
+function status() {
+    const cwd = process.cwd();
+    const git = readGitState(cwd);
+    const workflow = readWorkflowState(cwd);
+    const next = suggestNext(workflow);
+
+    if (JSON_OUT) {
+        process.stdout.write(JSON.stringify({ cwd, git, ...workflow, next }, null, 2) + "\n");
+        return;
+    }
+
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — status (${cwd})\n`);
+
+    if (git.in_repo) {
+        log(`${CYAN}Git:${RESET}`);
+        log(`  Branch:       ${git.branch}`);
+        log(`  Uncommitted:  ${git.uncommitted} ${git.uncommitted === 1 ? "file" : "files"}`);
+        log("");
+    } else {
+        log(`${YELLOW}Not inside a git repository.${RESET}\n`);
+    }
+
+    if (!workflow.agents_dir_present) {
+        log(`${YELLOW}No .agents/ directory found.${RESET}`);
+        log(`Run ${CYAN}/hopla:init-project${RESET} to scaffold it.\n`);
+        log(`${BOLD}Suggested next:${RESET} ${next}\n`);
+        return;
+    }
+
+    log(`${CYAN}Plans:${RESET}`);
+    log(`  Draft (${workflow.plans.draft.length}):    ${workflow.plans.draft.join(", ") || "—"}`);
+    log(`  Active (${workflow.plans.active.length}):   ${workflow.plans.active.join(", ") || "—"}`);
+    log(`  Done (${workflow.plans.done.length}):     ${workflow.plans.done.join(", ") || "—"}`);
+    log(`  Backlog (${workflow.plans.backlog.length}):  ${workflow.plans.backlog.join(", ") || "—"}`);
+    log("");
+
+    log(`${CYAN}Other artifacts:${RESET}`);
+    log(`  Specs:               ${workflow.specs.length}`);
+    log(`  Code reviews:        ${workflow.code_reviews.length}`);
+    log(`  Execution reports:   ${workflow.execution_reports.length}`);
+    log(`  System reviews:      ${workflow.system_reviews.length}`);
+    log(`  RCAs:                ${workflow.rca.length}`);
+    log(`  Audits:              ${workflow.audits.length}`);
+    log("");
+
+    log(`${BOLD}Suggested next:${RESET} ${next}\n`);
+}
+
+const run = STATUS
+    ? async () => status()
+    : (UNINSTALL ? uninstall : (MIGRATE ? migrate : install));
 run().catch((err) => {
     console.error("Failed:", err.message);
     process.exit(1);
