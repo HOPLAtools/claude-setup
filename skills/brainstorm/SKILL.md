@@ -14,7 +14,7 @@ Explore the problem space and arrive at a validated design BEFORE creating an im
 ## Process
 
 ### Step 1: Explore Context
-- Read the project's CLAUDE.md, README, and relevant source files
+- Read the project's AGENTS.md (or CLAUDE.md as fallback), README, and relevant source files
 - Understand the existing architecture, patterns, and conventions
 - Identify what already exists that relates to this feature
 - Check `.agents/plans/` for any related previous work
@@ -61,6 +61,20 @@ Which approach and why
 ## Design
 Conceptual design details
 
+## Requirements Delta
+> **Include only when the feature changes documented system behavior** — i.e. it adds, modifies, or removes a user-visible capability or business rule. Pure refactors, perf fixes, and infra changes can omit this section. The delta is consumed by `/hopla:archive` to fold the change into `.agents/specs/canonical/`.
+
+### ADDED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title>
+  - Scenario: <name> — Given <state>, When <action>, Then <outcome>
+
+### MODIFIED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title> (replaces previous version)
+  - <description of how the requirement changes>
+
+### REMOVED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title> (deprecated — reason)
+
 ## Files Affected
 - List of files to create/modify
 
@@ -74,6 +88,8 @@ Conceptual design details
 ## Next Step
 Run `/hopla:plan-feature` to create the implementation plan from this design
 ```
+
+> **Requirement IDs:** use a stable convention like `REQ-<DOMAIN>-<NNN>` (e.g. `REQ-AUTH-002`). The domain prefix should match the canonical spec filename (`auth.md` → `REQ-AUTH-*`). When in doubt about IDs in a brand-new project, leave them as `REQ-AUTH-TBD` and pick numbers when the first canonical spec is created.
 
 ### Step 6: Review Loop
 Present the design document for user review.

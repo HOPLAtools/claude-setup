@@ -75,7 +75,7 @@ New gotchas, patterns, or conventions learned during this implementation that sh
 
 - **Pattern/Gotcha:** [description]
 - **Where it applies:** [what type of feature or context triggers this]
-- **Ready-to-paste CLAUDE.md entry:** [Write the EXACT text that should be added to the project's CLAUDE.md to prevent this gotcha in future features. Format it as a bullet point under the appropriate section. If it belongs in a guide instead, write the exact text for the guide. Do not write vague suggestions like "document this" — write the actual content so the system reviewer can apply it directly.]
+- **Ready-to-paste AGENTS.md / CLAUDE.md entry:** [Write the EXACT text that should be added to the project's AGENTS.md (or CLAUDE.md for legacy projects) to prevent this gotcha in future features. Format it as a bullet point under the appropriate section. If it belongs in a guide instead, write the exact text for the guide. Do not write vague suggestions like "document this" — write the actual content so the system reviewer can apply it directly.]
 
 If nothing new was discovered, write "No new patterns discovered."
 
@@ -85,4 +85,4 @@ Based on this implementation, what should change for next time?
 
 - Plan command improvements: [suggestions]
 - Execute command improvements: [suggestions]
-- CLAUDE.md additions: [suggestions]
+- AGENTS.md / CLAUDE.md additions: [suggestions]

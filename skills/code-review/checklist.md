@@ -35,7 +35,7 @@ Apply every category to every changed file. Severity guidance is in the parent `
 
 ## 5. Pattern Adherence
 
-- Follows project conventions from `CLAUDE.md`
+- Follows project conventions from `AGENTS.md` (or `CLAUDE.md` as fallback)
 - Consistent with existing codebase style
 
 ## 6. Route & Middleware Ordering

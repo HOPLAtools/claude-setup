@@ -14,14 +14,14 @@ Use the Glob tool to list project files (up to 60):
 - Pattern: `**/*` with head_limit: 60
 
 Use the Glob tool to find key config files:
-- `**/CLAUDE.md`
 - `**/AGENTS.md`
+- `**/CLAUDE.md`
 - `**/README.md`
 
 ## Step 2: Read Key Files
 
 Read in this order:
-1. `CLAUDE.md` or `AGENTS.md` at project root (project-specific rules)
+1. `AGENTS.md` or `CLAUDE.md` at project root (project-specific rules — AGENTS.md is canonical when both exist; CLAUDE.md may be a thin `@AGENTS.md` alias)
 2. `README.md` (project overview)
 3. `package.json` or `pyproject.toml` (dependencies and scripts)
 

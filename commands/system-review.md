@@ -22,7 +22,8 @@ ls .agents/system-reviews/
 
 Look for a file that matches the feature name derived from **$1** (the plan filename). If a matching review exists:
 - Skip Steps 1–6
-- Go directly to **Step 7** to archive the plan
+- Notify the user: "✅ A system review already exists at `.agents/system-reviews/[feature]-review.md`. If you haven't closed the lifecycle yet, run `/hopla:archive $1` to fold delta-specs into canonical specs and move the plan to `done/`."
+- Exit.
 
 If no matching review exists, continue with Step 1.
 
@@ -90,7 +91,7 @@ For each bug category in this implementation, check if the same category appeare
 
 ### Unresolved Improvements
 Cross-reference improvement suggestions from previous reviews. If a suggestion was made before and NOT yet applied:
-- Check if the suggested CLAUDE.md update was made
+- Check if the suggested AGENTS.md / CLAUDE.md update was made
 - Check if the suggested command update was made
 - Check if the suggested guide was created
 - List any improvements that were suggested 2+ reviews ago and are still pending
@@ -99,7 +100,7 @@ Cross-reference improvement suggestions from previous reviews. If a suggestion w
 
 Suggest specific actions based on patterns found:
 
-- **CLAUDE.md updates** — universal patterns or anti-patterns to document
+- **AGENTS.md updates** (or `CLAUDE.md` for legacy projects) — universal patterns or anti-patterns to document
 - **Plan command updates** — instructions that need clarification or missing steps
 - **Execute command updates** — steps to add to the execution checklist
 - **New commands** — manual processes repeated 3+ times that should be automated
@@ -136,13 +137,13 @@ root_cause: [unclear plan | missing context | missing validation | other]
 
 ### Pattern Compliance
 - [ ] Followed codebase architecture
-- [ ] Used patterns documented in CLAUDE.md
+- [ ] Used patterns documented in AGENTS.md / CLAUDE.md
 - [ ] Applied testing patterns correctly
 - [ ] Met validation requirements
 
 ### System Improvement Actions
 
-**Update CLAUDE.md:**
+**Update AGENTS.md (or CLAUDE.md for legacy projects):**
 - [ ] [specific addition or change]
 
 **Update Plan Command:**
@@ -175,20 +176,15 @@ After the analysis, use this to prioritize actions:
 
 | Pattern | Action |
 |---|---|
-| Issue happens across ALL features | Update CLAUDE.md |
+| Issue happens across ALL features | Update AGENTS.md (or CLAUDE.md) |
 | Issue happens for a CLASS of features | Update on-demand reference guide or command |
 | Same manual step done 3+ times | Create a new command |
 | Plan was ambiguous in the same spot twice | Update plan-feature command |
 | First time seeing this issue | Note it, don't over-engineer yet |
 
-## Step 7: Archive the Plan
+## Step 7: Suggest Next
 
-Move the completed plan to the archive folder:
+Do **not** move or delete any files. The lifecycle closure (moving the plan to `done/`, folding delta-specs into canonical specs, deleting the ephemeral code review) is the responsibility of `/hopla:archive`.
 
-```bash
-mkdir -p .agents/plans/done
-mv "$1" .agents/plans/done/
-```
-
-Then notify the user:
-> "✅ System review saved to `.agents/system-reviews/[feature]-review.md`. Plan archived to `.agents/plans/done/[plan-name].md` — the active plans folder is now clean."
+Notify the user:
+> "✅ System review saved to `.agents/system-reviews/[feature]-review.md`. To close the lifecycle of this plan, run `/hopla:archive $1` — it will fold any delta-specs into the canonical specs and move the plan to `done/`."

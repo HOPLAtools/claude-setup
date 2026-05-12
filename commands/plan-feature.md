@@ -104,7 +104,7 @@ Based on research, define:
   - **Roles / permissions / multi-tenant access:** `admin` / `member` / `viewer` / `owner`, internal vs external users, buyer vs seller. Anything where access or behavior depends on who the actor is.
   - **Color-coded UI states with semantic meaning:** green=ok / amber=warning / red=error, or any project-specific color → state mapping. The mapping itself is a domain assumption.
   - **Business rules:** "when X happens, then Y is forbidden / required / triggered". Any conditional behavior that encodes a policy decision rather than a technical constraint.
-  - **Project-specific vocabulary harvest:** read the project's root `CLAUDE.md`. If a `Domain`, `Glossary`, `Vocabulary`, or similar section exists, harvest its terms. Any of those terms appearing in the user's request triggers the heuristic. **Fallback when no such section exists:** rely on the category-based triggers above.
+  - **Project-specific vocabulary harvest:** read the project's root `AGENTS.md` (or `CLAUDE.md` as fallback). If a `Domain`, `Glossary`, `Vocabulary`, or similar section exists, harvest its terms. Any of those terms appearing in the user's request triggers the heuristic. **Fallback when no such section exists:** rely on the category-based triggers above.
   - **Sentinel check:** if the planner wrote sentences in the plan that describe behavior using nouns or adjectives that are NOT in the user's verbatim request, those are inferred meanings — surface them as Domain Assumptions.
   - When uncertain, err on inclusion: a `Domain Assumptions` subsection with 1-2 bullets is cheaper than a misaligned implementation surfaced during manual smoke.
 
@@ -144,13 +144,30 @@ Key files the executing agent must read before starting:
 
 ## Domain Assumptions (if applicable)
 
-> Include this section when the feature uses domain vocabulary (entity states, lifecycle, grades/tiers, roles, color-coded states, business rules, or any project-specific terms in the project's CLAUDE.md). **Skip entirely** (do not write "N/A") when no domain semantics are involved.
+> Include this section when the feature uses domain vocabulary (entity states, lifecycle, grades/tiers, roles, color-coded states, business rules, or any project-specific terms in the project's AGENTS.md or CLAUDE.md). **Skip entirely** (do not write "N/A") when no domain semantics are involved.
 
 Each bullet is a user-confirmable assumption the planner made about meaning, behavior, or business rule. The user MUST confirm or correct each bullet BEFORE execution begins.
 
 - [Assumption 1 — entity state: e.g., "An entity with `status='archived'` is excluded from active list queries — confirm."]
 - [Assumption 2 — derived/computed value: e.g., "The `expired` badge shows when `expiresAt < today` AND `status != 'archived'` — confirm formula."]
 - [Assumption 3 — grade / tier / business rule: e.g., "Tier B users have read access to the audit log but cannot export it — confirm boundary."]
+
+## Requirements Delta (if applicable)
+
+> Include this section when the feature **changes documented system behavior** — adds, modifies, or removes a user-visible capability or business rule. Pure refactors, performance fixes, and infrastructure changes can omit this section entirely (do NOT write "N/A"). The delta is consumed by `/hopla:archive` to fold the change into `.agents/specs/canonical/`. If the project does not yet maintain canonical specs, this section is still valuable as a structured summary for the executing agent and reviewers.
+>
+> When a corresponding `.agents/specs/<feature>.md` already includes a `## Requirements Delta` (created by the `brainstorm` skill), reference it here instead of duplicating: `See spec: .agents/specs/<feature>.md`.
+
+### ADDED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title>
+  - Scenario: <name> — Given <state>, When <action>, Then <outcome>
+
+### MODIFIED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title> (replaces previous version)
+  - <description of how the requirement changes>
+
+### REMOVED Requirements
+- REQ-<DOMAIN>-<NNN>: <short title> (deprecated — reason)
 
 ## Implementation Tasks
 
@@ -245,7 +262,7 @@ Before saving the draft, review the plan against these criteria:
 
 - [ ] Every task has a specific file path (no vague "update the component")
 - [ ] Every task has: Action, File, Pattern, Details, Gotcha, Validate — no field left empty
-- [ ] Validation Checklist has **exact commands** from `CLAUDE.md` or `package.json` (not vague "run lint")
+- [ ] Validation Checklist has **exact commands** from `AGENTS.md` / `CLAUDE.md` or `package.json` (not vague "run lint")
 - [ ] The plan is complete enough that another agent can execute it without this conversation
 - [ ] No ambiguous requirements left unresolved
 - [ ] **Data audit complete:** All data sources audited per `.agents/guides/data-audit.md`, with all findings (null cases, value semantics, derived value propagation) documented in Context References and Gotchas
@@ -263,6 +280,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations?
 - [ ] **UX iteration budget declared:** If the feature touches UI per the Phase 4 heuristic, the plan includes `Expected UX iterations: N` (with N a positive integer ≥ 1) in Out of Scope or Notes for Executing Agent. If UI is NOT involved, the line is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
+- [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.
 
 ## Phase 7: Save Draft and Enter Review Loop
 

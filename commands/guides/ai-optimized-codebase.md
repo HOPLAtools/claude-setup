@@ -51,7 +51,7 @@ logger.info("order_created", {
 - Types serve as contracts that AI can read and follow
 
 ### 5. Comprehensive Validation Commands
-Include in CLAUDE.md:
+Include in AGENTS.md (or CLAUDE.md for legacy projects):
 ```markdown
 ## Development Commands
 - `npm run lint` — ESLint check

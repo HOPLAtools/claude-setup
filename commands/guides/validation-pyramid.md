@@ -4,7 +4,7 @@ Shared reference for the full validation sequence. Callers (`commands/execute.md
 
 Run levels **in order**. Do not skip a level. Do not proceed if a level fails — fix it first.
 
-Commands below are generic examples; use the exact commands from the project's `CLAUDE.md` "Development Commands" section or the plan's checklist.
+Commands below are generic examples; use the exact commands from the project's `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" section or the plan's checklist.
 
 ## Level 1 — Lint & Format
 

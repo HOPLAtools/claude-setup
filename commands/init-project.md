@@ -1,22 +1,24 @@
 ---
-description: Initialize a new project with a CLAUDE.md and .agents/ structure
+description: Initialize a new project with AGENTS.md (+ CLAUDE.md alias) and .agents/ structure
 ---
 
 > **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
-Set up the Layer 1 planning foundation for this project: a project-specific `CLAUDE.md` with rules and architecture decisions, plus the `.agents/` directory structure.
+Set up the Layer 1 planning foundation for this project: a project-specific `AGENTS.md` with rules and architecture decisions (the canonical, tool-agnostic source of truth), a thin `CLAUDE.md` alias so Claude Code auto-loads the rules, plus the `.agents/` directory structure.
 
-> Layer 1 = Global Rules (~/.claude/CLAUDE.md) + Project Rules (CLAUDE.md) + PRD
+> Layer 1 = Global Rules (~/.claude/CLAUDE.md) + Project Rules (AGENTS.md, with CLAUDE.md alias) + PRD
+
+> **Why AGENTS.md as the canonical file:** AGENTS.md is the tool-agnostic convention adopted by most AI coding assistants (Cursor, Copilot, Continue, Codex, etc.). Keeping a thin CLAUDE.md alias preserves Claude Code's auto-discovery without duplicating content. If the project already has an AGENTS.md or CLAUDE.md, treat that as the canonical file and only create the missing alias.
 
 ## Step 1: Read Existing Context
 
 Before asking anything, check what already exists:
-- Any existing `CLAUDE.md` at project root
+- Any existing `AGENTS.md` or `CLAUDE.md` at project root (AGENTS.md takes precedence as canonical; CLAUDE.md without AGENTS.md is treated as canonical until migrated)
 - `README.md` — extract stack and project overview
 - `package.json`, `pyproject.toml`, or equivalent — extract stack and scripts
 - Entry point files (`main.py`, `src/main.ts`, `app.py`, etc.)
 
-If a `CLAUDE.md` already exists at the project root, tell the user and ask if they want to update it or start fresh.
+If an `AGENTS.md` or `CLAUDE.md` already exists at the project root, tell the user and ask if they want to update it or start fresh. If only `CLAUDE.md` exists (legacy layout), offer to migrate: rename to `AGENTS.md` and create a thin `CLAUDE.md` alias.
 
 ## Step 2: Understand the Product
 
@@ -166,11 +168,23 @@ Once the stack is confirmed, ask only what's NOT already known from the PRD or c
 2. **Project description** — skip if already in PRD
 3. **Reference Guides** (optional) — Are there specific task types that need step-by-step guidance? (e.g. "When adding a page", "When creating an API route"). If none, skip — guides can always be added later.
 
-## Step 5: Generate CLAUDE.md
+## Step 5: Generate AGENTS.md (+ CLAUDE.md alias)
 
-Save to `CLAUDE.md` at the project root. Use this structure:
+Save the full project rules to `AGENTS.md` at the project root (canonical, tool-agnostic source of truth). Then create a thin `CLAUDE.md` alias so Claude Code auto-discovers the rules without duplicating content.
 
-**For default stack projects**, use these pre-filled values:
+**`CLAUDE.md` alias contents (always identical, regardless of stack):**
+
+```markdown
+# [Project Name] — Project Rules
+
+The canonical project rules live in [`AGENTS.md`](./AGENTS.md). This file is a thin alias kept for Claude Code's auto-discovery.
+
+@AGENTS.md
+```
+
+> The `@AGENTS.md` directive instructs Claude Code to inline the AGENTS.md contents into context. Other AI assistants read AGENTS.md directly.
+
+**`AGENTS.md` contents — for default stack projects**, use these pre-filled values:
 
 ```markdown
 # [Project Name] — Development Rules
@@ -315,7 +329,9 @@ Read: `.agents/guides/[guide-name].md`
 This guide covers: [bullet list]
 ```
 
-**For custom stack projects**, fill in the values collected during Step 2.2 following the same structure.
+**For custom stack projects**, fill in the values collected during Step 2.2 / Step 3.1 following the same structure.
+
+> Both default and custom flows write to `AGENTS.md`. The `CLAUDE.md` alias is the same in both cases.
 
 ## Step 5.5: Generate Reference Guides
 
@@ -407,7 +423,7 @@ After implementing, verify:
 
 **Important:** Guides must contain concrete, project-specific information — not generic advice. If the user's answers don't have enough detail for a section, ask a follow-up before writing the guide.
 
-Also update the `CLAUDE.md` Section 7 (Task-Specific Reference Guides) to reference each guide created:
+Also update the `AGENTS.md` Section 7 (Task-Specific Reference Guides) to reference each guide created:
 
 ```markdown
 ## 7. Task-Specific Reference Guides
@@ -428,9 +444,11 @@ Create the following directories (with `.gitkeep` where needed):
 ```
 .agents/
 ├── plans/               <- /hopla:plan-feature saves here (commit)
-│   ├── done/            <- /hopla:system-review archives completed plans here (commit)
+│   ├── done/            <- /hopla:archive moves completed plans here (commit)
 │   └── backlog/         <- /hopla:execute Scope Guard defers ideas here (commit)
 ├── specs/               <- brainstorm skill saves design docs here (commit)
+│   ├── canonical/       <- canonical "current behavior" specs by domain (commit; populated incrementally by /hopla:archive)
+│   └── archived/        <- /hopla:archive moves completed design specs here (commit)
 ├── guides/              <- on-demand reference guides (commit)
 ├── rca/                 <- /hopla:rca saves root cause analysis docs here (commit)
 ├── execution-reports/   <- the `execution-report` skill saves here (commit — needed for cross-session learning)
@@ -438,6 +456,8 @@ Create the following directories (with `.gitkeep` where needed):
 ├── audits/              <- persistent audit reports worth preserving (commit — opt-in; copy a code review here when you want to keep it)
 └── code-reviews/        <- the `code-review` skill saves here (do NOT commit — ephemeral, consumed by code-review-fix)
 ```
+
+> **`specs/canonical/` is opt-in.** It is populated only as `/hopla:archive` is used. Until the first archive runs, the directory simply stays empty. Projects that prefer to keep all behavior knowledge in code + AGENTS.md can ignore it.
 
 **Policy — `audits/` vs `code-reviews/`:**
 
@@ -475,13 +495,14 @@ If yes, create `.claude/commands/validate.md`.
 
 ## Step 8: Confirm and Save
 
-Show the draft `CLAUDE.md` to the user and ask:
+Show the draft `AGENTS.md` to the user and ask:
 > "Does this accurately reflect the project's rules? Any corrections before I save it?"
 
 Once confirmed:
-1. Save `CLAUDE.md` to the project root
-2. Create `.agents/` directory structure
-3. Update `.gitignore`
-4. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla:create-prd` next to define the product scope, or `/hopla:plan-feature` to start planning a feature."
+1. Save `AGENTS.md` to the project root
+2. Create `CLAUDE.md` at the project root with the standard alias content (see Step 5) — skip if a meaningful `CLAUDE.md` already exists; in that case ask the user whether to overwrite with the alias stub or leave it untouched
+3. Create `.agents/` directory structure
+4. Update `.gitignore`
+5. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla:create-prd` next to define the product scope, or `/hopla:plan-feature` to start planning a feature."
    If a PRD already exists, tell the user: "Project initialized. Run `/hopla:plan-feature` to start planning the first feature."
-5. Suggest running the `git` skill (say "commit") to save everything
+6. Suggest running the `git` skill (say "commit") to save everything

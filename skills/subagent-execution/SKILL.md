@@ -19,7 +19,7 @@ Instead of executing all tasks in one conversation (where context degrades), dis
 1. **Dispatch implementer agent** with:
    - The specific task spec (not the full plan)
    - Relevant file paths from the plan
-   - Project CLAUDE.md for conventions
+   - Project AGENTS.md (or CLAUDE.md as fallback) for conventions
    - Clear success criteria
 
 2. **Agent implements, tests, and reports** with status:
@@ -48,7 +48,7 @@ Implement this task from the plan:
 **Tests**: [tests to write]
 **Validation**: [command to verify]
 
-Project conventions are in CLAUDE.md. Follow them strictly.
+Project conventions are in AGENTS.md (or CLAUDE.md for legacy projects). Follow them strictly.
 Report your status as DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT, or BLOCKED.
 ```
 

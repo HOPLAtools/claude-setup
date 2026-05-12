@@ -97,11 +97,19 @@ async function main() {
         }
     }
 
-    // CLAUDE.md excerpt — cut at a natural boundary, not a fixed line count
+    // Project rules excerpt — prefer canonical AGENTS.md; fall back to CLAUDE.md.
+    // Both paths reuse the same excerpt helper since the format is identical Markdown.
+    const agentsMdPath = path.join(process.cwd(), "AGENTS.md");
     const claudeMdPath = path.join(process.cwd(), "CLAUDE.md");
-    if (fs.existsSync(claudeMdPath)) {
-        const excerpt = excerptClaudeMd(fs.readFileSync(claudeMdPath, "utf8"));
-        lines.push(`Project rules (CLAUDE.md excerpt):\n${excerpt}`);
+    let rulesPath = null;
+    if (fs.existsSync(agentsMdPath)) {
+        rulesPath = { path: agentsMdPath, label: "AGENTS.md" };
+    } else if (fs.existsSync(claudeMdPath)) {
+        rulesPath = { path: claudeMdPath, label: "CLAUDE.md" };
+    }
+    if (rulesPath) {
+        const excerpt = excerptClaudeMd(fs.readFileSync(rulesPath.path, "utf8"));
+        lines.push(`Project rules (${rulesPath.label} excerpt):\n${excerpt}`);
     }
 
     // Auto-discover available skills

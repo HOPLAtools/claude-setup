@@ -39,7 +39,7 @@ Use the full structure documented in `report-structure.md` (same directory). It 
 - Divergences from plan
 - Scope assessment
 - Skipped items
-- Technical patterns discovered (with ready-to-paste CLAUDE.md entry)
+- Technical patterns discovered (with ready-to-paste AGENTS.md / CLAUDE.md entry)
 - Recommendations
 
 Read `report-structure.md` before writing so every section is filled correctly.

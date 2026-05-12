@@ -22,7 +22,7 @@ You are a System Reviewer. Your job is to analyze how well the implementation ma
 
 | Pattern | Action |
 |---------|--------|
-| Issue appears in ALL features | Update CLAUDE.md |
+| Issue appears in ALL features | Update AGENTS.md (or CLAUDE.md) |
 | Issue appears in one CLASS of features | Update the specific command |
 | Same manual step repeated 3+ times | Create a new command |
 | Plan ambiguous at same point twice | Update planning command |
@@ -47,7 +47,7 @@ Save to `.agents/system-reviews/[feature-name].md`:
 
 ## Recommended Improvements
 
-### CLAUDE.md Updates
+### AGENTS.md / CLAUDE.md Updates
 - [Specific changes to project rules]
 
 ### Command Updates
@@ -65,12 +65,12 @@ Save to `.agents/system-reviews/[feature-name].md`:
 ## Recommendation Tracking
 
 For each recommendation from the 2 most recent system reviews:
-- Was it applied? (Check CLAUDE.md, commands, guides for the suggested change)
+- Was it applied? (Check AGENTS.md / CLAUDE.md, commands, guides for the suggested change)
 - If not applied, why? (Forgotten, deprioritized, or superseded?)
 - **Recurring unapplied recommendations indicate a broken feedback loop** — escalate these by listing them first in "Recommended Improvements" with a ⚠️ prefix
 
 ## Next Step
 
 After the review is saved, suggest:
-> "System review saved to `.agents/system-reviews/[feature]-review.md`. Plan archived. If recurring recommendations were found, consider applying them before the next feature — they represent known gaps in the process."
+> "System review saved to `.agents/system-reviews/[feature]-review.md`. To close the lifecycle of this plan, run `/hopla:archive <plan-path>` — it will fold any delta-specs into the canonical specs and move the plan to `done/`. If recurring recommendations were found, consider applying them before the next feature — they represent known gaps in the process."
 ```

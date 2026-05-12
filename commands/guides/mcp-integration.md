@@ -6,7 +6,7 @@ Reference this guide when planning features that involve external tools or servi
 ## MCP in the PIV Loop
 
 ### During Planning (`/hopla:plan-feature`)
-- Check what MCP servers are configured (listed in CLAUDE.md under "MCP Servers")
+- Check what MCP servers are configured (listed in AGENTS.md or CLAUDE.md under "MCP Servers")
 - For each external integration point, specify which MCP tool to use
 - Example: "Step 3: Use Playwright MCP to verify the component renders correctly"
 
@@ -28,5 +28,5 @@ Reference this guide when planning features that involve external tools or servi
 
 ## Adding MCP to Your Project
 1. Configure MCP servers in `.claude/settings.json` or `.claude/settings.local.json`
-2. List them in your project's CLAUDE.md under the "MCP Servers" section
+2. List them in your project's AGENTS.md (or CLAUDE.md) under the "MCP Servers" section
 3. Pre-approve permissions in settings to avoid repeated prompts

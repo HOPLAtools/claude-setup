@@ -142,14 +142,17 @@ Skills and commands use short names in source (e.g., `prime`, `execute`, `git`).
 
 ## How It Works — Layered Context
 
-The system uses three levels of CLAUDE.md, each scoped differently:
+The system uses three levels of agent context, each scoped differently:
 
 ```
 ~/.claude/CLAUDE.md        ← Machine-level (installed by CLI)
     └── applies to ALL projects on this machine
 
-CLAUDE.md (project root)   ← Project-level (created with /hopla:init-project)
-    └── applies to THIS project only
+AGENTS.md (project root)   ← Project-level (created with /hopla:init-project)
+    └── canonical, tool-agnostic rules — applies to THIS project only
+    └── readable by Cursor, Copilot, Continue, Codex, and Claude Code
+CLAUDE.md (project root)   ← thin alias that imports AGENTS.md via @AGENTS.md
+    └── kept so Claude Code's auto-discovery finds the rules
 
 .claude/CLAUDE.local.md    ← Local overrides (personal, gitignored)
     └── your personal tweaks, not shared with team
@@ -157,7 +160,7 @@ CLAUDE.md (project root)   ← Project-level (created with /hopla:init-project)
 
 **Machine-level rules** cover: language preferences, tech defaults, autonomy behavior, context management tips.
 
-**Project-level rules** cover: specific stack versions, architecture patterns, naming conventions, logging, testing, dev commands, task-specific reference guides.
+**Project-level rules** cover: specific stack versions, architecture patterns, naming conventions, logging, testing, dev commands, task-specific reference guides. Stored in `AGENTS.md` so the project stays portable across AI assistants. The `CLAUDE.md` stub at the project root is auto-generated and only contains `@AGENTS.md` so Claude Code inlines the canonical file — never edit the stub directly.
 
 **Local overrides** cover: personal preferences that differ from the team (e.g., verbose logging, different editor settings).
 
@@ -209,7 +212,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 | Command | Description |
 |---|---|
-| `init-project` | Read PRD, recommend stack, create CLAUDE.md and .agents/ structure |
+| `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure |
 | `create-prd` | Create a Product Requirements Document through guided questions |
 | `plan-feature` | Research codebase and create a structured implementation plan |
 | `review-plan` | Review a plan before execution — get a summary and approve |
@@ -217,6 +220,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `code-review-fix` | Fix issues found in a code review report |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
+| `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations |
 | `guide` | 4D Framework walkthrough for non-technical users |
 | `system-review` | Analyze implementation against plan to find process improvements |
 
@@ -294,6 +298,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 "review the code"         → code-review skill runs automatically
 /hopla:code-review-fix    → fix issues found
 "generate the report"     → execution-report skill documents what was built
+/hopla:archive            → fold delta-specs into canonical specs, move plan to done/, drop ephemeral code-review (opt-in — when delta-specs were declared)
 "commit this"             → git skill handles commits and PRs
                            (cleanup including worktree removal happens post-merge)
 ```
@@ -436,12 +441,15 @@ Issues and contributions welcome: https://github.com/HOPLAtools/claude-setup/iss
 ```
 project/
 ├── PRD.md                         ← Product scope (from /hopla:create-prd)
-├── CLAUDE.md                      ← Project rules and stack (from /hopla:init-project)
+├── AGENTS.md                      ← Canonical project rules (tool-agnostic, from /hopla:init-project)
+├── CLAUDE.md                      ← Thin alias: contains @AGENTS.md so Claude Code auto-loads the rules
 ├── .agents/
 │   ├── plans/                     ← Implementation plans (commit)
-│   │   ├── done/                  ← Archived plans after system-review (commit)
+│   │   ├── done/                  ← Plans archived by /hopla:archive (commit)
 │   │   └── backlog/               ← Deferred ideas from Scope Guard (commit)
 │   ├── specs/                     ← Design specs from brainstorming (commit)
+│   │   ├── canonical/             ← "Current behavior" specs by domain — populated incrementally by /hopla:archive (commit; opt-in)
+│   │   └── archived/              ← Completed design specs moved here by /hopla:archive (commit)
 │   ├── guides/                    ← On-demand reference guides (commit)
 │   ├── rca/                       ← Root cause analysis docs (commit)
 │   ├── execution-reports/         ← Post-implementation reports (commit)

@@ -16,7 +16,7 @@ If a `.claude/commands/validate.md` exists at the project root, use the commands
 
 Execute levels **1–4** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails — fix it first.
 
-Use the exact commands from the project's `CLAUDE.md` "Development Commands" section. If a `.claude/commands/validate.md` exists at the project root, use the commands defined there instead.
+Use the exact commands from the project's `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" section. If a `.claude/commands/validate.md` exists at the project root, use the commands defined there instead.
 
 ## Step 3: Summary Report
 

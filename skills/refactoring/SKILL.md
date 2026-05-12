@@ -23,7 +23,7 @@ If the answers reveal a missing test covering the target, **write the test first
 
 ## Step 2: Capture the Baseline
 
-Run the project's validation commands from `CLAUDE.md` (or use `/hopla:validate`). Record:
+Run the project's validation commands from `AGENTS.md` (or `CLAUDE.md` as fallback, or use `/hopla:validate`). Record:
 
 - Lint / format — current state
 - Types — current state

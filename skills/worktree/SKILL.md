@@ -44,7 +44,7 @@ Use `../git/flow-detection.md` (Steps 1–2) to resolve the base branch from the
 Check in order:
 
 1. Existing `.worktrees/` or `worktrees/` directory
-2. `CLAUDE.md` preference (if configured)
+2. `AGENTS.md` / `CLAUDE.md` preference (if configured)
 3. Ask the user (default: `worktrees/<kebab-name>`)
 
 ### Step 3: Ensure the worktree directory is gitignored
@@ -91,7 +91,7 @@ If none match, skip.
 
 ### Step 6: Verify clean baseline (optional)
 
-If `CLAUDE.md` or `package.json` defines a test command, run it once inside the worktree to confirm the baseline is green. If no test command is defined, skip.
+If `AGENTS.md` / `CLAUDE.md` or `package.json` defines a test command, run it once inside the worktree to confirm the baseline is green. If no test command is defined, skip.
 
 If tests fail **before any changes**, STOP and report — the baseline is broken.
 

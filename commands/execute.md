@@ -143,7 +143,7 @@ If the user requests changes that are NOT in the plan during execution:
 
 After all tasks are complete, run **Levels 1–7** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails.
 
-Use the exact commands from the plan's **Validation Checklist**. If not specified, read `CLAUDE.md` "Development Commands" to find the correct commands.
+Use the exact commands from the plan's **Validation Checklist**. If not specified, read `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" to find the correct commands.
 
 Level 5 triggers the `code-review` skill (not a slash command). Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 

@@ -47,14 +47,14 @@ Wait for explicit approval before running `git commit`.
 
 ## Step 5: Version Bump (if configured)
 
-Before committing, check the project's `CLAUDE.md` for a `## Versioning` section. If it exists:
+Before committing, check the project's `AGENTS.md` (or `CLAUDE.md` as fallback) for a `## Versioning` section. If it exists:
 
 1. Read the versioning configuration (command, trigger, files)
 2. Check if the **trigger condition** matches (e.g., specific branches, always, etc.)
 3. If it matches, run the version bump command
 4. Stage the version files alongside the other changes
 
-If no `## Versioning` section exists in the project's `CLAUDE.md`, skip this step entirely.
+If no `## Versioning` section exists in the project's `AGENTS.md` / `CLAUDE.md`, skip this step entirely.
 
 ## Step 6: Execute Commit
 

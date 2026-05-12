@@ -15,7 +15,7 @@ git diff --stat origin/$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>
 
 Read the following if they exist:
 - The plan file in `.agents/plans/` related to this feature
-- `CLAUDE.md` — for project context
+- `AGENTS.md` (or `CLAUDE.md` as fallback) — for project context
 
 ## Step 2: Determine Base Branch
 
