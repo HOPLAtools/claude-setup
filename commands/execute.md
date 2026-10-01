@@ -1,6 +1,8 @@
 ---
 description: Execute a structured plan from start to finish with validation
 argument-hint: "<plan-file-path>"
+arguments: [plan]
+disable-model-invocation: true
 ---
 
 > 💡 **Tip**: For complex tasks with intricate logic, consider using Extended Thinking mode for better reasoning quality.
@@ -12,14 +14,12 @@ Execute the implementation plan provided. You are the executing agent — you ha
 ## Step 1: Load Context
 
 Read in this order:
-1. **$1** — The plan file (read it entirely before writing a single line of code)
+1. **$plan** — The plan file (read it entirely before writing a single line of code)
 2. `CLAUDE.md` or `AGENTS.md` at project root — rules and patterns to follow
 3. All files listed in the plan's **Context References** section
 4. Any `.agents/guides/` files referenced in the plan or relevant to the tasks (e.g. `@.agents/guides/api-guide.md`)
 
 Do not start implementing until you have read everything above.
-
-### Verification Checkpoints (before writing code)
 
 ### Active-plan pointer
 
@@ -34,6 +34,8 @@ Record progress in `.agents/hopla-active-plan.json` at the project root (write i
 - **Step 6 (end):** `status: "done"`, `step: null`.
 
 Only these fields — never secrets or plan content. If the file is missing or stale, just overwrite it. If the write is refused, continue without it — never retry or work around it; the hooks fall back to the newest plan.
+
+### Verification Checkpoints (before writing code)
 
 Verify that the plan's documented assumptions still hold. **You are not re-auditing from scratch** — the planner already did the full audit and documented findings in Context References and Gotchas. Your job is to confirm each finding is still accurate:
 

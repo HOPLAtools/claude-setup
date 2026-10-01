@@ -1,6 +1,7 @@
 ---
 name: refactoring
-description: "Safe refactoring workflow with behavior preservation. Use when the user says 'refactor', 'clean up', 'simplify', 'extract', 'restructure', 'deduplicate', 'rename', or when asking to improve code structure without changing behavior. Do NOT use for bug fixes, new features, or performance work — use the debug, plan-feature, or performance skills instead."
+description: "Safe refactoring workflow with behavior preservation."
+when_to_use: "Use when the user says 'refactor', 'clean up', 'simplify', 'extract', 'restructure', 'deduplicate', 'rename', or asks to improve code structure without changing behavior. Do NOT use for bug fixes, new features, or performance work — use the debug, plan-feature, or performance skills instead."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

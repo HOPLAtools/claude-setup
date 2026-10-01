@@ -1,10 +1,15 @@
 ---
 name: prime
-description: "Project orientation and context loading. Use when starting a session, onboarding to a project, needing to understand the codebase, or when the user says 'orient', 'get context', 'load project', 'what is this project', 'prime', or 'start'. Do NOT use mid-task when the project is already understood."
+description: "Project orientation and context loading: summarizes the project, its git state and pending plans."
+when_to_use: "Use when starting a session, onboarding to a project, or needing to understand the codebase, or when the user says 'orient', 'orient yourself', 'catch me up', 'get context', 'load project', 'what is this project', 'prime'. Do NOT use mid-task when the project is already understood."
 allowed-tools: Read, Grep, Glob, Bash
+context: fork
+agent: hopla:codebase-researcher
+model: haiku
+background: false
 ---
 
-> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+> **Runs as a forked subagent:** you cannot see the conversation and cannot ask the user anything. Do the steps below, then return the summary from Step 5 as your final answer. Write it in English unless the project's AGENTS.md/CLAUDE.md asks for another language; the main assistant relays it to the user in the user's language. Code, paths, and commands stay in English.
 
 Get oriented in this project before doing any work.
 
@@ -44,9 +49,9 @@ If `<plans-dir>` exists, identify:
 - `.draft.md` files — unfinished drafts waiting for review
 - `.md` files (without `.draft`) — finalized plans ready to execute
 
-## Step 5: Summary Report
+## Step 5: Summary Report (your final answer)
 
-Write a short, conversational message addressed directly to the user. Mention:
+Return a short, conversational summary (under ~250 words) addressed to the user. The main assistant relays it as-is (translated to the user's language when needed), so make it self-contained. Mention:
 - What the project is and what it does
 - The current branch and what it's for
 - Whether there are uncommitted changes or pending work

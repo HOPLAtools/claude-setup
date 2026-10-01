@@ -1,6 +1,7 @@
 ---
 name: migration
-description: "Phased migration workflow for upgrading dependencies, switching frameworks, or moving between systems. Use when the user says 'migrate', 'upgrade', 'switch from X to Y', 'move to', 'replace library', 'major version bump', 'deprecated', or when changing a framework/runtime/database version. Do NOT use for greenfield features or small refactors — use plan-feature or refactoring instead."
+description: "Phased migration workflow for upgrading dependencies, switching frameworks, or moving between systems."
+when_to_use: "Use when the user says 'migrate', 'upgrade', 'switch from X to Y', 'move to', 'replace library', 'major version bump', 'deprecated', or when changing a framework, runtime or database version. Do NOT use for greenfield features or small refactors — use plan-feature or refactoring instead."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

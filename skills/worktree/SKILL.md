@@ -1,6 +1,7 @@
 ---
 name: worktree
-description: "Git worktree management for isolated feature development with Git Flow awareness. Use when starting a new feature that benefits from isolation, when the user says 'worktree', 'isolated branch', 'parallel development', or when implementing multiple features simultaneously. Do NOT use for quick fixes or single-file changes."
+description: "Git worktree management for isolated feature development with Git Flow awareness."
+when_to_use: "Use when starting a new feature that benefits from isolation, when the user says 'worktree', 'use a worktree', 'isolated branch', 'parallel development', 'parallel feature work', or when implementing multiple features simultaneously. Do NOT use for quick fixes or single-file changes."
 ---
 
 # Git Worktrees — Isolated Development with Git Flow

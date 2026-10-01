@@ -1,6 +1,7 @@
 ---
 name: execution-report
-description: "Post-implementation documentation generator. Use when the user says 'generate report', 'document what was done', 'execution report', 'what changed', or after a feature implementation is complete and validated. Do NOT use during implementation — only after completion."
+description: "Post-implementation documentation generator: records what was built, divergences from the plan and failures encountered."
+when_to_use: "Use when the user says 'generate report', 'generate the report', 'document what was done', 'execution report', 'what changed', or after a feature implementation is complete and validated. Do NOT use during implementation — only after completion."
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

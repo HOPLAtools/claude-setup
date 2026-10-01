@@ -1,6 +1,7 @@
 ---
 name: brainstorm
-description: "Design exploration and brainstorming before planning. Use when the user wants to explore options for a new feature, discuss approaches, design a solution, brainstorm ideas, or evaluate trade-offs. Trigger on: 'new feature', 'brainstorm', 'explore options', 'design', 'how should we', 'what approach', 'trade-offs'. Do NOT use when the user already has a clear plan or is asking to execute existing work."
+description: "Design exploration and brainstorming before planning: explore options, compare approaches and evaluate trade-offs for a new feature."
+when_to_use: "Use when the user wants to explore options for a new feature, discuss approaches, design a solution, or brainstorm ideas. Trigger phrases: 'new feature', 'brainstorm', 'explore options', 'explore approaches', 'design', 'how should we', 'what approach', 'trade-offs'. Do NOT use when the user already has a clear plan or is asking to execute existing work."
 ---
 
 # Brainstorming: Design Exploration Before Planning

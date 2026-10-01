@@ -1,7 +1,11 @@
 ---
 name: hook-audit
-description: "Static audit of new React hooks against documented bug-class catalog (memoization, stale-id guards, error-match strictness, cache+dedup integrity). Use after creating any file matching `src/hooks/use*.ts` and BEFORE commit. Trigger words: 'audit hook', 'check hook', 'hook review'. Auto-callable from execute skill's Level 1.5 gate."
+description: "Static audit of new React hooks against a documented bug-class catalog (memoization, stale-id guards, error-match strictness, cache+dedup integrity)."
+when_to_use: "Use after creating or modifying any file matching `src/hooks/use*.ts` and BEFORE commit. Trigger phrases: 'audit hook', 'check hook', 'hook review'. Called by the Level 1.5 gate of /hopla:execute."
 allowed-tools: Read, Grep, Glob, Bash
+context: fork
+model: sonnet
+background: false
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

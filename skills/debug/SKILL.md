@@ -1,6 +1,7 @@
 ---
 name: debug
-description: "Systematic debugging methodology for finding and fixing bugs. Use when encountering errors, bugs, failures, unexpected behavior, or when the user says 'bug', 'error', 'not working', 'failing', 'debug', 'fix', 'broken'. Do NOT use for planned feature work or refactoring — only for diagnosing and fixing unexpected problems."
+description: "Systematic debugging methodology for finding and fixing bugs."
+when_to_use: "Use when encountering errors, bugs, failures or unexpected behavior, or when the user says 'bug', 'error', 'not working', 'failing', 'debug', 'debug this', 'find the bug', 'why is this failing', 'fix', 'broken'. Do NOT use for planned feature work or refactoring — only for diagnosing and fixing unexpected problems."
 ---
 
 # Systematic Debugging

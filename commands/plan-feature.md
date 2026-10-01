@@ -1,5 +1,6 @@
 ---
 description: Research the codebase and create a structured implementation plan from requirements
+when_to_use: "Use when the user wants an implementation plan for a feature or change. Trigger phrases: 'plan this feature', 'create a plan', 'write the plan', 'plan the implementation'. Do NOT use to execute an existing plan (use execute) or to explore design options (use brainstorm)."
 argument-hint: "<feature-name-or-description>"
 ---
 
@@ -328,9 +329,9 @@ Before saving the draft, review the plan against these criteria:
 
 ## Phase 7: Save Draft and Enter Review Loop
 
-**Before saving, identify the target file:**
 **Plans directory:** `<plans-dir>` is the `- Plans: <dir>` line under `## HOPLA` in `AGENTS.md` (else `CLAUDE.md`), default `.agents/plans/` (`hopla-claude-setup status --json` reports it as `plans_dir`). All paths below live in `<plans-dir>`.
 
+**Before saving, identify the target file:**
 
 1. List all files in `<plans-dir>` (both `*.draft.md` and `*.md`)
 2. Determine the target filename from the feature name derived in Phase 1: `[kebab-case-feature-name].draft.md`

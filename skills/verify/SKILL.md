@@ -1,6 +1,7 @@
 ---
 name: verify
-description: "Verification gate that ensures all completion claims are backed by fresh evidence. Use when the agent is about to declare work as done, finished, complete, ready, or implemented. Also use when hearing 'done', 'finished', 'all tests pass', 'everything works', or any completion claim. Do NOT use for intermediate progress updates or partial task completion."
+description: "Verification gate that ensures every completion claim is backed by fresh evidence."
+when_to_use: "Use when the agent is about to declare work as done, finished, complete, ready, or implemented, or when hearing 'done', 'finished', 'all tests pass', 'everything works', 'verify it works', 'make sure it is correct', or any completion claim. Do NOT use for intermediate progress updates or partial task completion."
 ---
 
 # Verification Before Completion
