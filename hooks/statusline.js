@@ -5,8 +5,8 @@
 // Remove with: hopla-claude-setup --remove-statusline
 
 import { execSync } from "child_process";
-import fs from "fs";
 import path from "path";
+import { getActivePlan } from "./lib/plans.js";
 
 const CYAN = "\x1b[36m";
 const YELLOW = "\x1b[33m";
@@ -22,16 +22,14 @@ function run(cmd, cwd) {
     }
 }
 
-function findActivePlan(cwd) {
-    const plansDir = path.join(cwd, ".agents", "plans");
-    if (!fs.existsSync(plansDir)) return null;
+// Active plan basename (without .md) plus a short step label when available.
+function activePlanLabel(cwd) {
     try {
-        const files = fs
-            .readdirSync(plansDir)
-            .filter((f) => f.endsWith(".md") && !f.startsWith("."))
-            .map((f) => ({ name: f, mtime: fs.statSync(path.join(plansDir, f)).mtimeMs }))
-            .sort((a, b) => b.mtime - a.mtime);
-        return files[0]?.name.replace(/\.md$/, "") || null;
+        const active = getActivePlan(cwd);
+        if (!active) return null;
+        const name = path.posix.basename(active.path).replace(/\.md$/, "");
+        const step = active.step ? active.step.split(":")[0].trim() : "";
+        return step && step.length <= 20 ? `${name} · ${step}` : name;
     } catch {
         return null;
     }
@@ -67,7 +65,7 @@ async function main() {
         parts.push(`${YELLOW}${count}M${RESET}`);
     }
 
-    const plan = findActivePlan(cwd);
+    const plan = activePlanLabel(cwd);
     if (plan) {
         parts.push(`${MAGENTA}📋 ${plan}${RESET}`);
     }
