@@ -1,5 +1,5 @@
 ---
-description: Internal guide for authoring new skills in this plugin — SKILL.md frontmatter, naming, triggers, organization, when to add triggers override.
+description: Internal guide for authoring new skills in this plugin — SKILL.md frontmatter (description, when_to_use, forks, arguments), naming, organization.
 ---
 
 # Writing Skills Guide (Internal)
@@ -22,11 +22,26 @@ skill-name/
 ```yaml
 ---
 name: skill-name
-description: "100-150 words. Start with what it does, then 'Use when...' + specific triggers. End with 'Do NOT use for...' anti-triggers."
-allowed-tools: Read, Grep, Glob, Bash  # Optional: restrict tools
-# Do NOT hardcode `model:` — let skills inherit the user's configured model
+description: "What it does and its main use case, first ~200 chars (max 1,024)."
+when_to_use: "Use when [trigger phrases, synonyms]. Do NOT use for [anti-triggers]."
+allowed-tools: Read, Grep, Glob, Bash  # Optional: pre-approves tools (does not restrict them)
+# Only for isolated, non-interactive skills — all four together:
+# context: fork
+# agent: hopla:<agent-name>   # always plugin-scoped; a bare name silently falls back to general-purpose
+# model: haiku | sonnet
+# background: false           # the invoking turn waits for the result
 ---
 ```
+
+Rules (enforced by `tests/frontmatter.test.js`):
+
+- `description` + `when_to_use` ≤ 1,536 chars combined (project target ≤ 600). One line each, double-quoted, no inner `"` or backslash. English only.
+- `model` appears **only** with `context: fork`. Skills in the main conversation inherit the session model — switching models mid-session loses the prompt cache.
+- A forked skill cannot see the conversation and cannot ask the user anything: keep forks for self-contained work (orientation, audits, reviews) and make the body return a self-contained final answer.
+- Commands that must never start on their own (long-running or file-moving) use `disable-model-invocation: true`; Claude then asks the user to run them.
+- Arguments: declare `arguments: [plan, report]` and use `$plan` / `$report`. Never `$1`: positional placeholders are 0-based. Free text goes through `$ARGUMENTS` (named arguments split on whitespace).
+- `triggers:` is not supported — put trigger phrases in `when_to_use`.
+- Put critical rules at the top of SKILL.md: after compaction only the first 5,000 tokens of an invoked skill are re-injected. Rules that must always hold belong in a hook, not in prose.
 
 ## Writing Effective Descriptions
 
@@ -34,12 +49,14 @@ The description is the MOST CRITICAL field — it determines when the skill acti
 
 ### Pattern
 ```
-[What the skill does]. Use when [trigger phrases, synonyms, variations]. Do NOT use for [anti-triggers].
+description: [What the skill does — main use case first].
+when_to_use: Use when [trigger phrases, synonyms, variations]. Do NOT use for [anti-triggers].
 ```
 
 ### Good Example
 ```
-"Technical code review on changed files. Use when the user says 'review code', 'code review', 'check my code', 'review changes', 'look for bugs', or 'audit code'. Do NOT use for reviewing plans or documents — only code."
+description: "Technical code review on changed files, focused on finding real bugs and issues."
+when_to_use: "Use when the user says 'review code', 'code review', 'check my code', 'review changes', 'look for bugs', or 'audit code'. Do NOT use for reviewing plans or documents — only code."
 ```
 
 ### Bad Example
@@ -51,7 +68,7 @@ The description is the MOST CRITICAL field — it determines when the skill acti
 
 Claude uses SEMANTIC matching, not keyword matching. Cover:
 - Different phrasings of the same intent
-- Multilingual triggers if your team is multilingual
+- Language-agnostic phrasing (the plugin is used internationally; keep frontmatter in English)
 - Common misspellings or abbreviations
 - Related verbs and nouns
 

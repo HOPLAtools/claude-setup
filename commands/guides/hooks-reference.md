@@ -81,6 +81,6 @@ Log all hook data to inspect the structure:
 ```
 
 ## HOPLA Installed Hooks
-- **tsc-check.js** (PostToolUse): Runs TypeScript type checking after file edits
-- **env-protect.js** (PreToolUse): Blocks reads of .env files
-- **session-prime.js** (SessionStart): Provides project context at session start
+- **tsc-check.js** (PostToolUse + Stop): Records edited TS/JS files; at the end of the turn runs `tsc -p` on the nearest `tsconfig.json` once, blocks only for errors in files edited this turn (first 30 + total + `/tmp` log), at most twice per turn
+- **env-protect.js** (PreToolUse): Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash commands are blocked only when they read the file, not when they mention it; `.dev.vars` blocked for Read/Grep/Edit
+- **session-prime.js** (SessionStart): Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars)

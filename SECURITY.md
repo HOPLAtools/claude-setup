@@ -33,12 +33,14 @@ This plugin executes inside the Claude Code session and has access to several se
 
 ### Plugin hooks the plugin installs
 
-- **`env-protect.js`** (PreToolUse on `Read | Grep | Glob | Edit | Write | Bash`): inspects every tool call and blocks reads/greps/Bash commands that reference `.env` files. This hook intentionally reads tool inputs (file paths and Bash command strings) but does **not** read the `.env` files themselves.
-- **`tsc-check.js`** (PostToolUse on `Write | Edit | MultiEdit`): runs `tsc --noEmit` in the project's working directory when a TypeScript/JavaScript file is edited. The hook invokes the project-local `node_modules/.bin/tsc` or falls back to `npx --no-install tsc`. No network calls are made.
-- **`session-prime.js`** (SessionStart): reads project rules (`AGENTS.md` / `CLAUDE.md`), git state, and the skill catalog from disk to inject context. Read-only.
-- **`prompt-route.js`** (UserPromptSubmit): reads the user prompt and the skill catalog to inject routing hints. The prompt is capped at 4 000 characters before matching. Read-only.
+- **`env-protect.js`** (PreToolUse on `Read | Grep | Glob | Edit | Write | Bash`): blocks tool calls that read the contents of dotenv files (`.env`, `.env.local`, `.env.production.local`, case variants, the Grep tool's `glob`). Template files such as `.env.example`, `.env.sample` or `.env.template` are allowed with every tool. Bash commands are tokenized (quotes, heredocs, substitutions) and only commands that **read** a dotenv file are blocked; commands that merely mention the name (grep patterns, `echo`, commit messages, heredoc prose, `git add .env.example`) pass. Bash writes to dotenv files are not blocked. `.dev.vars` is blocked for Read, Grep and Edit only (deliberately not Bash or Write: local tooling reads it). This hook intentionally reads tool inputs (file paths and Bash command strings) but does **not** read the dotenv files themselves.
+
+  **Known limits** — accident prevention, not a sandbox. Not caught: indirection through variables, loops and pipelines (`F=.env; cat $F`, `echo .env | xargs cat`); scripts that read the file themselves (`python3 script.py`); recursive searches that never name the file (`grep -r KEY .`, the Grep tool over a directory); tools that print resolved config (`docker compose config`); uploads such as `curl -d @.env`; files outside the pattern (`.envrc`, `prod.env`). Pair it with the native permission rule `"deny": ["Read(./.env*)"]` in `settings.json` for a second layer.
+- **`tsc-check.js`** (PostToolUse on `Write | Edit | MultiEdit`, and Stop): on edits it only records the edited TypeScript/JavaScript paths in a per-session file in the OS temp dir. At the end of the turn (Stop) it runs `tsc -p <nearest tsconfig.json> --noEmit` (walking up from each edited file, never past the git root) using the nearest `node_modules/.bin/tsc` or `npx --no-install tsc`, and writes the full output to a log in `/tmp`. No network calls are made.
+- **`session-prime.js`** (SessionStart): reads git state, the plans directory declaration (`## HOPLA` in `AGENTS.md` / `CLAUDE.md`), `.agents/hopla-active-plan.json` and `.claude/compact-snapshot.json` to inject a short context (≤ 1,500 chars). Read-only.
+- **`prompt-route.js`** (UserPromptSubmit): a no-op since 2.2 — drains stdin and emits nothing. Kept registered for the 3.0 deprecation notifier.
 - **`precompact-snapshot.js`** (PreCompact): writes a session snapshot to `<project>/.claude/compact-snapshot.json`. Writes only inside the active project directory.
-- **`statusline.js`** (opt-in): renders branch + plan info in the status bar. Read-only.
+- **`statusline.js`** (opt-in): renders branch + active plan (and step) in the status bar. Read-only.
 
 ### What to verify before enabling the plugin
 

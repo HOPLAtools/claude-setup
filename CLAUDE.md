@@ -45,12 +45,13 @@ agents/              ← Subagent definitions (auto-discovered by plugin)
 │   └── *.md
 hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
 │   ├── hooks.json              ← Plugin hook declarations (uses ${CLAUDE_PLUGIN_ROOT})
-│   ├── tsc-check.js            ← PostToolUse: tsc --noEmit after edits
-│   ├── env-protect.js          ← PreToolUse: block reads of .env (Read/Grep/Bash)
-│   ├── session-prime.js        ← SessionStart: git context + skills list + compact-snapshot replay
-│   ├── prompt-route.js         ← UserPromptSubmit: skill routing hints
+│   ├── tsc-check.js            ← PostToolUse records edited TS/JS files; Stop runs tsc -p <nearest tsconfig> once per turn
+│   ├── env-protect.js          ← PreToolUse: block dotenv reads (Read/Grep/Edit/Bash); mentions + templates allowed
+│   ├── session-prime.js        ← SessionStart: branch + git summary + active plan + compact-snapshot replay (≤1,500 chars)
+│   ├── prompt-route.js         ← UserPromptSubmit: silent placeholder (becomes the deprecation notifier in 3.0)
 │   ├── precompact-snapshot.js  ← PreCompact: dump state to .claude/compact-snapshot.json
-│   └── statusline.js           ← Statusline renderer (opt-in via settings.json)
+│   ├── statusline.js           ← Statusline renderer (opt-in via settings.json)
+│   └── lib/plans.js            ← shared plans-dir + active-plan helpers (hooks only; cli.js keeps a copy)
 package.json         ← npm metadata and version
 CLAUDE.md            ← THIS FILE — project dev rules (not installed to users)
 README.md            ← Public documentation
@@ -105,7 +106,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 Automated unit + integration tests run via Node's built-in `node:test` runner (no external test framework — same "Node built-ins only" rule as `cli.js`). The CI workflow at `.github/workflows/ci.yml` runs them on every PR and push to `main`.
 
 ```bash
-npm test                             # full suite (cli.js helpers + 3 hook scripts)
+npm test                             # full suite (cli.js helpers, plans parity, frontmatter, hook scripts)
 node --test tests/cli.test.js        # one file
 bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 ```
@@ -114,12 +115,16 @@ Tests live in `tests/`:
 
 ```
 tests/
-├── cli.test.js                     parseSettingsFile + safeWrite + CLI integration tests
-├── helpers/fixtures.js             tempdir, JSON I/O, cleanup helpers
+├── cli.test.js                     parseSettingsFile + safeWrite + status/plans-dir + CLI integration tests
+├── plans-parity.test.js            cli.js copy == hooks/lib/plans.js (plans dir, pointer, active plan)
+├── frontmatter.test.js             skill/command/agent frontmatter rules (forks, models, manual-only, arguments)
+├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
-    ├── env-protect.test.js         block .env reads + benign-Bash allow
-    ├── tsc-check.test.js           extension filter + tsconfig short-circuit
-    └── prompt-route.test.js        hybrid matcher (name + quoted phrases + triggers override)
+    ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)
+    ├── tsc-check.test.js           PostToolUse recorder + Stop check (nearest tsconfig, own vs other errors, loop guard)
+    ├── session-prime.test.js       minimal SessionStart output + snapshot replay
+    ├── precompact-snapshot.test.js snapshot keys + round trip into session-prime
+    └── prompt-route.test.js        silent stub + still registered
 ```
 
 Manual smoke (use in addition to `npm test` for any change touching the CLI install/uninstall flow):

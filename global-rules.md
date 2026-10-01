@@ -105,7 +105,7 @@ When planning features, explicitly include MCP integration points in the plan.
 
 ## 🛠️ HOPLA Skills
 
-HOPLA skills are auto-triggered based on context — no slash command needed. The session-prime hook lists available skills at the start of each session.
+HOPLA skills are auto-triggered based on context — no slash command needed. Claude Code lists them natively; run the `prime` skill (say "catch me up") for a full project orientation.
 
 When a skill applies to your current task, you MUST use it. Check available skills before responding.
 
