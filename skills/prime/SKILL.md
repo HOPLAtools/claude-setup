@@ -35,10 +35,12 @@ git status
 
 ## Step 4: Check Pending Work
 
-Use the Glob tool to check for pending plans:
-- Pattern: `.agents/plans/*.md`
+Resolve `<plans-dir>`: `<plans-dir>` is the `- Plans: <dir>` line under `## HOPLA` in `AGENTS.md` (else `CLAUDE.md`), default `.agents/plans/`. Use the Glob tool to check for pending plans:
+- Pattern: `<plans-dir>/*.md`
 
-If `.agents/plans/` exists, identify:
+Also read `.agents/hopla-active-plan.json` if it exists (the plan being executed and its current step).
+
+If `<plans-dir>` exists, identify:
 - `.draft.md` files — unfinished drafts waiting for review
 - `.md` files (without `.draft`) — finalized plans ready to execute
 

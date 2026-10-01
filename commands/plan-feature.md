@@ -192,15 +192,23 @@ Each bullet is a user-confirmable assumption the planner made about meaning, beh
 
 > Include this section when the feature **changes documented system behavior** — adds, modifies, or removes a user-visible capability or business rule. Pure refactors, performance fixes, and infrastructure changes can omit this section entirely (do NOT write "N/A"). The delta is consumed by `/hopla:archive` to fold the change into `.agents/specs/canonical/`. If the project does not yet maintain canonical specs, this section is still valuable as a structured summary for the executing agent and reviewers.
 >
-> When a corresponding `.agents/specs/<feature>.md` already includes a `## Requirements Delta` (created by the `brainstorm` skill), reference it here instead of duplicating: `See spec: .agents/specs/<feature>.md`.
+> When a corresponding spec (e.g. `.agents/specs/<feature>.md`, created by the `brainstorm` skill) already includes a `## Requirements Delta`, reference it instead of duplicating it. Write two plain lines (no backticks) directly under `## Requirements Delta`:
+>
+> ```
+> See spec: .agents/specs/<feature>.md
+> Owns: REQ-<DOMAIN>-001, REQ-<DOMAIN>-002
+> ```
+>
+> `Owns:` lists the spec requirements **this plan delivers** — archive merges only those (a spec shared by several plans keeps the rest for later plans). Add bullets below only for requirements the spec does not already cover. A MODIFIED entry is the **full replacement body** (archive replaces the canonical body), so always include its scenarios.
 
 ### ADDED Requirements
 - REQ-<DOMAIN>-<NNN>: <short title>
   - Scenario: <name> — Given <state>, When <action>, Then <outcome>
 
 ### MODIFIED Requirements
-- REQ-<DOMAIN>-<NNN>: <short title> (replaces previous version)
-  - <description of how the requirement changes>
+- REQ-<DOMAIN>-<NNN>: <short title> (full replacement body)
+  - <the complete new requirement text — archive replaces the canonical body with it>
+  - Scenario: <name> — Given <state>, When <action>, Then <outcome>
 
 ### REMOVED Requirements
 - REQ-<DOMAIN>-<NNN>: <short title> (deprecated — reason)
@@ -321,8 +329,10 @@ Before saving the draft, review the plan against these criteria:
 ## Phase 7: Save Draft and Enter Review Loop
 
 **Before saving, identify the target file:**
+**Plans directory:** `<plans-dir>` is the `- Plans: <dir>` line under `## HOPLA` in `AGENTS.md` (else `CLAUDE.md`), default `.agents/plans/` (`hopla-claude-setup status --json` reports it as `plans_dir`). All paths below live in `<plans-dir>`.
 
-1. List all files in `.agents/plans/` (both `*.draft.md` and `*.md`)
+
+1. List all files in `<plans-dir>` (both `*.draft.md` and `*.md`)
 2. Determine the target filename from the feature name derived in Phase 1: `[kebab-case-feature-name].draft.md`
 3. If a file with that name already exists → **overwrite it**
 4. If a file with a similar name exists (e.g. same feature, slight variation) → **overwrite it and confirm which file was updated**
@@ -330,9 +340,9 @@ Before saving the draft, review the plan against these criteria:
 
 **Save and notify:**
 
-1. Save the plan to `.agents/plans/[kebab-case-feature-name].draft.md`
+1. Save the plan to `<plans-dir>/[kebab-case-feature-name].draft.md`
 2. Tell the user:
-   > "Plan draft saved to `.agents/plans/[feature-name].draft.md` — open it in your editor and review it carefully. If you want changes, add comments like `<? change this >` anywhere in the file and tell me 'apply comments'. You can also request changes directly in the chat. When it's ready, say 'done' to create the final file."
+   > "Plan draft saved to `<plans-dir>/[feature-name].draft.md` — open it in your editor and review it carefully. If you want changes, add comments like `<? change this >` anywhere in the file and tell me 'apply comments'. You can also request changes directly in the chat. When it's ready, say 'done' to create the final file."
 3. Also mention:
    - How many tasks are in the plan
    - Any open questions or decisions that require human input before execution
@@ -344,5 +354,6 @@ Before saving the draft, review the plan against these criteria:
 - If the user says the plan is ready → proceed to finalize
 
 **Finalize:**
-1. Rename `.agents/plans/[feature-name].draft.md` → `.agents/plans/[feature-name].md` (overwrite if it already exists)
-2. Confirm: "✅ Plan saved to `.agents/plans/[feature-name].md`. Run `/hopla:review-plan .agents/plans/[feature-name].md` to review it, then `/hopla:execute .agents/plans/[feature-name].md` to implement it."
+1. Rename `<plans-dir>/[feature-name].draft.md` → `<plans-dir>/[feature-name].md` (overwrite if it already exists)
+2. Write the active-plan pointer `.agents/hopla-active-plan.json` (format: "Active-plan pointer" in `/hopla:execute`) with the Write tool: `{"plan": "<plans-dir>/[feature-name].md", "step": null, "status": "planned", "updatedAt": "<ISO 8601 now>", "by": "plan-feature"}`. If the write is refused, continue without it (never work around it).
+3. Confirm: "✅ Plan saved to `<plans-dir>/[feature-name].md`. Run `/hopla:review-plan <plans-dir>/[feature-name].md` to review it, then `/hopla:execute <plans-dir>/[feature-name].md` to implement it."

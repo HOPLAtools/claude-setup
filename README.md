@@ -102,7 +102,7 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 | `hopla-claude-setup --force` | Install without prompts |
 | `hopla-claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
 | `hopla-claude-setup --uninstall` | Remove global rules + legacy files |
-| `hopla-claude-setup status` | Read-only inspection of the current project's `.agents/` workflow state (plans, specs, reviews, suggested next step) |
+| `hopla-claude-setup status` | Read-only inspection of the current project's workflow state (plans from the [plans directory](#plans-directory), active plan + step, specs, reviews, suggested next step) |
 | `hopla-claude-setup status --json` | Same as above, JSON output for agents to parse |
 | `hopla-claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
 | `hopla-claude-setup --version` | Print package version |
@@ -344,6 +344,25 @@ Commands are modular — the output of one becomes the input of the next. Some a
 | Command | Argument | Example |
 |---|---|---|
 | `/hopla:execute` | Plan file path | `/hopla:execute .agents/plans/auth-feature.md` |
+### Plans directory
+
+Plans live in `.agents/plans/` by default. To keep them elsewhere, declare the directory in the project's `AGENTS.md` (or `CLAUDE.md` when there is no `AGENTS.md` declaration):
+
+```markdown
+## HOPLA
+- Plans: docs/plans/
+```
+
+- The first `- Plans:` line under a `## HOPLA` heading wins; examples inside fenced code blocks are ignored.
+- The path is relative to the project root. Wrap it in backticks if it contains spaces: `` - Plans: `docs/my plans/` ``.
+- Unsafe values (absolute paths, `..`, `~`, `$`, drive letters) are ignored with a warning and the default is used.
+- A declared directory always wins, even if it does not exist yet (no fallback to `.agents/plans/`).
+- `done/` (archived plans) and `backlog/` (deferred ideas) live under the plans directory.
+
+Honored by `/hopla:plan-feature`, `/hopla:execute`, `/hopla:archive`, the `prime`/`brainstorm`/`git` skills, the session hooks, the statusline and `hopla-claude-setup status`.
+
+**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore`.
+
 | `/hopla:code-review-fix` | Review report path | `/hopla:code-review-fix .agents/code-reviews/auth-review.md` |
 | `/hopla:rca` | Bug description | `/hopla:rca "login fails with 403 after token refresh"` |
 | `/hopla:system-review` | Plan + report | `/hopla:system-review .agents/plans/auth.md .agents/execution-reports/auth.md` |
@@ -460,7 +479,7 @@ project/
 ├── AGENTS.md                      ← Canonical project rules (tool-agnostic, from /hopla:init-project)
 ├── CLAUDE.md                      ← Thin alias: contains @AGENTS.md so Claude Code auto-loads the rules
 ├── .agents/
-│   ├── plans/                     ← Implementation plans (commit)
+│   ├── plans/                     ← Implementation plans (commit; or the declared plans directory)
 │   │   ├── done/                  ← Plans archived by /hopla:archive (commit)
 │   │   └── backlog/               ← Deferred ideas from Scope Guard (commit)
 │   ├── specs/                     ← Design specs from brainstorming (commit)
@@ -471,7 +490,9 @@ project/
 │   ├── execution-reports/         ← Post-implementation reports (commit)
 │   ├── system-reviews/            ← Process improvement reports (commit)
 │   ├── audits/                    ← Persistent audit reports (commit — opt-in)
-│   └── code-reviews/              ← Code review reports (don't commit — ephemeral)
+│   ├── code-reviews/              ← Code review reports (don't commit — ephemeral)
+│   └── hopla-active-plan.json     ← Active plan + step (don't commit)
 └── .claude/
-    └── commands/                  ← Project-specific commands (optional)
+    ├── commands/                  ← Project-specific commands (optional)
+    └── compact-snapshot.json      ← Pre-compact snapshot (don't commit)
 ```

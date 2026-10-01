@@ -586,6 +586,137 @@ async function install() {
 // status — read-only inspection of a project's .agents/ workflow state
 // =====================================================================
 
+// --- plans dir + active plan --------------------------------------------
+// keep in sync with hooks/lib/plans.js — guarded by tests/plans-parity.test.js
+// (cli.js stays a single file, so the hooks' shared module is copied here).
+// Plans dir: `## HOPLA` / `- Plans: <dir>` in AGENTS.md (fallback CLAUDE.md),
+// default .agents/plans; unsafe values are rejected. Symlink escapes are NOT
+// handled. Active plan: .agents/hopla-active-plan.json when valid, else the
+// newest non-draft *.md in the plans dir by mtime.
+// Exported for unit testing.
+
+const DEFAULT_PLANS_DIR = ".agents/plans";
+const POINTER_FILE = path.join(".agents", "hopla-active-plan.json");
+
+// Normalizes a repo-relative path to POSIX form. Returns null when the value
+// is empty or unsafe (absolute, drive letter, ~, $, escapes the project).
+function normalizeRelPath(raw) {
+    let v = String(raw).replace(/\\/g, "/").trim();
+    if (!v) return null;
+    if (v.startsWith("/") || /^[A-Za-z]:/.test(v) || v.startsWith("~") || v.startsWith("$")) return null;
+    v = path.posix.normalize(v);
+    while (v.length > 1 && v.endsWith("/")) v = v.slice(0, -1);
+    if (!v || v === "." || v === ".." || v.startsWith("../")) return null;
+    return v;
+}
+
+// True when `abs` is strictly inside `cwd`.
+function isInside(cwd, abs) {
+    const rel = path.relative(cwd, abs);
+    return !!rel && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
+}
+
+export function parsePlansDeclaration(markdown) {
+    const lines = String(markdown ?? "").split(/\r?\n/);
+    let inFence = false;
+    let inSection = false;
+    for (const line of lines) {
+        if (/^\s*(```|~~~)/.test(line)) {
+            inFence = !inFence;
+            continue;
+        }
+        if (inFence) continue;
+        if (/^#{1,2}\s/.test(line)) {
+            inSection = /^##\s+HOPLA\s*#*\s*$/i.test(line);
+            continue;
+        }
+        if (!inSection) continue;
+        const m = line.match(/^\s*[-*+]\s+Plans\s*:\s*(.+?)\s*$/i);
+        if (!m) continue;
+        const rawValue = m[1];
+        let value;
+        if (rawValue.startsWith("`")) {
+            const end = rawValue.indexOf("`", 1);
+            value = end === -1 ? rawValue.slice(1) : rawValue.slice(1, end);
+        } else {
+            value = rawValue.replace(/^["'<]+/, "").split(/\s+/)[0].replace(/["'>]+$/, "");
+        }
+        const dir = normalizeRelPath(value);
+        if (!dir) return { dir: null, warning: `unsafe plans dir: ${rawValue}` };
+        return { dir };
+    }
+    return { dir: null };
+}
+
+export function resolvePlansDir(cwd = process.cwd()) {
+    let warning = null;
+    for (const source of ["AGENTS.md", "CLAUDE.md"]) {
+        let text;
+        try {
+            text = fs.readFileSync(path.join(cwd, source), "utf8");
+        } catch {
+            continue;
+        }
+        const parsed = parsePlansDeclaration(text);
+        if (parsed.warning && !warning) warning = parsed.warning;
+        if (!parsed.dir) continue;
+        const abs = path.resolve(cwd, parsed.dir);
+        if (!isInside(cwd, abs)) {
+            if (!warning) warning = `unsafe plans dir: ${parsed.dir}`;
+            continue;
+        }
+        return { dir: parsed.dir, abs, source, warning };
+    }
+    return { dir: DEFAULT_PLANS_DIR, abs: path.resolve(cwd, DEFAULT_PLANS_DIR), source: "default", warning };
+}
+
+export function findActivePlan(plansAbs) {
+    try {
+        const candidates = fs.readdirSync(plansAbs, { withFileTypes: true })
+            .filter((e) => e.isFile()
+                && e.name.endsWith(".md")
+                && !e.name.endsWith(".draft.md")
+                && !e.name.startsWith("."))
+            .map((e) => ({ name: e.name, mtime: fs.statSync(path.join(plansAbs, e.name)).mtimeMs }));
+        candidates.sort((a, b) => (b.mtime - a.mtime) || (a.name < b.name ? 1 : a.name > b.name ? -1 : 0));
+        return candidates.length ? candidates[0].name : null;
+    } catch {
+        return null;
+    }
+}
+
+export function readActivePlanPointer(cwd = process.cwd()) {
+    let data;
+    try {
+        data = JSON.parse(fs.readFileSync(path.join(cwd, POINTER_FILE), "utf8"));
+    } catch {
+        return null;
+    }
+    if (!data || typeof data !== "object" || typeof data.plan !== "string") return null;
+    if (data.status === "done") return null;
+    const rel = normalizeRelPath(data.plan);
+    if (!rel || rel.split("/").includes("done")) return null;
+    const abs = path.resolve(cwd, rel);
+    if (!isInside(cwd, abs)) return null;
+    try {
+        if (!fs.statSync(abs).isFile()) return null;
+    } catch {
+        return null;
+    }
+    const step = typeof data.step === "string" && data.step.trim() ? data.step.trim() : null;
+    const status = typeof data.status === "string" ? data.status : null;
+    return { path: rel, step, status };
+}
+
+export function getActivePlan(cwd = process.cwd()) {
+    const pointer = readActivePlanPointer(cwd);
+    if (pointer) return { path: pointer.path, step: pointer.step, source: "pointer" };
+    const resolved = resolvePlansDir(cwd);
+    const name = findActivePlan(resolved.abs);
+    if (!name) return null;
+    return { path: path.posix.join(resolved.dir, name), step: null, source: "mtime" };
+}
+
 // Lists *.md files (and *.draft.md) in a directory. Returns [] if missing
 // or unreadable. Sorted alphabetically for stable output.
 function listMarkdownFiles(dir) {
@@ -622,17 +753,24 @@ function readGitState(cwd) {
     };
 }
 
-function readWorkflowState(cwd) {
+// Exported for unit testing.
+export function readWorkflowState(cwd) {
     const agentsDir = path.join(cwd, ".agents");
     const present = fs.existsSync(agentsDir);
 
-    const plansDir = path.join(agentsDir, "plans");
+    const resolved = resolvePlansDir(cwd);
+    const plansDir = resolved.abs;
     const allPlanFiles = listMarkdownFiles(plansDir);
     const draft = allPlanFiles.filter((f) => f.endsWith(".draft.md"));
     const active = allPlanFiles.filter((f) => !f.endsWith(".draft.md"));
 
     return {
         agents_dir_present: present,
+        plans_dir: resolved.dir,
+        plans_dir_source: resolved.source,
+        plans_dir_present: fs.existsSync(plansDir),
+        plans_dir_warning: resolved.warning || null,
+        active_plan: getActivePlan(cwd),
         plans: {
             draft,
             active,
@@ -649,14 +787,17 @@ function readWorkflowState(cwd) {
 }
 
 function suggestNext(state) {
-    if (!state.agents_dir_present) {
+    if (!(state.agents_dir_present || state.plans_dir_present)) {
         return "No .agents/ found — run /hopla:init-project to scaffold the workflow.";
     }
-    if (state.plans.draft.length > 0) {
+    // An active plan (pointer, else newest non-draft by mtime) wins over drafts.
+    if (!state.active_plan && state.plans.draft.length > 0) {
         return `Plan in draft (${state.plans.draft[0]}) — run /hopla:review-plan or finalize it.`;
     }
-    if (state.plans.active.length > 0) {
-        const plan = state.plans.active[0];
+    if (state.active_plan || state.plans.active.length > 0) {
+        const plan = state.active_plan
+            ? path.posix.basename(state.active_plan.path)
+            : state.plans.active[0];
         const baseName = plan.replace(/\.md$/, "");
         const hasReport = state.execution_reports.some((r) => r.includes(baseName));
         const hasReview = state.code_reviews.some((r) => r.includes(baseName));
@@ -692,7 +833,8 @@ function status() {
         log(`${YELLOW}Not inside a git repository.${RESET}\n`);
     }
 
-    if (!workflow.agents_dir_present) {
+    if (!(workflow.agents_dir_present || workflow.plans_dir_present)) {
+        if (workflow.plans_dir_warning) log(`${YELLOW}⚠${RESET}  ${workflow.plans_dir_warning} — using the default`);
         log(`${YELLOW}No .agents/ directory found.${RESET}`);
         log(`Run ${CYAN}/hopla:init-project${RESET} to scaffold it.\n`);
         log(`${BOLD}Suggested next:${RESET} ${next}\n`);
@@ -700,6 +842,13 @@ function status() {
     }
 
     log(`${CYAN}Plans:${RESET}`);
+    const dirSource = workflow.plans_dir_source === "default" ? "default" : `from ${workflow.plans_dir_source}`;
+    log(`  Dir: ${workflow.plans_dir} (${dirSource})${workflow.plans_dir_present ? "" : " — missing"}`);
+    if (workflow.plans_dir_warning) log(`  ${YELLOW}⚠${RESET}  ${workflow.plans_dir_warning} — using the default`);
+    if (workflow.active_plan) {
+        const step = workflow.active_plan.step ? ` — step: ${workflow.active_plan.step}` : "";
+        log(`  Active: ${workflow.active_plan.path}${step} (${workflow.active_plan.source})`);
+    }
     log(`  Draft (${workflow.plans.draft.length}):    ${workflow.plans.draft.join(", ") || "—"}`);
     log(`  Active (${workflow.plans.active.length}):   ${workflow.plans.active.join(", ") || "—"}`);
     log(`  Done (${workflow.plans.done.length}):     ${workflow.plans.done.join(", ") || "—"}`);

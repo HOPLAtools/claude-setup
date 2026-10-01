@@ -14,7 +14,7 @@ git diff --stat origin/$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>
 ```
 
 Read the following if they exist:
-- The plan file in `.agents/plans/` related to this feature
+- The plan file in `<plans-dir>` related to this feature (`<plans-dir>` is the `- Plans: <dir>` line under `## HOPLA` in `AGENTS.md` (else `CLAUDE.md`), default `.agents/plans/`)
 - `AGENTS.md` (or `CLAUDE.md` as fallback) — for project context
 
 ## Step 2: Determine Base Branch
@@ -65,7 +65,7 @@ Using the commits and plan context, draft:
 - [ ] [Edge cases to check]
 
 ## Related
-- Plan: `.agents/plans/[feature-name].md` (if exists)
+- Plan: `<plans-dir>/[feature-name].md` (if exists)
 ```
 
 ## Step 5: Propose and Confirm

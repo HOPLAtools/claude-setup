@@ -21,6 +21,20 @@ Do not start implementing until you have read everything above.
 
 ### Verification Checkpoints (before writing code)
 
+### Active-plan pointer
+
+Record progress in `.agents/hopla-active-plan.json` at the project root (write it with the Write tool; it creates `.agents/` if missing). It is git-ignored per-machine state. Session hooks, the statusline and `hopla-claude-setup status` read it, so a resumed or compacted session knows which plan and step are in progress:
+
+```json
+{"plan": "<plan path relative to the project root>", "step": "<Task id + title> | null", "status": "planned | executing | done", "updatedAt": "<ISO 8601>", "by": "plan-feature | execute"}
+```
+
+- **Now (start):** `status: "executing"`, `step` = the first task (e.g. `"Task 1: Create the filter component"`), `by: "execute"`.
+- **After each completed task:** set `step` to the next task.
+- **Step 6 (end):** `status: "done"`, `step: null`.
+
+Only these fields — never secrets or plan content. If the file is missing or stale, just overwrite it. If the write is refused, continue without it — never retry or work around it; the hooks fall back to the newest plan.
+
 Verify that the plan's documented assumptions still hold. **You are not re-auditing from scratch** — the planner already did the full audit and documented findings in Context References and Gotchas. Your job is to confirm each finding is still accurate:
 
 - **Data models:** Read the referenced API route or schema. Confirm the field variants the planner documented (null cases, alternative representations, resolution chain) still match the actual code.
@@ -101,7 +115,7 @@ Work through each task in the plan sequentially. For each task:
 3. **Check for existing implementations** — before creating new functions, constants, or utility modules, search the codebase for existing implementations that serve the same purpose. Reuse or extend rather than duplicate.
 4. **Implement** only what the task specifies — nothing more
 5. **Validate** the task using the method specified in the plan's validate field
-6. **Report completion** with a brief status: what was done, what was skipped, any decision made
+6. **Report completion** with a brief status: what was done, what was skipped, any decision made, then update `step` in `.agents/hopla-active-plan.json` to the next task
 7. **Do not proceed** to the next task if the current one fails validation
 
 **Git strategy:**
@@ -136,7 +150,7 @@ If the user requests changes that are NOT in the plan during execution:
 4. **If new feature or significant addition:**
    - Suggest committing the current planned work first
    - Then create a new branch or add it to the backlog
-   - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `.agents/plans/backlog/` instead?"
+   - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `<plans-dir>/backlog/` instead?" (`<plans-dir>` is the `- Plans:` line under `## HOPLA` in AGENTS.md, else CLAUDE.md; default `.agents/plans/`)
 5. **Never** silently add significant unplanned work — it mixes unreviewed changes into an otherwise reviewed plan and breaks the audit trail
 
 ## Step 4.5: Hook structural audit (Level 1.5 gate)
@@ -174,7 +188,7 @@ Level 5 triggers the `code-review` skill (not a slash command). Level 6 is the f
 
 ## Step 6: Completion Report
 
-Provide a summary of what was done:
+First set `.agents/hopla-active-plan.json` to `status: "done"`, `step: null` (see "Active-plan pointer" in Step 1). Then provide a summary of what was done:
 
 ```
 ## Execution Summary

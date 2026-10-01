@@ -33,3 +33,9 @@ export function rmDir(dir) {
         // ignore
     }
 }
+
+// Writes a text file. Creates parent dirs as needed (mkdir -p).
+export function writeText(filePath, content) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+}

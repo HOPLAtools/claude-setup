@@ -185,6 +185,15 @@ The canonical project rules live in [`AGENTS.md`](./AGENTS.md). This file is a t
 > The `@AGENTS.md` directive instructs Claude Code to inline the AGENTS.md contents into context. Other AI assistants read AGENTS.md directly.
 
 **`AGENTS.md` contents — for default stack projects**, use these pre-filled values:
+**Optional plans directory.** Ask only if the user wants plans somewhere other than the default `.agents/plans/` (e.g. `docs/plans/`). If so, append this block at the end of `AGENTS.md` (relative path; wrap it in backticks if it contains spaces):
+
+```markdown
+## HOPLA
+- Plans: docs/plans/
+```
+
+HOPLA commands, hooks and `hopla-claude-setup status` then read and write plans there (`done/` and `backlog/` live under it). Skip the block for the default.
+
 
 ```markdown
 # [Project Name] — Development Rules
@@ -443,7 +452,7 @@ Create the following directories (with `.gitkeep` where needed):
 
 ```
 .agents/
-├── plans/               <- /hopla:plan-feature saves here (commit)
+├── plans/               <- /hopla:plan-feature saves here (commit; or the dir declared under `## HOPLA` in AGENTS.md)
 │   ├── done/            <- /hopla:archive moves completed plans here (commit)
 │   └── backlog/         <- /hopla:execute Scope Guard defers ideas here (commit)
 ├── specs/               <- brainstorm skill saves design docs here (commit)
@@ -468,8 +477,12 @@ Add to `.gitignore` (create if it doesn't exist):
 ```
 .agents/code-reviews/
 ```
+.agents/hopla-active-plan.json
+.claude/compact-snapshot.json
 
 ## Step 7: Create .claude/commands/ (optional but recommended)
+> Both files are per-machine session state written by HOPLA: the active-plan pointer (`.agents/hopla-active-plan.json`, kept outside `.claude/` because Claude Code asks for approval on every write there) and the pre-compact snapshot.
+
 
 Create `.claude/commands/` at the project root for project-specific commands that override or extend the global ones.
 
