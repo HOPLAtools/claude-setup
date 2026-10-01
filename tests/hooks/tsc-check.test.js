@@ -20,7 +20,7 @@ function runHook(payload, cwd = os.tmpdir()) {
         encoding: "utf8",
         cwd,
     });
-    return { status: res.status, stdout: res.stdout };
+    return { status: res.status, stdout: res.stdout, stderr: res.stderr };
 }
 
 test("tsc-check: skips when only .md file is touched (no tsc invoked)", () => {
@@ -98,4 +98,33 @@ test("tsc-check: MultiEdit with mixed .md + .ts → falls through (does NOT skip
 test("tsc-check: empty payload defaults to safe behavior (no crash)", () => {
     const res = runHook({});
     assert.equal(res.status, 0);
+});
+
+// Fake project whose local tsc prints a type error and exits non-zero, so the
+// hook's error path runs without a real TypeScript install.
+function makeProjectWithFailingTsc() {
+    const tmp = makeTempDir();
+    fs.writeFileSync(path.join(tmp, "tsconfig.json"), "{}");
+    const binDir = path.join(tmp, "node_modules", ".bin");
+    fs.mkdirSync(binDir, { recursive: true });
+    const tsc = path.join(binDir, "tsc");
+    fs.writeFileSync(tsc, "#!/bin/sh\necho \"src/a.ts(1,7): error TS2322: Type 'string' is not assignable to type 'number'.\"\nexit 2\n");
+    fs.chmodSync(tsc, 0o755);
+    return tmp;
+}
+
+test("tsc-check: type errors exit 2 with errors on stderr so Claude sees them", () => {
+    const tmp = makeProjectWithFailingTsc();
+    try {
+        const res = runHook(
+            { tool_name: "Edit", tool_input: { file_path: path.join(tmp, "src", "a.ts") } },
+            tmp
+        );
+        assert.equal(res.status, 2);
+        assert.match(res.stderr, /TypeScript errors detected/);
+        assert.match(res.stderr, /TS2322/);
+        assert.equal(res.stdout, "");
+    } finally {
+        rmDir(tmp);
+    }
 });

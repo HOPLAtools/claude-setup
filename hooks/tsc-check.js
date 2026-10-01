@@ -74,7 +74,10 @@ async function main() {
     } catch (err) {
         const output = (err.stdout || "").toString() + (err.stderr || "").toString();
         if (output.trim()) {
-            process.stdout.write("TypeScript errors detected:\n" + output + "\n");
+            // PostToolUse only feeds output back to Claude on exit 2 + stderr;
+            // stdout with exit 0 is shown in the transcript but never reaches the model.
+            process.stderr.write("TypeScript errors detected:\n" + output + "\n");
+            process.exit(2);
         }
         process.exit(0);
     }
