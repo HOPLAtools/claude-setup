@@ -103,6 +103,21 @@ Paste both the command and the actual output (positive or negative) into the pla
 
 **Why:** plans that defer work on a "needs server change" or "endpoint doesn't exist yet" assumption have shipped only to later discover that the endpoint already existed (or the column, or the helper). Without a verification command, the planner cannot distinguish between "truly out of scope" and "I didn't check". This rule covers negative claims; positive claims ("X exists, it returns shape Y") are covered by the Assumption verification section above.
 
+### Dependents of a changed rule (required)
+
+When the plan changes how something is selected, filtered, detected, parsed, named or located (a lookup rule, a file path, a heading the code matches, a default), search for everything that relies on the old behavior **before** writing tasks:
+
+- Code, docs and **tests — including fixtures** that only passed because of the old rule (e.g. sample files whose content no longer qualifies).
+- Existing artifacts the change must merge with: an open `[Unreleased]` section in `CHANGELOG.md`, a README paragraph, a copy of the same logic elsewhere.
+
+Paste the exact search command and the hit count into **Context References**, and give every affected file a place in a task. **Why:** plans that list only the obvious files leave execution to discover the rest (one release broke 19 fixtures in 4 test files when the plan named 2).
+
+### Verification spike for platform claims (required)
+
+When a task depends on the platform, tool or runtime behaving a certain way that reading this codebase cannot prove — "a command can write file X", "this hook event fires on Y", "`${VAR}` is substituted here", "this CLI flag exists" — run the smallest command that proves it **before** specifying dependent tasks, in the same mode users run (never in a bypass-permissions or admin session that skips the check). Paste the command and its output into **Context References**.
+
+If it cannot be run while planning, make it **Task 0 (spike)** with a fallback, and let no other task depend on the claim until Task 0 passes. **Why:** a state file designed under a directory the platform protects survived planning untested and forced a redesign of 6+ tasks mid-execution.
+
 ## Phase 4: Design the Approach
 
 Based on research, define:
@@ -325,6 +340,8 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **N+1 query check:** For every task that writes database queries or API calls, verify: is any call inside a loop? Could it be batched? Are there duplicate existence checks before mutations?
 - [ ] **UX iteration budget declared:** If the feature touches UI per the Phase 4 heuristic, the plan includes `Expected UX iterations: N` (with N a positive integer ≥ 1) in Out of Scope or Notes for Executing Agent. If UI is NOT involved, the line is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
+- [ ] **Dependents listed:** If the plan changes a selection, detection, path or naming rule, Context References show the search command and hit count, and every dependent file (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) has a task
+- [ ] **Platform claims spiked:** Every task that relies on platform/tool behavior the codebase cannot prove has the proving command and output in Context References, or depends on a Task 0 spike with a fallback
 - [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.
 
 ## Phase 7: Save Draft and Enter Review Loop

@@ -95,9 +95,14 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 - Node.js built-ins only — never add external packages
 - All logic stays in a single file
 
-### Command files (commands/*.md)
+### Hooks (hooks/*.js)
+- A hook that runs an external command built from file paths uses `execFileSync` (argument array, no shell) and has a regression test with a hostile directory name (spaces, quotes, `$(…)`, `;`) — the 2.2 code review found a shell injection in `tsc-check`
+
+### Command and skill files (commands/*.md, skills/**/*.md)
 
 - Filename: `[kebab-case-name].md` — the plugin namespaces it as `/hopla:[name]`
+- Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the command or skill renders (verified in the 2.2 smokes)
+- Never make a command or skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
 
 ---
 
@@ -111,6 +116,8 @@ node --test tests/cli.test.js        # one file
 bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 ```
 
+**Plan fixtures must be real plans.** In `plans-parity`, `cli`, `session-prime` and `precompact-snapshot` tests, write plan files with the file's `PLAN_MD` constant (it has `## Implementation Tasks`), never `"x"`: the active-plan mtime fallback skips files without a task heading, so a placeholder fixture silently stops being a plan.
+
 Tests live in `tests/`:
 
 ```
@@ -119,6 +126,7 @@ tests/
 ├── plans-parity.test.js            cli.js copy == hooks/lib/plans.js (plans dir, pointer, active plan)
 ├── frontmatter.test.js             skill/command/agent frontmatter rules (forks, models, manual-only, arguments)
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
+├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
     ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)
@@ -177,6 +185,11 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
 3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh` on Node 20 and 24)
 4. Merge PR to `main`
 5. **Publishing is automatic.** `.github/workflows/publish.yml` runs on every push to `main`: if the `package.json` version is not on npm yet, it repeats the CI checks and runs `npm publish` (which runs `prepublishOnly`) with npm trusted publishing (OIDC, no stored token, provenance included); otherwise it ends green doing nothing. It only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo. Never rename `publish.yml`: npmjs.com trusts that exact filename. Manual fallback: `npm publish --otp=<code>` from `main`.
+   To confirm a release, poll the registry until it answers 200 (about a minute after the publish log shows `+ @hopla/claude-setup@<version>`; `npm view` may still report the previous `latest` before that), then check `latest`:
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://registry.npmjs.org/@hopla%2Fclaude-setup/<version>
+   npm view @hopla/claude-setup version --prefer-online
+   ```
 6. Plugin-channel users with auto-update enabled get the new version at next session start, automatically. Users without auto-update refresh via:
    ```
    /plugin marketplace update hopla-marketplace
@@ -185,6 +198,8 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
    /reload-plugins
    ```
    In commit messages and release notes, reference this canonical flow — **do not** repeat the old `cd … && git pull` dance.
+
+**Committing part of a file** (a file edited by more than one phase): stage hunks with context (`git diff -U3 <file>` → edit the patch → `git apply --cached`), never `--unidiff-zero`, which can drop hunks in the wrong place. Before committing, check the staged snapshot with `git checkout-index -a --prefix=<tmp>/` and run the tests there.
 
 ---
 
