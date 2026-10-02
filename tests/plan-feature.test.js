@@ -92,3 +92,9 @@ test("plan-feature: approve and decline paths are not observable headless; a hum
     assert.match(phase3, /approve and decline paths/i);
     assert.match(body, /ships unobserved/i);
 });
+
+test("plan-feature: dependents search covers hardcoded values and the existing description of the changed flow", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /hardcoded/i);
+    assert.match(phase3, /current wording/i);
+});

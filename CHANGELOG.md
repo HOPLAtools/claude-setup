@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.3.3] - 2026-10-02
+
+Process improvements from the 3.3.x system reviews. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **`/hopla:plan-feature`**: the dependents search also covers hardcoded values (a version string that the change makes wrong, a removed step or path) and the **current** wording of the flow being changed, not only names. In 3.3.0 a "since 3.0.0" notice and a test were missed this way, and in 3.3.1 a README row.
+
 ## [3.3.2] - 2026-10-02
 
 Fixes from the interactive check of `/hopla:execute` 3.3.1. No breaking changes.
