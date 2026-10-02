@@ -64,3 +64,14 @@ test("plan-feature: spikes check the positive side of a negative claim and run i
     assert.match(phase3, /real shape/i);
     assert.match(phase3, /already committed/i);
 });
+
+test("plan-feature: spikes of agents or workflows that write files check where they write", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /where they write/i);
+    assert.match(phase3, /absolute/i);
+});
+
+test("plan-feature: task Validate commands are task-scoped; the whole suite runs once at the end", () => {
+    assert.match(body, /task-scoped/i);
+    assert.match(body, /whole suite/i);
+});

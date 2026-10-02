@@ -107,6 +107,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 - Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the skill renders (`${CLAUDE_SKILL_DIR}` too) (verified in the 2.2 smokes)
 - Never write a placeholder in skill prose — a positional one (a `$` followed by a digit), the ARGUMENTS one, or a declared named argument — not even as an example: Claude Code substitutes them anywhere in the body when the skill renders. Describe them in words; write them out only where the skill means to show the value (`tests/frontmatter.test.js` lists those skills)
 - A skill that reads its own supporting files (`${CLAUDE_SKILL_DIR}/...`, outside the user's project) keeps `allowed-tools: Read` (plus what else it needs): the field does not restrict tools, but without it those reads need approval and are denied in headless runs
+- A skill that launches a Workflow passes the absolute project root (`git rev-parse --show-toplevel`) in `args`; every agent prompt `cd`s there and uses absolute paths, and verify stages check the files exist under that root — workflow agents may start in another directory
 - Never make a skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
 
 ---
@@ -122,6 +123,8 @@ bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 ```
 
 **Changes to the code-review skill are dogfooded:** before the PR, review the branch with the branch's own plugin. Load it from **another copy** (`git worktree add ../claude-setup-dogfood <branch>`) and run in this repo `claude -p --settings '{"enabledPlugins":{"hopla@hopla-marketplace":false}}' --plugin-dir ../claude-setup-dogfood "/hopla:code-review <branch>"`, or run interactively and approve the report write.
+
+**Workflow features in local tests:** the Workflow tool always asks for approval ("Review dynamic workflow before running"), so headless runs refuse it except in `bypassPermissions` — use bypass only to check the mechanics, and check the approve and decline paths interactively.
 
 **Protected paths in local tests:** Claude Code protects the directory loaded with `--plugin-dir` (it reloads and runs the plugin's code when a file there changes) and everything under `~/.claude/`. Writes there ask for approval in `default`/`acceptEdits` and are refused headless ("sensitive file"). So headless tests that write into this repo load the plugin from another copy, and temp test projects never live under `~/.claude/` (use the session scratchpad or `/private/tmp`).
 
