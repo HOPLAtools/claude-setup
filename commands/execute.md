@@ -187,7 +187,7 @@ After all tasks are complete, run **Levels 1–7** from `commands/guides/validat
 
 Use the exact commands from the plan's **Validation Checklist**. If not specified, read `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" to find the correct commands.
 
-Level 5 triggers the `code-review` skill (not a slash command). Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
+Level 5 triggers the `code-review` skill (not a slash command) and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If you delegate the review to the `hopla:code-reviewer` agent, it returns the report as its final message and cannot write files: save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 
 ## Step 6: Completion Report
 
@@ -210,7 +210,7 @@ First set `.agents/hopla-active-plan.json` to `status: "done"`, `step: null` (se
 - Level 2 Type Check:  ✅ / ❌
 - Level 3 Unit Tests:  ✅ [X passed] / ❌ [X failed]
 - Level 4 Integration: ✅ / ❌
-- Level 5 Code Review: ✅ [X issues found, all fixed] / ❌
+- Level 5 Code Review: ✅ `.agents/code-reviews/<plan-slug>.md` [X issues found, all fixed] / ❌ (no review file = ❌)
 - Level 6 File Drift:  ✅ [all files in plan] / ⚠️ [X unplanned files]
 - Level 7 Human:       🔍 See items below
 

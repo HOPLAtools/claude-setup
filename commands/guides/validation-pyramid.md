@@ -58,6 +58,8 @@ If not available, skip and note it in the report.
 
 Trigger the `code-review` skill on the changed files. This catches bugs that lint, types, and tests miss (security issues, logic errors, pattern violations).
 
+Save the review to a file, even when it finds nothing: `.agents/code-reviews/<plan-slug>.md` when executing a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else a descriptive name. If the `hopla:code-reviewer` agent did the review, it returns the report as its final message — save it yourself.
+
 If the review finds `critical` or `high` severity issues, **fix them before proceeding**.
 
 ## Level 6 — File Drift Check (post-execution only)
