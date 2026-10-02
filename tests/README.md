@@ -30,6 +30,7 @@ tests/
 ├── deprecations.test.js            deprecation banners + notifier entries
 ├── git-skill.test.js               git skill standing-approval guard
 ├── plan-feature.test.js            plan-feature research-rules guard
+├── review-plan.test.js             review-plan completeness-check guard
 ├── code-review.test.js             code-review file guard (execute, pyramid, skill, agents)
 └── hooks/
     ├── env-protect.test.js         table-driven: dotenv reads blocked, mentions/templates allowed

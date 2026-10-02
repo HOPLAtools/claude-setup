@@ -15,7 +15,7 @@ const DEPRECATED_SKILLS = {
     "parallel-dispatch": WORKFLOWS,
     "subagent-execution": WORKFLOWS,
     "refactoring": "the native /simplify",
-    "code-review-fix": "the native /code-review --fix",
+    "code-review-fix": "/hopla:code-review --fix",
 };
 const DEPRECATED_AGENTS = {
     "code-reviewer": "the code-review skill",

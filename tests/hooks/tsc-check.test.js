@@ -389,3 +389,45 @@ test("tsc-check: manual run without payload checks <cwd>/tsconfig.json immediate
     assert.match(res.stderr, /TS2322/);
     assert.equal(res.stdout, "");
 }));
+
+// --- per-session record hardening (3.1) -------------------------------------
+// Each case runs with its own TMPDIR so the record lands in a known, clean dir.
+function postIn(tmp, sid, file) {
+    const res = spawnSync("node", [HOOK], {
+        input: JSON.stringify({ session_id: sid, hook_event_name: "PostToolUse", cwd: tmp,
+            tool_name: "Edit", tool_input: { file_path: file } }),
+        encoding: "utf8", cwd: tmp, env: { ...process.env, TMPDIR: tmp, TMP: tmp, TEMP: tmp },
+    });
+    return res.status;
+}
+function withRecordTmp(fn) {
+    const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "hopla-tsc-hard-")));
+    try {
+        return fn(tmp);
+    } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+    }
+}
+
+test("tsc-check record: an unsafe session id stays inside TMPDIR (a.b -> a_b)", () => withRecordTmp((tmp) => {
+    assert.equal(postIn(tmp, "a.b", path.join(tmp, "x.ts")), 0);
+    assert.ok(fs.existsSync(path.join(tmp, "hopla-tsc-a_b.json")));
+    assert.equal(postIn(tmp, "../escape", path.join(tmp, "x.ts")), 0);
+    assert.ok(fs.existsSync(path.join(tmp, "hopla-tsc-___escape.json")));
+}));
+
+test("tsc-check record: a symlink planted at the record path is replaced, never written through", () => withRecordTmp((tmp) => {
+    const victim = path.join(tmp, "victim.txt");
+    fs.writeFileSync(victim, "keep me");
+    fs.symlinkSync(victim, path.join(tmp, "hopla-tsc-s1.json"));
+    assert.equal(postIn(tmp, "s1", path.join(tmp, "x.ts")), 0);
+    assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
+    assert.ok(!fs.lstatSync(path.join(tmp, "hopla-tsc-s1.json")).isSymbolicLink());
+}));
+
+test("tsc-check record: written with mode 0600, no temp file left behind", () => withRecordTmp((tmp) => {
+    assert.equal(postIn(tmp, "s2", path.join(tmp, "x.ts")), 0);
+    const mode = fs.statSync(path.join(tmp, "hopla-tsc-s2.json")).mode & 0o777;
+    assert.equal(mode, 0o600, mode.toString(8));
+    assert.deepEqual(fs.readdirSync(tmp).filter((f) => f.endsWith(".tmp")), []);
+}));

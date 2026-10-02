@@ -245,7 +245,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `git` | "commit this", "create a PR", "push changes" |
 | `worktree` | "use a worktree", "isolated branch", "parallel feature work" |
 | `prime` | "orient yourself", "catch me up", "what is this project" — runs as a forked subagent on Haiku and returns a summary |
-| `code-review` | "review the code", "code review", "check these changes" |
+| `code-review` | "review the code", "code review", "check these changes" — wraps the native `/code-review`, adds a checklist pass (HOPLA + `.agents/guides/review-checklist.md`), keeps findings with confidence ≥ 80 and always saves the report. `/hopla:code-review [effort] [--fix] [target]` (default `medium`; pass a branch to include committed work) |
 | `execution-report` | "generate the report", "document what was done" |
 | `verify` | "verify it works", "make sure it's correct" |
 | `brainstorm` | "let's brainstorm", "explore approaches" |
@@ -264,7 +264,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
 | `subagent-execution` skill | Native Workflows (say "use a workflow") |
 | `refactoring` skill | Native `/simplify` |
-| `code-review-fix` skill | Native `/code-review --fix` |
+| `code-review-fix` skill | `/hopla:code-review --fix` |
 | `code-reviewer` agent | The `code-review` skill |
 | `system-reviewer` agent | `/hopla:system-review` |
 
@@ -292,7 +292,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `codebase-researcher` | Fast codebase explorer (read-only). Systematic search, structured findings |
 | `system-reviewer` | Deprecated in 3.0.0 — use `/hopla:system-review` |
 
-**Reference guides** — skills you load with `/hopla:guides:<name>` (Claude also loads them when relevant):
+**Reference guides** — manual-only skills you load with `/hopla:guides:<name>` (since 3.1 Claude does not load them on its own, so they stay out of the skill-listing budget; HOPLA skills read the ones they need by path):
 
 | Guide | What it covers |
 |---|---|
@@ -328,7 +328,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 /hopla:execute            → implement plan with validation
 /hopla:validate           → lint → types → tests → integration
 "review the code"         → code-review skill runs automatically
-"fix the findings"        → fix the issues (or the native /code-review --fix)
+"fix the findings"        → fix the issues (or /hopla:code-review --fix)
 "generate the report"     → execution-report skill documents what was built
 /hopla:archive            → fold delta-specs into canonical specs, move plan to done/, drop ephemeral code-review (opt-in — when delta-specs were declared)
 "commit this"             → git skill handles commits and PRs

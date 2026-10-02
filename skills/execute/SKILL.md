@@ -188,7 +188,7 @@ After all tasks are complete, run **Levels 1–7** from `/hopla:guides:validatio
 
 Use the exact commands from the plan's **Validation Checklist**. If not specified, read `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" to find the correct commands.
 
-Level 5 triggers the `code-review` skill (not a slash command) and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If a subagent does the review, it returns the report as its final message (read-only agents cannot write files): save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
+Level 5 triggers the `code-review` skill (not a slash command) — when phases were already committed, pass the feature branch as its target so the committed work is reviewed too — and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If a subagent does the review, it returns the report as its final message (read-only agents cannot write files): save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 
 ## Step 6: Completion Report
 
@@ -226,6 +226,6 @@ First set `.agents/hopla-active-plan.json` to `status: "done"`, `step: null` (se
 
 After the summary, suggest:
 1. Run the `code-review` skill for a standalone review of the changes (recommended — a fresh review catches issues the executing agent may have missed)
-2. If issues are found, fix them (or run the native `/code-review --fix`)
+2. If issues are found, fix them (or run `/hopla:code-review --fix`)
 3. Run the `execution-report` skill to document the implementation
 4. Run the `git` skill (say "commit") to commit the changes

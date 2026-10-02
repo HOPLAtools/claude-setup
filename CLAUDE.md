@@ -4,7 +4,7 @@
 
 - `global-rules.md` is a **template** installed to users' `~/.claude/CLAUDE.md` — it is NOT this project's rules
 - Since 3.0 everything users invoke is a skill: `skills/<name>/SKILL.md` (`/hopla:<name>`), Markdown files, not scripts. There is no `commands/` directory
-- Guides are flat skills `skills/guides-<name>/SKILL.md` with `name: guides:<name>` (invoked as `/hopla:guides:<name>`). Never nest a skill (`skills/<a>/<b>/SKILL.md`): Claude Code does not load it
+- Guides are flat skills `skills/guides-<name>/SKILL.md` with `name: guides:<name>` (invoked as `/hopla:guides:<name>`) and `disable-model-invocation: true` (manual-only since 3.1). Never nest a skill (`skills/<a>/<b>/SKILL.md`): Claude Code does not load it
 - `skills/<name>/SKILL.md` is each skill's entry point. A skill may include extra files (e.g. `commit.md`, `pr.md`, `flow-detection.md` in `skills/git/`) that the `SKILL.md` references as workflows or shared libraries
 - Shared references across skills: a file inside one skill can be cited by another (e.g. `skills/worktree/SKILL.md` references `../git/flow-detection.md`). Centralize Git Flow, branching, and similar logic in one place and reference it — do not duplicate
 - `agents/*.md` are specialized subagent definitions
@@ -133,6 +133,7 @@ tests/
 ├── deprecations.test.js            banners, notifier entries, nothing recommends a deprecated item
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
 ├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
+├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/

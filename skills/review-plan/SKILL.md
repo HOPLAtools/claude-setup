@@ -42,7 +42,16 @@ Do NOT reproduce the full plan. Instead, present a structured summary:
 - [ ] [criterion 2]
 
 **⚠️ Watch out for:**
-[List any gotchas, risks, or dependencies flagged in the plan. If none, say "Nothing flagged."]
+[List any gotchas, risks, or dependencies flagged in the plan, plus the gaps found by the completeness check below — one line per gap. If none, say "Nothing flagged."]
+
+### Completeness check
+
+Plans that missed one of these caused mid-execution surprises four times. Check the plan for each and add one line per gap to "Watch out for" (nothing when the plan covers it or it does not apply):
+
+- **Dependents:** the plan changes a rule, path or name but Context References show no search for its dependents — including tests, fixtures and the **old names** of renamed or moved files.
+- **Platform claims:** a task relies on how the platform, a tool or a runtime behaves, with no proving command in Context References and no **Task 0 spike** with a fallback.
+- **Tests per commit:** the plan has `## Phase Boundaries` but does not say which test files land in each commit, or a commit would carry a RED test.
+- **Changelog:** `CHANGELOG.md` has an open `[Unreleased]` section and the plan's release task does not fold it in.
 
 ## Step 3: Ask for Approval
 

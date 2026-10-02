@@ -1,6 +1,7 @@
 ---
 name: guides:validation-pyramid
 description: Shared reference for the full validation sequence (lint, types, tests, code review, manual smoke). Used by execute, validate, and verify.
+disable-model-invocation: true
 ---
 
 # Validation Pyramid
@@ -57,7 +58,7 @@ If not available, skip and note it in the report.
 
 ## Level 5 — Code Review
 
-Trigger the `code-review` skill on the changed files. This catches bugs that lint, types, and tests miss (security issues, logic errors, pattern violations).
+Trigger the `code-review` skill on the changed files. If part of the work is already committed (phased plans), pass the branch as the review target so it is included. This catches bugs that lint, types, and tests miss (security issues, logic errors, pattern violations).
 
 Save the review to a file, even when it finds nothing: `.agents/code-reviews/<plan-slug>.md` when executing a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else a descriptive name. If a subagent did the review, it returns the report as its final message (read-only agents cannot write files) — save it yourself.
 

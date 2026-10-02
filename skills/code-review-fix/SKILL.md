@@ -4,7 +4,7 @@ description: Fix issues found in a code review report
 argument-hint: "<review-file-or-description> [scope]"
 ---
 
-> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use the native `/code-review --fix` instead.
+> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use `/hopla:code-review --fix` instead.
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 

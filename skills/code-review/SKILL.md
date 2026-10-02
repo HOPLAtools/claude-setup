@@ -2,76 +2,78 @@
 name: code-review
 description: "Technical code review on changed files, focused on finding real bugs and issues."
 when_to_use: "Use when the user says 'review code', 'review my code', 'review the code', 'code review', 'check my code', 'check these changes', 'review changes', 'look for bugs', 'audit code' or 'audit my code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
+argument-hint: "[low|medium|high|max] [--fix] [target]"
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
-Perform a technical code review focused on finding real bugs and issues.
+Review the changed code by wrapping Claude Code's native `/code-review`, add a checklist pass it does not do, keep only confident findings, and always save the report.
+
+Arguments (`$ARGUMENTS`, all optional, any order): an effort level (`low`, `medium`, `high`, `max`), `--fix`, and a **target** — a branch, PR number or path — that the native review reviews instead of the uncommitted diff. Without a target only uncommitted changes are reviewed, so after work was already committed (e.g. a phased plan) pass the branch, e.g. `/hopla:code-review feature/x`.
 
 ## Step 1: Load Context
 
-Read `CLAUDE.md` or `AGENTS.md` to understand project standards and patterns.
+- Read `AGENTS.md` (or `CLAUDE.md`) for project standards.
+- Check whether `.agents/guides/review-checklist.md` exists (the project checklist). If it does, read it.
+- Effort: the level given in the arguments, else **medium**. If the project checklist exists, **never `low`** (at `low` the native review reported nothing in testing): use `medium` instead and say so.
 
-If `.agents/guides/` exists, read any guides relevant to the files being reviewed (e.g. `@.agents/guides/api-guide.md` when reviewing API changes). These guides define the expected patterns for specific task types.
+## Step 2: Native Review
 
-If `.agents/guides/review-checklist.md` exists, read it and apply the project-specific checks it defines in addition to the standard checks. Project-specific checklists cover framework gotchas and domain anti-patterns unique to the project (e.g., grid stale closures, route ordering).
+Invoke the **Skill tool** with skill `code-review` — the built-in native review; the bare name resolves to it — and args `<effort>`, plus `--fix` when it was requested and the target when one was given. **Never invoke `hopla:code-review`** (that is this skill: it would recurse).
 
-## Step 2: Identify Changed Files
+Let it finish. It reports its findings through `ReportFindings` (file, line, summary, failure scenario; with `--fix` it also applies its fixes). Keep that list: these are the `source: native` findings.
 
-```bash
-git diff --stat HEAD
-git diff HEAD
-git ls-files --others --exclude-standard
-```
+If the Skill tool is unavailable or the native review fails, say so in the report and continue with Step 3 on the full diff (`git diff HEAD`, plus untracked files from `git ls-files --others --exclude-standard`).
 
-Read each changed or new file in its entirety — not just the diff.
+## Step 3: Checklist Pass
 
-## Step 3: Analyze for Issues
+The native review does not read project checklists. Review the same changed files against:
 
-Apply the full checklist in `checklist.md` (same directory). It covers:
+1. `${CLAUDE_SKILL_DIR}/checklist.md` (HOPLA's checklist, next to this skill) — every category.
+2. `.agents/guides/review-checklist.md`, if it exists.
 
-1. Logic errors (stale closures, unhandled rejections, missing deps)
-2. Security (secrets, injection, input validation, multi-tenant auth)
-3. Performance (N+1, re-renders, memory leaks)
-4. Code quality (DRY, naming, types)
-5. Pattern adherence (project conventions)
-6. Route & middleware ordering
+Read each changed file in full, not just the diff. Report only issues the native review did not already report: same file, line within ±3 and the same problem is a **duplicate** — drop it. These are the `source: checklist` findings.
 
-Read `checklist.md` before reviewing so you apply every category.
+## Step 4: Severity and Confidence
 
-## Step 4: Verify Issues Are Real
+For **every** finding (native and checklist):
 
-Before reporting, confirm each issue is legitimate:
-- Run relevant tests if applicable
-- Check if the pattern is intentional based on context
+- **Severity:** `critical` = security (secrets, injection, auth) or data loss · `high` = breaks behavior · `medium` = edge case or fragile code · `low` = minor.
+- **Confidence (0–100):** 0 = false positive · 25 = might be real · 50 = real but minor or a nit · 75 = verified and important · 100 = certain, with evidence (a test, a trace, the exact input that fails).
 
-## Step 5: Output Report
+Before scoring, verify: run the relevant test or trace the input when you can, and check whether the pattern is intentional.
+
+Keep findings with confidence **≥ 80**. The rest go to a "Dropped (low confidence)" section, one line each — never silently discarded.
+
+## Step 5: Fixes (only with `--fix`)
+
+The native review already applied its fixes in Step 2. Fix the kept `source: checklist` findings yourself, then mark every kept finding `outcome: fixed` or `outcome: skipped` (with a short reason).
+
+## Step 6: Save the Report
 
 Save to `.agents/code-reviews/<plan-slug>.md` when the changes implement a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else `.agents/code-reviews/[descriptive-name].md`. Save it even when no issues are found — the file is the evidence that the review ran.
 
-**Format for each issue:**
+Header: effort used, whether the native review ran, whether a project checklist was applied, counts (kept / dropped). Then each kept finding, most severe first:
 
 ```
 severity: critical | high | medium | low
+confidence: 0-100
+source: native | checklist
 file: path/to/file.ts
 line: 42
 issue: [one-line description]
-detail: [why this is a problem]
+detail: [why this is a problem, with evidence]
 suggestion: [how to fix it]
+outcome: fixed | skipped — [reason]   (only with --fix)
 ```
 
-If no issues found, the file says: "Code review passed. No technical issues detected."
+Then `## Dropped (low confidence)` with one line per dropped finding (`file:line — issue (confidence N)`).
 
-**Rules:**
-
-- Be specific — line numbers, not vague complaints
-- Focus on real bugs, not style preferences (linting handles that)
-- Flag security issues as `critical`
-- Suggest fixes, don't just identify problems
+If nothing is kept, the file says: "Code review passed. No technical issues detected." (and still lists any dropped findings).
 
 ## Next Step
 
 After the review, suggest:
 
-> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, fix them (or run the native `/code-review --fix`, which reviews again and applies fixes). If the review passed clean, proceed to the `execution-report` skill."
+> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, fix them or run `/hopla:code-review --fix` (it reviews again and applies the fixes). If the review passed clean, proceed to the `execution-report` skill."

@@ -82,11 +82,15 @@ function readRecord(file) {
     }
 }
 
-// Atomic replace so a concurrent reader never sees a half-written file.
+// Atomic replace so a concurrent reader never sees a half-written file. The
+// temp file is created exclusively ("wx": never written through a symlink
+// planted at that predictable name) with mode 0600; rename replaces a symlink at
+// the record path itself instead of following it.
 function writeRecord(file, record) {
     try {
         const tmp = `${file}.${process.pid}.tmp`;
-        fs.writeFileSync(tmp, JSON.stringify(record));
+        fs.rmSync(tmp, { force: true });
+        fs.writeFileSync(tmp, JSON.stringify(record), { flag: "wx", mode: 0o600 });
         fs.renameSync(tmp, file);
     } catch {
         // best-effort

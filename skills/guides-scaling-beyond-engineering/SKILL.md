@@ -1,6 +1,7 @@
 ---
 name: guides:scaling-beyond-engineering
 description: Guide for applying agentic coding workflows beyond software engineering — operations, content, research, customer support.
+disable-model-invocation: true
 ---
 
 # Scaling Agentic Coding Beyond Engineering
