@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Fixed
+- The `review-checklist` guide no longer reads "The the `code-review` skill command" / "A the `execution-report` skill".
+
 ### Changed
 - **`/hopla:plan-feature`** (from the 3.2.0 system review): spikes of agents or workflows that write files check where they write, not only that they write; each task's Validate is task-scoped and the whole suite runs once at the end (independent tasks may run in parallel).
 
