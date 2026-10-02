@@ -16,7 +16,10 @@ const DEPRECATED_SKILLS = {
     "subagent-execution": "/hopla:execute (it runs independent tasks as a workflow)",
     "refactoring": "the native /simplify",
     "code-review-fix": "/hopla:code-review --fix",
+    "migration": "/hopla:plan-feature (it plans migrations with phases and rollback)",
 };
+// Release that deprecated an item, when it is not 3.0.0.
+const SINCE = { "migration": "3.3.0" };
 const DEPRECATED_AGENTS = {
     "code-reviewer": "the code-review skill",
     "system-reviewer": "/hopla:system-review",
@@ -78,7 +81,7 @@ function alreadyShown(sessionId, item) {
 const payload = readPayload();
 const hit = payload && detect(payload);
 if (hit && !alreadyShown(payload.session_id, hit.item)) {
-    const notice = `HOPLA: ${hit.item} is deprecated since 3.0.0 and will be removed in 4.0.0. Use ${hit.replacement} instead.`;
+    const notice = `HOPLA: ${hit.item} is deprecated since ${SINCE[hit.item] || "3.0.0"} and will be removed in 4.0.0. Use ${hit.replacement} instead.`;
     process.stdout.write(JSON.stringify({
         systemMessage: notice,
         hookSpecificOutput: { hookEventName: payload.hook_event_name, additionalContext: notice },

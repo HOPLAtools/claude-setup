@@ -64,7 +64,7 @@ jobs:
 ```
 
 ## Prerequisites
-- HOPLA commands installed in the repo (.claude/commands/)
+- The HOPLA plugin available to the runner (its commands are skills delivered by the plugin)
 - AGENTS.md (or CLAUDE.md) configured for the project
 - GitHub Actions enabled
 - Claude Code API key in GitHub Secrets

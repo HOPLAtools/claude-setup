@@ -169,6 +169,27 @@ Based on research, define:
   - **Sentinel check:** if the planner wrote sentences in the plan that describe behavior using nouns or adjectives that are NOT in the user's verbatim request, those are inferred meanings — surface them as Domain Assumptions.
   - When uncertain, err on inclusion: a `Domain Assumptions` subsection with 1-2 bullets is cheaper than a misaligned implementation surfaced during manual smoke.
 
+### Migration plans
+
+When the request is a migration — migrate, upgrade, switch from X to Y, a major version bump, or a framework, runtime, data-store or API-version change — the plan is a **migration plan**. **Iron rule:** every phase needs a rollback describable in one sentence before the first line changes; if you cannot write it, the plan is not ready.
+
+1. **Classify** (ask one question at a time): type (dependency upgrade, framework switch, runtime switch, data store, API version), scope (one module, one service, the whole codebase), downtime tolerance (blue/green, zero-downtime dual-run, acceptable window), deadline driver (deprecation, security, performance, opportunistic).
+2. **Inventory** with counts, pasted into Context References: imports/usages of the old API (`grep -rn` / `rg`), public contracts that depend on current behavior, build and deploy steps tied to the current version, tests that assume the old behavior, docs that mention it — e.g. "47 import sites across 12 files".
+3. **Upgrade notes:** read the target's official migration guide or changelog end to end — breaking changes, deprecations, peer-dependency minimums, data-shape changes. No guide → higher risk, budget more exploration.
+4. **Strategy** — pick one and write its trade-off in the plan:
+
+   | Strategy | When |
+   |---|---|
+   | Big bang | small codebase, low downstream coupling, a clean cut is possible |
+   | Incremental with adapter | many call sites: a thin wrapper presents the old API on top of the new; migrate call sites one by one |
+   | Dual-run (strangler fig) | high risk or zero downtime: run old and new side by side, shift traffic gradually |
+   | Branch by abstraction | internal switch behind a stable interface |
+
+5. **Phases** (`## Phase Boundaries`): each phase has its **Rollback** (revert commit, feature flag off, dual-write) and its **Validation** (suite green, flags covered, canary metrics); data migrations are idempotent and resumable; each phase lands as its own PR. Watch for mixed versions (a module importing both old and new APIs).
+6. **Cleanup phase** last: remove the shim, the old dependency and the flag, update docs to the new path only — a migration left with a permanent shim is worse than none.
+
+Rules: never right before a public release; keep every rollback working — if one stops working, pause; if the migration runs past 2× its estimate, stop and reassess the scope. Add the `## Migration` section to the plan (template below).
+
 ## Phase 5: Generate the Plan
 
 Write the full plan in memory using the structure below, then save it as a draft (do NOT output the plan content in the chat).
@@ -237,6 +258,13 @@ Each bullet is a user-confirmable assumption the planner made about meaning, beh
 
 ### REMOVED Requirements
 - REQ-<DOMAIN>-<NNN>: <short title> (deprecated — reason)
+
+## Migration (migration plans only — omit otherwise)
+- **Type / scope / downtime / driver:** [from the classification]
+- **Strategy:** [big bang | incremental with adapter | dual-run | branch by abstraction] — [trade-off]
+- **Inventory:** [counts per surface, with the search commands]
+- **Upgrade notes:** [breaking changes, deprecations, peer minimums, data-shape changes]
+- **Rollback per phase** and **validation per phase:** listed under `## Phase Boundaries`; the last phase is the cleanup phase
 
 ## Implementation Tasks
 
@@ -352,6 +380,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **UX iteration budget declared:** If the feature touches UI per the Phase 4 heuristic, the plan includes `Expected UX iterations: N` (with N a positive integer ≥ 1) in Out of Scope or Notes for Executing Agent. If UI is NOT involved, the line is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Dependents listed:** If the plan changes a selection, detection, path or naming rule, Context References show the search command and hit count, and every dependent file (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) has a task
+- [ ] **Migration complete (migration plans):** `## Migration` filled, every phase has a rollback and a validation, a cleanup phase is last
 - [ ] **Tests per commit:** If the plan has `## Phase Boundaries`, each commit lists the test files it includes, and none of them is RED at that commit
 - [ ] **Platform claims spiked:** Every task that relies on platform/tool behavior the codebase cannot prove has the proving command and output in Context References, or depends on a Task 0 spike with a fallback
 - [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.

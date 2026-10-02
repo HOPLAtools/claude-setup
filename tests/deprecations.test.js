@@ -13,6 +13,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 const DEPRECATED = {
     "skills/parallel-dispatch/SKILL.md": /Workflows/,
+    "skills/migration/SKILL.md": /\/hopla:plan-feature/,
     "skills/subagent-execution/SKILL.md": /\/hopla:execute/,
     "skills/refactoring/SKILL.md": /\/simplify/,
     "skills/code-review-fix/SKILL.md": /\/hopla:code-review --fix/,
@@ -23,7 +24,7 @@ const DEPRECATED = {
 test("deprecations: each deprecated item opens with a banner naming its replacement", () => {
     for (const [file, replacement] of Object.entries(DEPRECATED)) {
         const first = bodyOf(path.join(ROOT, file)).trim().split("\n")[0];
-        assert.match(first, /^> ⚠️ \*\*Deprecated in 3\.0\.0, removed in 4\.0\.0\.\*\*/, file);
+        assert.match(first, /^> ⚠️ \*\*Deprecated in 3\.\d+\.\d+, removed in 4\.0\.0\.\*\*/, file);
         assert.match(first, replacement, `${file}: ${first}`);
     }
 });

@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: Initialize a new project with AGENTS.md (+ CLAUDE.md alias) and .agents/ structure
+description: Initialize a project with AGENTS.md (+ CLAUDE.md alias) and the .agents/ structure — via the native /init for existing code
 disable-model-invocation: true
 ---
 
@@ -10,171 +10,113 @@ Set up the Layer 1 planning foundation for this project: a project-specific `AGE
 
 > Layer 1 = Global Rules (~/.claude/CLAUDE.md) + Project Rules (AGENTS.md, with CLAUDE.md alias) + PRD
 
-> **Why AGENTS.md as the canonical file:** AGENTS.md is the tool-agnostic convention adopted by most AI coding assistants (Cursor, Copilot, Continue, Codex, etc.). Keeping a thin CLAUDE.md alias preserves Claude Code's auto-discovery without duplicating content. If the project already has an AGENTS.md or CLAUDE.md, treat that as the canonical file and only create the missing alias.
+> **Why AGENTS.md as the canonical file:** AGENTS.md is the tool-agnostic convention read by most AI coding assistants (Cursor, Copilot, Codex, etc.). A thin CLAUDE.md alias keeps Claude Code's auto-discovery without duplicating content.
 
-## Step 1: Read Existing Context
+**Never overwrite** an existing `AGENTS.md` or `CLAUDE.md` without the user's approval — show what would change and ask first.
+
+## Step 1: Read Existing Context and Pick the Path
 
 Before asking anything, check what already exists:
-- Any existing `AGENTS.md` or `CLAUDE.md` at project root (AGENTS.md takes precedence as canonical; CLAUDE.md without AGENTS.md is treated as canonical until migrated)
-- `README.md` — extract stack and project overview
-- `package.json`, `pyproject.toml`, or equivalent — extract stack and scripts
-- Entry point files (`main.py`, `src/main.ts`, `app.py`, etc.)
+- `AGENTS.md` and `CLAUDE.md` at the project root (AGENTS.md is canonical when both exist; a CLAUDE.md that only contains `@AGENTS.md` is the alias)
+- `README.md`, `package.json` / `pyproject.toml` / equivalent, entry points, `PRD.md` or `PRD.draft.md`
+- `git ls-files | head -50` — is there real source code?
 
-If an `AGENTS.md` or `CLAUDE.md` already exists at the project root, tell the user and ask if they want to update it or start fresh. If only `CLAUDE.md` exists (legacy layout), offer to migrate: rename to `AGENTS.md` and create a thin `CLAUDE.md` alias.
+Pick one path and tell the user which one and why:
+- **Existing code** (source files beyond a README) → **Path A** (Step 2).
+- **No code yet** (empty repo, only a README or a PRD) → **Path B** (Step 3).
 
-## Step 2: Understand the Product
+If rules files already exist, say so before continuing: Path A shows `/init`'s suggestions or diff for them and asks; nothing is replaced without approval.
 
-Check if a `PRD.md` or `PRD.draft.md` exists in the project root.
+## Step 2 (Path A): Existing Code — Native `/init`
 
-### Path A — PRD exists (recommended flow)
+Claude Code's native `/init` analyzes the codebase (commands, architecture, conventions) better than a template. Use it, then move its result to `AGENTS.md`.
 
-If a PRD is found, read it and extract:
-- Product name and description
-- Core features and capabilities
-- Target users and usage patterns
-- Technology preferences or constraints mentioned
-- External integrations or services
+1. **Remember the current state.** Read the existing `AGENTS.md` and `CLAUDE.md` (if any) and keep their exact content, so you can show a diff and restore them.
+2. **Run `/init`.** Invoke the Skill tool with skill `init` (the native command). Let it finish. It writes or updates `CLAUDE.md` — never `AGENTS.md`.
+3. **Classify the result:**
+   - **No rules file existed** → `/init` created `CLAUDE.md`. Move its content **into `AGENTS.md`**: keep the sections, change the title to `# [Project Name] — Development Rules`. Then replace `CLAUDE.md` with the alias (Step 4.1). Never leave two rules files with the same content.
+   - **Rules files existed and `/init` changed nothing** (with an `AGENTS.md` and the alias it only proposes improvements) → show its **suggestions** to the user and ask which to apply to `AGENTS.md`; apply only the approved ones.
+   - **Rules files existed and `/init` edited `CLAUDE.md`** → show the diff against the content you kept and ask for approval. Approved → move the new content into `AGENTS.md` (merge with the existing one, never drop sections) and restore the alias. Declined → restore the original files exactly.
+   - **Only a legacy `CLAUDE.md` existed (no `AGENTS.md`)** → offer to migrate: its content becomes `AGENTS.md`, `CLAUDE.md` becomes the alias. Ask first.
+4. If `/init` is unavailable or fails, say so and write a short `AGENTS.md` yourself from what Step 1 found (template in Step 3.3), filling the commands from the manifest scripts.
 
-Tell the user:
-> "I found the PRD for [product name]. I'll use it to recommend the right stack for this project."
+Then continue with **Step 4**.
 
-Then skip directly to **Step 3** (Recommend Stack).
+## Step 3 (Path B): No Code Yet — PRD and Stack
 
-### Path B — No PRD found
+### 3.1 Understand the product
 
-Ask the user:
-> "I don't see a PRD yet. Tell me about the project — what are you building? What does it do, who is it for, and what are the main things a user can do with it?"
+If a PRD exists, read it and extract: product name and description, core features, target users, technology constraints, external integrations. Tell the user: "I found the PRD for [product name]. I'll use it to recommend the stack."
 
-Wait for the answer. If the description is too short or vague, ask **product-focused** follow-up questions like:
-- "Who uses this — is it internal for your team, or for external customers?"
-- "What's the main thing a user does when they open the app?"
-- "Does it work with lists or tables of data? Like orders, products, users..."
-- "Do users need to log in? Can anyone sign up, or is it invite-only?"
-- "Does it need to talk to any external services or APIs?"
-- "Is there anything that runs in the background — imports, syncs, notifications?"
+If there is no PRD, ask:
+> "I don't see a PRD yet. Tell me about the project — what are you building, who is it for, and what are the main things a user can do with it?"
 
-**Do NOT ask technical questions.** The user describes the product; you infer the technical needs. For example:
-- "dashboard with a list of orders" → needs AG Grid, backend API
-- "users log in with Google" → needs Firebase Auth + JOSE
-- "imports a CSV and processes it in the background" → needs Durable Objects
-- "simple landing page with a contact form" → frontend only, no backend needed
-- "shows charts and trends over time" → needs Recharts
+If the answer is vague, ask **product-focused** follow-ups one at a time (internal or external users? lists or tables of data? login? external services? background work?). **Do not ask technical questions** — infer the needs: "dashboard with a list of orders" → AG Grid + backend API; "users log in with Google" → Firebase Auth + JOSE; "imports a CSV in the background" → Durable Objects; "landing page with a contact form" → frontend only; "charts over time" → Recharts.
 
-Then proceed to **Step 3**.
+### 3.2 Recommend the stack
 
-## Step 3: Recommend Stack
-
-Based on the PRD or the user's description, evaluate against the **Hopla Default Stack** and present a recommendation.
-
-### Hopla Default Stack (baseline)
+Evaluate against the **Hopla Default Stack**:
 
 ```
-Frontend:
-- Language:        TypeScript (strict: false)
-- UI Framework:    React 19 + React Router 7
-- Bundler:         Vite
-- Styling:         Tailwind CSS 4 + Shadcn UI
-- Data Tables:     AG Grid Community
-- Forms:           React Hook Form + Zod
-- Icons:           Lucide React
-- Testing:         Vitest
-- Linting:         ESLint
-- Formatting:      Prettier
+Frontend:  TypeScript (strict: false) · React 19 + React Router 7 · Vite · Tailwind CSS 4 + Shadcn UI
+           AG Grid Community · React Hook Form + Zod · Lucide React · Vitest · ESLint · Prettier
+Backend:   Cloudflare Workers · Hono · D1 (SQLite) · KV · Durable Objects (if needed)
+           Firebase (Google Sign-In) + JOSE (if needed)
+Package manager: npm      Path alias: @/* -> ./src/*
 
-Backend:
-- Runtime:         Cloudflare Workers
-- Routing:         Hono
-- Database:        Cloudflare D1 (SQLite)
-- Cache:           Cloudflare KV
-- Stateful Logic:  Cloudflare Durable Objects (if needed)
-- Auth:            Firebase (Google Sign-In) + JOSE (if needed)
-
-Package manager:   npm
-Path alias:        @/* -> ./src/*
-
-Architecture:
 src/
-├── components/        <- shared UI components
-│   ├── common/        <- generic reusable components
-│   └── ui/            <- Shadcn primitives (do not edit)
-├── modules/           <- self-contained feature modules
-│   └── [feature]/     <- components, hooks, view per feature
-├── hooks/             <- shared hooks
-├── lib/               <- utilities and helpers
-├── types/             <- shared TypeScript types
-├── layouts/           <- sidebar, topbar, app shell
-├── pages/             <- page-level components
-└── main.tsx           <- entry point
-worker/
-├── src/
-│   ├── index.ts       <- worker entry point, route registration
-│   ├── routes/        <- API route handlers (one file per domain)
-│   ├── lib/           <- backend utilities, auth, business logic
-│   └── types/         <- backend type definitions
+├── components/   <- shared UI (common/ generic, ui/ Shadcn primitives — do not edit)
+├── modules/      <- self-contained feature modules (components, hooks, view)
+├── hooks/  lib/  types/  layouts/  pages/
+└── main.tsx
+worker/src/
+├── index.ts      <- worker entry, route registration
+├── routes/       <- API route handlers (one file per domain)
+├── lib/  types/
 ```
 
-### How to present the recommendation
+- **Default covers it** → "Based on [the PRD / what you described], the Hopla default stack covers this project: [stack]. Does this look good?"
+- **Needs adjustments** → list additions/removals with the reason (no tables → drop AG Grid; no auth → drop Firebase + JOSE; no backend → drop `worker/`; real-time → Durable Objects; uploads → R2; charts → Recharts; i18n → i18next; libraries the user named).
+- **Fundamentally different** (Python backend, mobile app, CLI tool) → ask one topic at a time, waiting for each answer: stack and versions, architecture and naming, code style, testing, development commands.
 
-**If the default stack covers everything:**
-> "Based on [the PRD / what you described], the Hopla default stack covers this project well. Here's what we'll use: [show stack]. Does this look good, or do you want to adjust anything?"
+### 3.3 Write a short `AGENTS.md`
 
-**If the default stack needs additions or removals:**
-> "The default stack covers most of it, but based on your needs I'd recommend these changes: [list additions/removals with reasoning]. Here's the adjusted stack: [show modified stack]. Does this look good?"
+Ask only what is not known yet: project name and description. Then draft a short `AGENTS.md` (well under 100 lines — the code does not exist yet; rules grow with it):
 
-Examples of adjustments:
-- Project doesn't need data tables → remove AG Grid
-- Project doesn't need auth → remove Firebase + JOSE
-- Project doesn't need a backend → remove worker/, Hono, D1, KV, DO
-- Project needs real-time/WebSockets → add Durable Objects
-- Project needs file uploads → note Cloudflare R2
-- Project needs charts → add Recharts
-- Project needs i18n → add i18next + react-i18next
-- Project needs a specific library the user mentioned → add it
+```markdown
+# [Project Name] — Development Rules
 
-**If the project is fundamentally different from the default** (e.g. Python backend, mobile app, CLI tool):
-> "This project doesn't fit the default stack. Let me ask a few questions to define the right stack for it."
-Then proceed to the full conversational discovery (Step 3.1).
+[One-paragraph description]
 
-### Step 3.1: Full Conversational Discovery (only if default doesn't fit)
+## 1. Core Principles
+- [3–6 rules, e.g. functional React only; feature modules self-contained under `src/modules/`; Shadcn UI in `src/components/ui/` is not edited; code and comments in English]
 
-Ask one topic at a time. Wait for each answer before continuing.
+## 2. Tech Stack
+[Table: tool | version | purpose — the confirmed stack]
 
-**Topic A — Tech Stack**
-- What languages, frameworks, and key libraries?
-- What versions matter?
-- What package manager?
+## 3. Architecture
+[The confirmed tree + 3–5 key rules, e.g. API routes under `/api`, one file per domain; static routes before parameterized ones; prepared statements for D1]
 
-**Topic B — Architecture**
-- How is the project structured?
-- What are the main layers or modules?
-- Naming conventions for files and folders?
+## 4. Code Style
+[Naming: components `PascalCase.tsx`, hooks `useCamelCase.ts`, utilities `camelCase.ts`, constants `UPPER_SNAKE_CASE`; named exports]
 
-**Topic C — Code Style**
-- Naming conventions? TypeScript strict mode?
-- Linting/formatting tools?
+## 5. Testing
+[Framework and run command]
 
-**Topic D — Testing**
-- Framework? Structure? Naming?
+## 6. Development Commands
+[dev, build, test, lint, typecheck, format, deploy, migrations]
 
-**Topic E — Development Commands**
-- Dev server? Tests? Lint/format? Other key commands?
+## 7. Task-Specific Reference Guides
+[Filled in Step 4.3, or "None yet"]
+```
 
-**Topic F — Reference Guides**
-- Specific task types that need step-by-step guidance?
+Then continue with **Step 4**.
 
-## Step 4: Collect Project Info
+## Step 4: Common HOPLA Steps (both paths)
 
-Once the stack is confirmed, ask only what's NOT already known from the PRD or conversation:
+### 4.1 CLAUDE.md alias
 
-1. **Project name** — skip if already in PRD
-2. **Project description** — skip if already in PRD
-3. **Reference Guides** (optional) — Are there specific task types that need step-by-step guidance? (e.g. "When adding a page", "When creating an API route"). If none, skip — guides can always be added later.
-
-## Step 5: Generate AGENTS.md (+ CLAUDE.md alias)
-
-Save the full project rules to `AGENTS.md` at the project root (canonical, tool-agnostic source of truth). Then create a thin `CLAUDE.md` alias so Claude Code auto-discovers the rules without duplicating content.
-
-**`CLAUDE.md` alias contents (always identical, regardless of stack):**
+`CLAUDE.md` at the project root always has this content:
 
 ```markdown
 # [Project Name] — Project Rules
@@ -184,340 +126,93 @@ The canonical project rules live in [`AGENTS.md`](./AGENTS.md). This file is a t
 @AGENTS.md
 ```
 
-> The `@AGENTS.md` directive instructs Claude Code to inline the AGENTS.md contents into context. Other AI assistants read AGENTS.md directly.
+The `@AGENTS.md` line makes Claude Code inline `AGENTS.md`; other assistants read `AGENTS.md` directly. If a `CLAUDE.md` with other content exists and was not handled in Step 2, ask before replacing it.
 
-**Optional plans directory.** Ask only if the user wants plans somewhere other than the default `.agents/plans/` (e.g. `docs/plans/`). If so, append this block at the end of `AGENTS.md` (relative path; wrap it in backticks if it contains spaces):
+### 4.2 `## HOPLA` section (optional)
+
+Ask only if the user wants plans somewhere other than the default `.agents/plans/` (e.g. `docs/plans/`). If so, append to `AGENTS.md` (relative path; backticks if it has spaces):
 
 ```markdown
 ## HOPLA
 - Plans: docs/plans/
 ```
 
-HOPLA commands, hooks and `hopla-claude-setup status` then read and write plans there (`done/` and `backlog/` live under it). Skip the block for the default.
+HOPLA skills, hooks and `hopla-claude-setup status` then read and write plans there (`done/` and `backlog/` live under it). Skip the block for the default.
 
-**`AGENTS.md` contents — for default stack projects**, use these pre-filled values:
+### 4.3 Reference guides (optional)
 
-```markdown
-# [Project Name] — Development Rules
-
-## 1. Core Principles
-
-- Functional React only — hooks, no class components
-- Feature modules are self-contained under `src/modules/`
-- Shadcn UI components in `src/components/ui/` are NOT to be edited
-- Code and comments in English, user-facing strings can be localized
-- Always run `npm run format` after making code changes
-
----
-
-## 2. Tech Stack
-
-### Frontend
-
-| Tool | Version | Purpose |
-|---|---|---|
-| React | 19 | UI framework |
-| TypeScript | 5.x | Type safety (strict: false) |
-| React Router | v7 | Client-side routing |
-| Vite | 7.x | Build tool + dev server |
-| Tailwind CSS | 4.x | Styling |
-| Shadcn UI + Radix | — | Accessible component primitives |
-| AG Grid Community | 35.x | Data tables and grids |
-| React Hook Form + Zod | — | Form handling and validation |
-| Lucide React | — | Icons (always use Lucide) |
-| Vitest | — | Unit testing |
-
-### Backend
-
-| Tool | Version | Purpose |
-|---|---|---|
-| Cloudflare Workers | — | Serverless runtime |
-| Cloudflare D1 | — | SQLite on the edge (database) |
-| Cloudflare KV | — | Key-value cache layer |
-| Cloudflare Durable Objects | — | Stateful long-running logic (if needed) |
-| Hono | 4.x | HTTP routing framework |
-| Firebase + JOSE | — | Authentication, Google Sign-In (if needed) |
-
----
-
-## 3. Architecture
-
-```
-src/
-├── components/        <- shared UI components
-│   ├── common/        <- generic reusable components
-│   └── ui/            <- Shadcn primitives (do not edit)
-├── modules/           <- self-contained feature modules
-│   └── [feature]/     <- components, hooks, view per feature
-├── hooks/             <- shared hooks
-├── lib/               <- utilities and helpers (api, firebase, utils)
-├── types/             <- shared TypeScript types (index.ts)
-├── layouts/           <- sidebar, topbar, app shell
-├── pages/             <- page-level components (login, 404)
-├── App.tsx            <- root router
-├── main.tsx           <- entry point
-└── index.css          <- global styles
-worker/
-├── src/
-│   ├── index.ts       <- worker entry, route registration
-│   ├── routes/        <- API route handlers (one file per domain)
-│   ├── lib/           <- backend utilities, auth, business logic
-│   └── types/         <- backend type definitions
-├── wrangler.jsonc     <- Cloudflare Workers config
-└── migrations/        <- D1 SQLite migrations (numbered, sequential)
-```
-
-Key rules:
-- Feature modules in `src/modules/` are self-contained with their own components and hooks
-- Shared hooks go in `src/hooks/`, feature-specific ones stay in the module
-- All data tables use AG Grid Community — Shadcn UI for everything else
-- All icons use Lucide React — no other icon libraries
-- All API routes are under `/api`, organized by domain in `worker/src/routes/`
-- Backend uses prepared statements for D1 queries
-- Durable Objects for stateful long-running operations (if needed)
-
----
-
-## 4. Code Style
-
-### TypeScript
-- strict: false
-- Path alias: `@/*` maps to `./src/*`
-- Interfaces for object shapes, types for unions/intersections
-- Named exports preferred
-
-### React
-- Functional components only
-- Props defined as interface above the component
-- File name matches component name: `UserCard.tsx` exports `UserCard`
-
-### Naming
-- Components: `PascalCase.tsx`
-- Hooks: `useCamelCase.ts`
-- Utilities: `camelCase.ts`
-- Types/Interfaces: `PascalCase`
-- Constants: `UPPER_SNAKE_CASE`
-- Route files: `kebab-case.ts`
-
-### Backend (Hono)
-- One route file per domain in `worker/src/routes/`
-- Register static routes BEFORE parameterized routes
-- Use prepared statements for D1 queries
-- Auth middleware on protected routes
-
----
-
-## 5. Testing
-
-- **Framework:** Vitest
-- **Run:** `npm run test` (vitest run)
-
----
-
-## 6. Development Commands
-
-```bash
-npm run dev              # Vite frontend dev server
-npm run dev:worker       # Wrangler worker only
-npm run dev:full         # Both frontend and worker concurrently
-npm run build            # Production build
-npm run deploy           # Deploy to Cloudflare Workers
-npm run db:migrate       # Apply pending D1 migrations (local)
-npm run db:migrate:remote # Apply pending D1 migrations (production)
-npm run typecheck        # TypeScript type checking (tsc -b --noEmit)
-npm run lint             # ESLint
-npm run format           # Prettier formatting
-npm run test             # Vitest unit tests
-```
-
----
-
-## 7. Task-Specific Reference Guides
-
-[For each task type:]
-**When to use:** [Trigger condition]
-Read: `.agents/guides/[guide-name].md`
-This guide covers: [bullet list]
-```
-
-**For custom stack projects**, fill in the values collected during Step 2.2 / Step 3.1 following the same structure.
-
-> Both default and custom flows write to `AGENTS.md`. The `CLAUDE.md` alias is the same in both cases.
-
-## Step 5.5: Generate Reference Guides
-
-For each task type identified (in Step 4 or Step 3.1), create a guide at `.agents/guides/[kebab-case-task-name].md`.
-
-Use this template for every guide:
+Ask: "Are there task types that need step-by-step guidance (e.g. adding a page, creating an API route)?" If none, skip — guides can be added later. For each one, create `.agents/guides/[kebab-case-task].md`:
 
 ```markdown
-# Guide: [Task Type Name]
+# Guide: [Task Type]
 
 ## When to Use This Guide
-
-Load this guide when: [exact trigger condition, e.g. "adding a new API route", "creating a React component"]
-
----
+Load this guide when: [exact trigger]
 
 ## Architecture Pattern
-
-[Describe the layer structure for this task type. e.g.:]
-
-```
-src/modules/[feature]/components/[Component].tsx
-src/modules/[feature]/hooks/use[Hook].ts
-worker/src/routes/[domain].ts
-```
-
-Key rules:
-- [Rule 1: e.g. "All business logic goes in hooks or backend services, never in components"]
-- [Rule 2: e.g. "Use prepared statements for all D1 queries"]
-- [Rule 3: e.g. "Register static routes before parameterized routes"]
-
----
+[Files involved + 2–3 key rules]
 
 ## Reference Files
-
-Follow these existing implementations as pattern:
-- `[path/to/existing/example.ts]` — [what it demonstrates]
-- `[path/to/existing/example.ts]` — [what it demonstrates]
-
----
+- `[path/to/existing/example]` — [what it demonstrates]
 
 ## Step-by-Step Implementation
-
-### 1. [First step]
-- [What to create/modify]
-- [Exact naming convention]
-- [Code pattern to follow]
-
-### 2. [Second step]
-- [What to create/modify]
-- [Key constraints]
-
-### 3. [Third step]
-[Continue for all steps...]
-
----
-
-## Code Examples
-
-### [Filename pattern, e.g. worker/src/routes/products.ts]
-```[language]
-// Example showing the exact pattern to follow
-[concrete code snippet]
-```
-
-### [Next file pattern]
-```[language]
-[concrete code snippet]
-```
-
----
+1. [What to create/modify, naming, pattern]
 
 ## Common Pitfalls
-
-- **[Pitfall 1]:** [What goes wrong and how to avoid it]
-- **[Pitfall 2]:** [What goes wrong and how to avoid it]
-
----
+- **[Pitfall]:** [what goes wrong and how to avoid it]
 
 ## Validation
-
-After implementing, verify:
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run test`
-- [ ] `npm run format`
-- [ ] [Manual check if applicable]
+- [ ] [lint / typecheck / test / format commands]
 ```
 
-**Important:** Guides must contain concrete, project-specific information — not generic advice. If the user's answers don't have enough detail for a section, ask a follow-up before writing the guide.
-
-Also update the `AGENTS.md` Section 7 (Task-Specific Reference Guides) to reference each guide created:
+Guides must be concrete and project-specific — ask a follow-up rather than write generic advice. List each guide in `AGENTS.md` section 7:
 
 ```markdown
-## 7. Task-Specific Reference Guides
-
 **When adding an API route:**
 Read: `.agents/guides/api-route.md`
-This guide covers: Hono route setup, D1 queries, auth middleware, response format
-
-**When creating a feature module:**
-Read: `.agents/guides/feature-module.md`
-This guide covers: module structure, components, hooks, routing
+This guide covers: route setup, queries, auth middleware, response format
 ```
 
-## Step 6: Create .agents/ Structure
+Project-specific workflows (e.g. a full validation run) belong in project skills under `.claude/skills/<name>/SKILL.md` or in the Development Commands section — not in legacy `.claude/commands/` files.
 
-Create the following directories (with `.gitkeep` where needed):
+### 4.4 `.agents/` structure
+
+Create these directories (`.gitkeep` where empty):
 
 ```
 .agents/
-├── plans/               <- /hopla:plan-feature saves here (commit; or the dir declared under `## HOPLA` in AGENTS.md)
+├── plans/               <- /hopla:plan-feature saves here (commit; or the dir declared under `## HOPLA`)
 │   ├── done/            <- /hopla:archive moves completed plans here (commit)
 │   └── backlog/         <- /hopla:execute Scope Guard defers ideas here (commit)
 ├── specs/               <- brainstorm skill saves design docs here (commit)
-│   ├── canonical/       <- canonical "current behavior" specs by domain (commit; populated incrementally by /hopla:archive)
+│   ├── canonical/       <- current-behavior specs by domain (commit; filled by /hopla:archive, opt-in)
 │   └── archived/        <- /hopla:archive moves completed design specs here (commit)
 ├── guides/              <- on-demand reference guides (commit)
-├── rca/                 <- /hopla:rca saves root cause analysis docs here (commit)
-├── execution-reports/   <- the `execution-report` skill saves here (commit — needed for cross-session learning)
-├── system-reviews/      <- /hopla:system-review saves here (commit — needed for feedback loop)
-├── audits/              <- persistent audit reports worth preserving (commit — opt-in; copy a code review here when you want to keep it)
-└── code-reviews/        <- the `code-review` skill saves here (do NOT commit — ephemeral, consumed when the findings are fixed)
+├── rca/                 <- /hopla:rca saves root cause analyses here (commit)
+├── execution-reports/   <- the `execution-report` skill saves here (commit — cross-session learning)
+├── system-reviews/      <- /hopla:system-review saves here (commit — feedback loop)
+├── audits/              <- reviews worth keeping (commit — copy a code review here to preserve it)
+└── code-reviews/        <- the `code-review` skill saves here (do NOT commit — ephemeral)
 ```
 
-> **`specs/canonical/` is opt-in.** It is populated only as `/hopla:archive` is used. Until the first archive runs, the directory simply stays empty. Projects that prefer to keep all behavior knowledge in code + AGENTS.md can ignore it.
+Add to `.gitignore` (create it if missing):
 
-**Policy — `audits/` vs `code-reviews/`:**
-
-- `code-reviews/` is **ephemeral working state**. Every run overwrites/adds files; they are consumed when the findings are fixed and become stale fast. Never commit.
-- `audits/` is **persistent**. Move or copy a review here when it documents a finding the team should remember (security issue, architectural concern, post-mortem evidence). Commit.
-
-Add to `.gitignore` (create if it doesn't exist):
 ```
 .agents/code-reviews/
 .agents/hopla-active-plan.json
 .claude/compact-snapshot.json
 ```
 
-> Both files are per-machine session state written by HOPLA: the active-plan pointer (`.agents/hopla-active-plan.json`, kept outside `.claude/` because Claude Code asks for approval on every write there) and the pre-compact snapshot.
+Both files are per-machine session state written by HOPLA: the active-plan pointer (kept outside `.claude/`, where Claude Code asks for approval on every write) and the pre-compact snapshot.
 
-## Step 7: Create .claude/commands/ (optional but recommended)
+## Step 5: Confirm and Save
 
-Create `.claude/commands/` at the project root for project-specific commands that override or extend the global ones.
-
-**`validate.md`** — runs the full validation sequence for this project:
-
-For default stack:
-```markdown
----
-description: Run full validation for this project
----
-Run in order, stop if any level fails:
-1. `npm run lint`
-2. `npm run typecheck`
-3. `npm run test`
-4. `npm run format`
-```
-
-For custom stack, use the commands collected during discovery.
-
-Ask the user: "Do you want me to create a project-specific `/validate` command?"
-
-If yes, create `.claude/commands/validate.md`.
-
-## Step 8: Confirm and Save
-
-Show the draft `AGENTS.md` to the user and ask:
+Show the draft `AGENTS.md` (or the diff, for an existing one) and ask:
 > "Does this accurately reflect the project's rules? Any corrections before I save it?"
 
 Once confirmed:
-1. Save `AGENTS.md` to the project root
-2. Create `CLAUDE.md` at the project root with the standard alias content (see Step 5) — skip if a meaningful `CLAUDE.md` already exists; in that case ask the user whether to overwrite with the alias stub or leave it untouched
-3. Create `.agents/` directory structure
-4. Update `.gitignore`
-5. If no PRD exists yet, tell the user: "Project initialized. Run `/hopla:create-prd` next to define the product scope, or `/hopla:plan-feature` to start planning a feature."
-   If a PRD already exists, tell the user: "Project initialized. Run `/hopla:plan-feature` to start planning the first feature."
-6. Suggest running the `git` skill (say "commit") to save everything
+1. Save `AGENTS.md` and the `CLAUDE.md` alias (Step 4.1).
+2. Create the `.agents/` structure and any guides.
+3. Update `.gitignore`.
+4. Next step: no PRD yet → "Project initialized. Run `/hopla:create-prd` to define the product scope, or `/hopla:plan-feature` to plan a feature." PRD exists → "Project initialized. Run `/hopla:plan-feature` to plan the first feature." On Path B, add: "Once there is code, run `/hopla:init-project` again — the native `/init` will propose additions to `AGENTS.md`."
+5. Suggest the `git` skill (say "commit") to save everything.

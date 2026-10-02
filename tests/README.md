@@ -29,7 +29,8 @@ tests/
 ├── layout.test.js                  3.0 layout guard (no commands/, no nested skills)
 ├── deprecations.test.js            deprecation banners + notifier entries
 ├── git-skill.test.js               git skill standing-approval guard
-├── plan-feature.test.js            plan-feature research-rules guard
+├── plan-feature.test.js            plan-feature research-rules + migration-plan guard
+├── init-project.test.js            init-project /init path guard
 ├── execute.test.js                 execute workflow (Step 4a) guard
 ├── review-checklist.test.js        project review-checklist guard
 ├── review-plan.test.js             review-plan completeness-check guard

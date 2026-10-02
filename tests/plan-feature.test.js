@@ -75,3 +75,13 @@ test("plan-feature: task Validate commands are task-scoped; the whole suite runs
     assert.match(body, /task-scoped/i);
     assert.match(body, /whole suite/i);
 });
+
+test("plan-feature: migration plans carry classification, inventory, strategy, rollback per phase and cleanup", () => {
+    const phase4 = section("## Phase 4:", "## Phase 5:");
+    assert.match(phase4, /### Migration plans/);
+    for (const re of [/rollback/i, /one question at a time/i, /inventory[\s\S]{0,120}counts?/i, /upgrade notes/i,
+        /big bang/i, /adapter/i, /dual-run/i, /branch by abstraction/i, /cleanup phase/i, /idempotent/i, /2×|2x/]) {
+        assert.match(phase4, re, String(re));
+    }
+    assert.match(body, /## Migration/);
+});
