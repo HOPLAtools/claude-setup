@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-10-02
+
+Process fixes from the 2.2 and 2.4 system reviews. No breaking changes.
+
 ### Changed
 - **`/hopla:plan-feature` checks dependents and platform claims before writing tasks.** Two required Phase 3 steps, each with a Phase 6 checklist item: when a plan changes a selection, detection, path or naming rule, it searches for everything that relies on the old behavior (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) and gives each a task; when a task relies on platform or tool behavior the codebase cannot prove, the plan runs the proving command first (outside bypass mode) or adds a Task 0 spike with a fallback. From the 2.2 and 2.4 system reviews (plans that missed a dependent or a platform constraint, 3 occurrences).
 
