@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Fixed
+- `code-review` takes the native review's findings from `ReportFindings` when the host provides it, and from its text otherwise (the interactive check had no `ReportFindings`).
+
 ## [3.1.1] - 2026-10-02
 
 Fixes and process improvements after 3.1.0. No breaking changes.

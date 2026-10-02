@@ -22,7 +22,7 @@ Arguments (all optional, any order): an effort level (`low`, `medium`, `high`, `
 
 Invoke the **Skill tool** with skill `code-review` — the built-in native review; the bare name resolves to it — and args `<effort>`, plus `--fix` when it was requested and the target when one was given. **Never invoke `hopla:code-review`** (that is this skill: it would recurse).
 
-Let it finish. It reports its findings through `ReportFindings` (file, line, summary, failure scenario; with `--fix` it also applies its fixes). Keep that list: these are the `source: native` findings.
+Let it finish. It reports its findings through `ReportFindings` when that tool is available in the host (file, line, summary, failure scenario); otherwise it returns them as text — use whichever you get. With `--fix` it also applies its fixes. Keep that list: these are the `source: native` findings.
 
 If the Skill tool is unavailable or the native review fails, say so in the report and continue with Step 3 on the full diff (`git diff HEAD`, plus untracked files from `git ls-files --others --exclude-standard`).
 

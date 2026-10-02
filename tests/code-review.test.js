@@ -79,3 +79,9 @@ test("code-review wrapper: passes a review target (branch, PR number or path) th
     assert.match(body, /branch, PR number or path/i);
     assert.match(body, /committed/i, "explains why a phased plan needs a target");
 });
+
+test("code-review wrapper: native findings come from ReportFindings when available, else from its text", () => {
+    const body = WRAPPER();
+    assert.match(body, /ReportFindings.*when .*available/i);
+    assert.match(body, /as text/i);
+});
