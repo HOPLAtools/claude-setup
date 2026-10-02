@@ -3,7 +3,8 @@
 ## 1. Core Principles
 
 - `global-rules.md` is a **template** installed to users' `~/.claude/CLAUDE.md` — it is NOT this project's rules
-- `commands/*.md` are Claude Code slash commands for users — Markdown files, not scripts
+- Since 3.0 everything users invoke is a skill: `skills/<name>/SKILL.md` (`/hopla:<name>`), Markdown files, not scripts. There is no `commands/` directory
+- Guides are flat skills `skills/guides-<name>/SKILL.md` with `name: guides:<name>` (invoked as `/hopla:guides:<name>`). Never nest a skill (`skills/<a>/<b>/SKILL.md`): Claude Code does not load it
 - `skills/<name>/SKILL.md` is each skill's entry point. A skill may include extra files (e.g. `commit.md`, `pr.md`, `flow-detection.md` in `skills/git/`) that the `SKILL.md` references as workflows or shared libraries
 - Shared references across skills: a file inside one skill can be cited by another (e.g. `skills/worktree/SKILL.md` references `../git/flow-detection.md`). Centralize Git Flow, branching, and similar logic in one place and reference it — do not duplicate
 - `agents/*.md` are specialized subagent definitions
@@ -11,7 +12,7 @@
 - `cli.js` is a single-file Node.js ESM script — keep it that way, no external dependencies
 - This repo serves **two distribution channels**: Claude Code plugin (primary) AND npm CLI (global rules only)
 - **The GitHub repo MUST be public** — the plugin channel clones it via `/plugin marketplace add`. A private repo makes the plugin install fail silently for anyone outside the org
-- Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
+- Any change to `skills/`, `agents/`, `hooks/`, or `global-rules.md` affects every future user — review carefully before committing
 - Bump `version` in **all three files** before every release: `package.json`, `.claude-plugin/plugin.json`, AND `.claude-plugin/marketplace.json`
 - Plugin update flow (Claude Code v1.24+): auto-update is opt-in per marketplace (third-party marketplaces default to **disabled**). Users who opt in get new versions automatically on session start. Users who don't refresh manually with `/plugin marketplace update hopla-marketplace` → `/plugin disable` → `/plugin enable` → `/reload-plugins`. Document the auto-update opt-in prominently in the README; do **not** prescribe the old `cd … && git pull` dance — `/plugin marketplace update` is the canonical path now
 
@@ -35,9 +36,8 @@
 └── marketplace.json ← Self-hosted marketplace definition ⚠️ bump on release
 cli.js               ← CLI entry point — installs global-rules.md + permissions only
 global-rules.md      ← Global rules template → installed to ~/.claude/CLAUDE.md (CLI only)
-commands/            ← Slash commands (auto-discovered by plugin)
-│   └── guides/      ← Reference guides loaded on-demand
-skills/              ← Auto-triggered skills (auto-discovered by plugin)
+skills/              ← All skills: run with /hopla:<name> or auto-triggered (auto-discovered by plugin)
+│   ├── guides-<name>/SKILL.md     ← reference guides, name: guides:<name> → /hopla:guides:<name>
 │   ├── <name>/SKILL.md            ← required entry point
 │   └── <name>/<extra>.md          ← optional workflow or shared-reference files
 │                                    e.g. skills/git/{commit.md, pr.md, flow-detection.md}
@@ -48,7 +48,7 @@ hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
 │   ├── tsc-check.js            ← PostToolUse records edited TS/JS files; Stop runs tsc -p <nearest tsconfig> once per turn
 │   ├── env-protect.js          ← PreToolUse: block dotenv reads (Read/Grep/Edit/Bash); mentions + templates allowed
 │   ├── session-prime.js        ← SessionStart: branch + git summary + active plan + compact-snapshot replay (≤1,500 chars)
-│   ├── prompt-route.js         ← UserPromptSubmit: silent placeholder (becomes the deprecation notifier in 3.0)
+│   ├── deprecation-notice.js   ← UserPromptSubmit + PreToolUse(Skill|Agent|Task): one notice per session per deprecated item
 │   ├── precompact-snapshot.js  ← PreCompact: dump state to .claude/compact-snapshot.json
 │   ├── statusline.js           ← Statusline renderer (opt-in via settings.json)
 │   └── lib/plans.js            ← shared plans-dir + active-plan helpers (hooks only; cli.js keeps a copy)
@@ -61,7 +61,7 @@ README.md            ← Public documentation
 
 | Channel | Install | What it provides |
 |---|---|---|
-| **Plugin** | `/plugin install hopla@hopla-marketplace` | Commands, skills, agents, hooks |
+| **Plugin** | `/plugin install hopla@hopla-marketplace` | Skills, agents, hooks |
 | **CLI (npm)** | `npm i -g @hopla/claude-setup && hopla-claude-setup` | Global rules (`~/.claude/CLAUDE.md`) + permissions |
 
 **CLI install flow (cli.js):**
@@ -81,8 +81,9 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 
 **Key rules:**
 
-- Commands, skills, agents, and hooks are **only delivered by the plugin** — the CLI no longer copies them
-- **Never duplicate** a command and a skill with the same name — both appear in Claude's autocomplete, causing duplicates. Use commands for explicit `/slash` invocation only; use skills for auto-triggered behavior
+- Skills, agents, and hooks are **only delivered by the plugin** — the CLI no longer copies them
+- **Never create two skills that resolve to the same `/hopla:<name>`** (a `name:` equal to another skill's directory or name). Skills meant only for explicit `/slash` invocation set `disable-model-invocation: true`; the others also auto-trigger from `description` / `when_to_use`
+- **Deprecating** a skill or agent: add a first body line `> ⚠️ **Deprecated in X, removed in Y.** Use <replacement> instead.`, an entry in `hooks/deprecation-notice.js`, a row in README's deprecated table, and update `tests/deprecations.test.js`. Remove it one major later
 - **Deduplication check:** before deleting a command, skill or agent that another file replaces (a command folded into a skill, a deprecated skill covered by another), diff the two and move into the survivor every step, flag or behavior only the deleted one has. Then delete it. In system-audit-v2 the git commit command was dropped for the skill and its Version Bump step and PR suggestion were nearly lost
 - `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` paths for the plugin channel
 - When removing an installed artifact (command, skill, agent, hook, permission) in a new version, add its old name/path to the legacy cleanup lists in `cli.js` so existing users get it cleaned on next `install` / `--migrate` / `--uninstall`
@@ -99,11 +100,11 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 ### Hooks (hooks/*.js)
 - A hook that runs an external command built from file paths uses `execFileSync` (argument array, no shell) and has a regression test with a hostile directory name (spaces, quotes, `$(…)`, `;`) — the 2.2 code review found a shell injection in `tsc-check`
 
-### Command and skill files (commands/*.md, skills/**/*.md)
+### Skill files (skills/**/*.md)
 
-- Filename: `[kebab-case-name].md` — the plugin namespaces it as `/hopla:[name]`
-- Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the command or skill renders (verified in the 2.2 smokes)
-- Never make a command or skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
+- Directory: `skills/[kebab-case-name]/SKILL.md` with `name: [kebab-case-name]` — the plugin namespaces it as `/hopla:[name]`; extra files next to `SKILL.md` are workflows or shared references
+- Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the skill renders (`${CLAUDE_SKILL_DIR}` too) (verified in the 2.2 smokes)
+- Never make a skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
 
 ---
 
@@ -125,7 +126,9 @@ Tests live in `tests/`:
 tests/
 ├── cli.test.js                     parseSettingsFile + safeWrite + status/plans-dir + CLI integration tests
 ├── plans-parity.test.js            cli.js copy == hooks/lib/plans.js (plans dir, pointer, active plan)
-├── frontmatter.test.js             skill/command/agent frontmatter rules (forks, models, manual-only, arguments)
+├── frontmatter.test.js             skill/guide/agent frontmatter rules (forks, models, manual-only, arguments)
+├── layout.test.js                  commands/ gone, no nested skills, no stale commands/ paths
+├── deprecations.test.js            banners, notifier entries, nothing recommends a deprecated item
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
 ├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
@@ -135,7 +138,7 @@ tests/
     ├── tsc-check.test.js           PostToolUse recorder + Stop check (nearest tsconfig, own vs other errors, loop guard)
     ├── session-prime.test.js       minimal SessionStart output + snapshot replay
     ├── precompact-snapshot.test.js snapshot keys + round trip into session-prime
-    └── prompt-route.test.js        silent stub + still registered
+    └── deprecation-notice.test.js  one notice per session per item, never blocks, registered for both events
 ```
 
 Manual smoke (use in addition to `npm test` for any change touching the CLI install/uninstall flow):
@@ -207,8 +210,8 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
 
 ## 7. Task-Specific Reference Guides
 
-**When adding a new slash command:**
-Read: `.agents/guides/add-command.md`
+**When adding a new skill:**
+Read: `.agents/guides/add-skill.md`
 This guide covers: file naming, content structure, legacy cleanup, local testing
 
 **When updating the global template (`global-rules.md`):**

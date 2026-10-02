@@ -1,6 +1,6 @@
 # @hopla/claude-setup
 
-Hopla team agentic coding system for Claude Code. Delivers commands, skills, agents, hooks, and reference guides via a **Claude Code plugin** (primary channel), with an optional **npm CLI** for the machine-level global rules template.
+Hopla team agentic coding system for Claude Code. Delivers skills, agents, hooks, and reference guides via a **Claude Code plugin** (primary channel), with an optional **npm CLI** for the machine-level global rules template.
 
 ---
 
@@ -19,7 +19,7 @@ The full setup is **plugin + CLI** — they deliver different layers:
 
 | Layer | Channel | What it provides |
 |---|---|---|
-| Per-project behavior | Plugin | Commands, skills, agents, hooks |
+| Per-project behavior | Plugin | Skills, agents, hooks |
 | Machine-wide defaults | CLI | `~/.claude/CLAUDE.md` global rules + bash permissions |
 
 **Step 1 — Register the marketplace and install the plugin** (inside Claude Code):
@@ -36,7 +36,7 @@ npm install -g @hopla/claude-setup
 hopla-claude-setup --force
 ```
 
-That's it. Commands show as `/hopla:<name>`, skills auto-trigger when relevant.
+That's it. Skills show as `/hopla:<name>`, and most also auto-trigger when relevant.
 
 **Recommended — enable auto-update for the marketplace** (one-time, inside Claude Code):
 
@@ -48,7 +48,7 @@ If you don't want the machine-wide `~/.claude/CLAUDE.md`, just do Step 1. The pl
 
 ### CLI only (no plugin)
 
-If you only want the global rules and not the plugin's commands/skills, just do Step 2. You won't have `/hopla:*` commands.
+If you only want the global rules and not the plugin's skills, just do Step 2. You won't have `/hopla:*` skills.
 
 ---
 
@@ -145,12 +145,12 @@ Sample output: ` feature/auth · 3M · 📋 add-authentication`
 
 ## Naming Convention
 
-Skills and commands use short names in source (e.g., `prime`, `execute`, `git`). The plugin namespaces them automatically:
+Since 3.0 everything you invoke is a **skill** (`skills/<name>/SKILL.md`); there are no separate commands any more. Skills use short names in source (e.g., `prime`, `execute`, `git`) and the plugin namespaces them:
 
-| Type | Example |
+| Kind | Example |
 |---|---|
-| **Skills** | `hopla:prime`, `hopla:git`, `hopla:debug` |
-| **Commands** | `/hopla:execute`, `/hopla:plan-feature` |
+| **Skills** | `/hopla:execute`, `/hopla:plan-feature`, `hopla:git` |
+| **Guides** | `/hopla:guides:validation-pyramid` (skills named `guides:<name>`; `/hopla:guides-<name>` works too) |
 
 ---
 
@@ -190,12 +190,11 @@ Built on two core concepts from the Agentic Coding Course:
 |---|---|---|
 | **Global Rules** | Always-loaded context: language, git flow, tech defaults, autonomy | CLI → `~/.claude/CLAUDE.md` |
 | **On-Demand Context** | Task-specific guides loaded when needed | Project → `.agents/guides/*.md` |
-| **Commands** | Reusable processes that tell the agent *how* to work | Plugin |
-| **Skills** | Auto-activate by semantic matching — no slash command needed | Plugin |
+| **Skills** | Reusable processes that tell the agent *how* to work — run with `/hopla:<name>` or auto-activated by semantic matching | Plugin |
 | **Agents** | Specialized subagents for delegation (code review, research, system analysis) | Plugin |
 | **Hooks** | Run automatically before/after tool use for type checking and protection | Plugin |
 
-The key insight: **commands inject on-demand context deterministically** — when you run `/hopla:plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
+The key insight: **skills inject on-demand context deterministically** — when you run `/hopla:plan-feature`, it automatically reads the relevant guide from `.agents/guides/` before planning.
 
 ### PIV Loop — How you work
 
@@ -222,9 +221,9 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 ### From the Plugin (per Claude Code session)
 
-**Commands** — Reusable commands available in any project:
+**Skills you run yourself** — type `/hopla:<name>`:
 
-| Command | Description |
+| Skill | Description |
 |---|---|
 | `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure — manual only |
 | `create-prd` | Create a Product Requirements Document through guided questions — manual only |
@@ -232,17 +231,14 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `review-plan` | Review a plan before execution — get a summary and approve |
 | `execute` | Execute a structured plan from start to finish with validation — manual only |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
-| `code-review-fix` | Fix issues found in a code review report |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
 | `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
 | `guide` | 4D Framework walkthrough for non-technical users — manual only |
 | `system-review` | Analyze implementation against plan to find process improvements (runs as a forked subagent on Sonnet) |
 
-> `prime`, `code-review`, and `execution-report` are **skills only** (no slash command needed).
->
-> **Manual only** commands (`guide`, `create-prd`, `init-project`, `execute`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them.
+> **Manual only** skills (`guide`, `create-prd`, `init-project`, `execute`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them. The others can also start automatically when your request matches them.
 
-**Skills** — Auto-activate by semantic matching:
+**Skills that activate on their own** — by semantic matching:
 
 | Skill | Auto-activates when you say… |
 |---|---|
@@ -255,14 +251,22 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `brainstorm` | "let's brainstorm", "explore approaches" |
 | `debug` | "debug this", "find the bug", "why is this failing" |
 | `tdd` | "write tests first", "TDD", "red-green-refactor" |
-| `refactoring` | "refactor", "clean up", "simplify", "extract", "deduplicate" |
 | `performance` | "slow", "too slow", "optimize", "bottleneck" |
 | `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
-| `subagent-execution` | "use subagents", plans with 5+ tasks |
-| `parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
 | `hook-audit` | "audit hook", "check hook", "hook review" — forked subagent on Sonnet; mechanical static audit of `src/hooks/use*.ts` files (memoization, stale-id guards, error-match strictness, cache+dedup integrity) |
 
 The `git` skill asks before every commit, push and PR. If your own instructions grant a standing approval for one of those exact actions — in a `CLAUDE.md` or a file in `~/.claude/rules/` (keep personal approvals there: the CLI installer rewrites `~/.claude/CLAUDE.md`) — it does that action without asking and reports it. Merging, tags and commits or pushes on `main`/`master` still ask unless the approval names them.
+
+**Deprecated in 3.0.0** — still installed and working, removed in 4.0.0. The first time you (or Claude) use one in a session, a one-line notice names the replacement:
+
+| Deprecated | Use instead |
+|---|---|
+| `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
+| `subagent-execution` skill | Native Workflows (say "use a workflow") |
+| `refactoring` skill | Native `/simplify` |
+| `code-review-fix` skill | Native `/code-review --fix` |
+| `code-reviewer` agent | The `code-review` skill |
+| `system-reviewer` agent | `/hopla:system-review` |
 
 **Hooks** — Run automatically:
 
@@ -272,7 +276,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit/MultiEdit of `.dev.vars` |
 | `session-prime.js` | SessionStart | Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars) |
 | `precompact-snapshot.js` | PreCompact | Saves branch, uncommitted files and the active plan + step to `.claude/compact-snapshot.json` |
-| `prompt-route.js` | UserPromptSubmit | Silent since 2.2 (skills are selected natively from `description` / `when_to_use`) |
+| `deprecation-notice.js` | UserPromptSubmit + PreToolUse | When a deprecated skill or agent is used, shows one line per session naming its replacement; never blocks |
 
 > **Type errors once per turn.** `tsc-check` runs at the end of each turn, not after every edit, and blocks only for errors in files Claude edited in that turn (at most twice per turn); errors elsewhere are reported in one line. For per-edit diagnostics, install the official TypeScript language server plugin (optional, your choice):
 >
@@ -284,22 +288,23 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 
 | Agent | What it does |
 |---|---|
-| `code-reviewer` | Senior code reviewer (read-only). Plan alignment, quality, architecture, security |
+| `code-reviewer` | Deprecated in 3.0.0 — use the `code-review` skill |
 | `codebase-researcher` | Fast codebase explorer (read-only). Systematic search, structured findings |
-| `system-reviewer` | System review analyst (read-only). Execution vs plan, classifies divergences |
+| `system-reviewer` | Deprecated in 3.0.0 — use `/hopla:system-review` |
 
-**Reference guides** — Loaded on-demand by commands:
+**Reference guides** — skills you load with `/hopla:guides:<name>` (Claude also loads them when relevant):
 
 | Guide | What it covers |
 |---|---|
-| `mcp-integration.md` | Integrating MCP servers into the PIV loop |
-| `ai-optimized-codebase.md` | Vertical slice architecture, LLM-friendly docstrings, strict types |
-| `hooks-reference.md` | All hook types, configuration, input JSON, exit codes |
-| `write-skill.md` | Creating new skills with CSO, testing, progressive disclosure |
-| `remote-coding.md` | GitHub-based remote agentic coding with autonomy levels |
-| `scaling-beyond-engineering.md` | Expanding HOPLA to non-technical teams with 4D Framework |
-| `data-audit.md` | Data pipeline audit checklist |
-| `review-checklist.md` | Code review checklist reference |
+| `guides:mcp-integration` | Integrating MCP servers into the PIV loop |
+| `guides:ai-optimized-codebase` | Vertical slice architecture, LLM-friendly docstrings, strict types |
+| `guides:hooks-reference` | All hook types, configuration, input JSON, exit codes |
+| `guides:write-skill` | Creating new skills with CSO, testing, progressive disclosure |
+| `guides:remote-coding` | GitHub-based remote agentic coding with autonomy levels |
+| `guides:scaling-beyond-engineering` | Expanding HOPLA to non-technical teams with 4D Framework |
+| `guides:data-audit` | Data pipeline audit checklist |
+| `guides:review-checklist` | Code review checklist reference |
+| `guides:validation-pyramid` | The validation levels used by execute, validate and verify |
 
 ---
 
@@ -323,7 +328,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 /hopla:execute            → implement plan with validation
 /hopla:validate           → lint → types → tests → integration
 "review the code"         → code-review skill runs automatically
-/hopla:code-review-fix    → fix issues found
+"fix the findings"        → fix the issues (or the native /code-review --fix)
 "generate the report"     → execution-report skill documents what was built
 /hopla:archive            → fold delta-specs into canonical specs, move plan to done/, drop ephemeral code-review (opt-in — when delta-specs were declared)
 "commit this"             → git skill handles commits and PRs
@@ -344,7 +349,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 /hopla:guide              → 4D Framework walkthrough (Description, Discernment, Delegation, Diligence)
 ```
 
-> **Tip:** Many commands also exist as skills — they auto-activate when you describe what you want in natural language. Say "debug this" to trigger the `debug` skill, "let's brainstorm" for `brainstorm`, without typing any slash command.
+> **Tip:** Most skills also auto-activate when you describe what you want in natural language. Say "debug this" to trigger the `debug` skill, "let's brainstorm" for `brainstorm`, without typing any slash command.
 
 ### Plans directory
 
@@ -367,16 +372,15 @@ Honored by `/hopla:plan-feature`, `/hopla:execute`, `/hopla:archive`, the `prime
 
 ---
 
-## Command Chaining
+## Skill Chaining
 
-Commands are modular — the output of one becomes the input of the next. Some accept arguments (file paths, passed in order) to receive files generated by previous commands.
+Skills are modular — the output of one becomes the input of the next. Some accept arguments (file paths, passed in order) to receive files generated by previous skills.
 
-### Commands that accept arguments
+### Skills that accept arguments
 
-| Command | Argument | Example |
+| Skill | Argument | Example |
 |---|---|---|
 | `/hopla:execute` | Plan file path | `/hopla:execute .agents/plans/auth-feature.md` |
-| `/hopla:code-review-fix` | Review report path | `/hopla:code-review-fix .agents/code-reviews/auth-review.md` |
 | `/hopla:rca` | Bug description | `/hopla:rca "login fails with 403 after token refresh"` |
 | `/hopla:system-review` | Plan + report | `/hopla:system-review .agents/plans/auth.md .agents/execution-reports/auth.md` |
 
@@ -399,8 +403,7 @@ Commands are modular — the output of one becomes the input of the next. Some a
 # 5. Code review (skill — just say "review the code")
 → saves: .agents/code-reviews/add-user-authentication.md
 
-# 6. Fix issues
-/hopla:code-review-fix .agents/code-reviews/add-user-authentication.md
+# 6. Fix issues (just say "fix the findings in .agents/code-reviews/add-user-authentication.md")
 
 # 7. Document (skill — just say "generate the report")
 → saves: .agents/execution-reports/add-user-authentication.md
@@ -459,7 +462,7 @@ Alternatively, run via npx: `npx @hopla/claude-setup --force`.
 
 > **Migrating from v1.x?** The `claude-setup` bin alias was removed in v2.0.0. Replace any script that calls `claude-setup` with `hopla-claude-setup` (same flags, same behavior).
 
-### Changes to skills/commands don't take effect
+### Changes to skills don't take effect
 
 Claude Code caches plugin content. After a plugin update:
 

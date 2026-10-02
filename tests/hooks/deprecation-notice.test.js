@@ -118,14 +118,22 @@ test("deprecation-notice: missing session_id -> notice every time, no marker wri
     assert.deepEqual(fs.readdirSync(tmp).filter((f) => f.startsWith("hopla-deprecations-")), []);
 }));
 
-test("deprecation-notice: unsafe session_id -> notice, nothing written outside TMPDIR", () => withTmp((tmp) => {
-    const parent = path.dirname(tmp);
-    const before = fs.readdirSync(parent).filter((f) => f.startsWith("hopla-deprecations-"));
-    notice(run(tmp, ups("/hopla:refactoring", "../escape")), "UserPromptSubmit");
-    notice(run(tmp, ups("/hopla:refactoring", "../escape")), "UserPromptSubmit");
-    const after = fs.readdirSync(parent).filter((f) => f.startsWith("hopla-deprecations-"));
-    assert.deepEqual(after, before);
-    assert.deepEqual(fs.readdirSync(tmp).filter((f) => f.startsWith("hopla-deprecations-")), []);
+// Ids that WOULD produce a writable marker path if the validation were missing
+// ("a.b" -> hopla-deprecations-a.b.json), so these tests fail without the guard.
+for (const id of ["a.b", "a b", "a;b", "../escape"]) {
+    test(`deprecation-notice: unsafe session_id ${JSON.stringify(id)} -> notice every time, no marker`, () => withTmp((tmp) => {
+        notice(run(tmp, ups("/hopla:refactoring", id)), "UserPromptSubmit");
+        notice(run(tmp, ups("/hopla:refactoring", id)), "UserPromptSubmit");
+        assert.deepEqual(fs.readdirSync(tmp).filter((f) => f.startsWith("hopla-deprecations-")), []);
+    }));
+}
+
+test("deprecation-notice: a symlink planted at the marker path is never followed", () => withTmp((tmp) => {
+    const victim = path.join(tmp, "victim.txt");
+    fs.writeFileSync(victim, "keep me");
+    fs.symlinkSync(victim, path.join(tmp, "hopla-deprecations-s1.json"));
+    notice(run(tmp, ups("/hopla:refactoring")), "UserPromptSubmit");
+    assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
 }));
 
 test("deprecation-notice: unwritable marker dir -> still a notice, exit 0", () => withTmp((tmp) => {

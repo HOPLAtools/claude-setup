@@ -25,7 +25,9 @@ tests/
 ├── fixtures/                       static fixture files used by hook tests
 ├── cli.test.js                     unit + integration tests for cli.js (helpers, status, plans dir)
 ├── plans-parity.test.js            cli.js plans helpers == hooks/lib/plans.js
-├── frontmatter.test.js             skill/command/agent frontmatter guard
+├── frontmatter.test.js             skill/guide/agent frontmatter guard
+├── layout.test.js                  3.0 layout guard (no commands/, no nested skills)
+├── deprecations.test.js            deprecation banners + notifier entries
 ├── git-skill.test.js               git skill standing-approval guard
 ├── plan-feature.test.js            plan-feature research-rules guard
 ├── code-review.test.js             code-review file guard (execute, pyramid, skill, agents)
@@ -34,7 +36,7 @@ tests/
     ├── tsc-check.test.js           PostToolUse recorder + Stop type check
     ├── session-prime.test.js       minimal SessionStart context
     ├── precompact-snapshot.test.js PreCompact snapshot + round trip
-    └── prompt-route.test.js        silent stub
+    └── deprecation-notice.test.js  deprecation notices (once per session, never blocks)
 ```
 
 ## Conventions

@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-02
+
+First release of the 3.x series: commands become skills and six items are deprecated. **Nothing is removed** — every `/hopla:<name>` and `/hopla:guides:<name>` keeps working with the same arguments. Deprecated items are removed in 4.0.0.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **Commands are skills.** The 11 commands moved to `skills/<name>/SKILL.md` (archive, code-review-fix, create-prd, execute, guide, init-project, plan-feature, rca, review-plan, system-review, validate) and the 9 guides to `skills/guides-<name>/` with `name: guides:<name>`. Invocation names, named arguments, manual-only flags and forks are unchanged; guides also answer to `/hopla:guides-<name>`. The `commands/` directory is gone, so anything that read `commands/<name>.md` from the plugin must read `skills/<name>/SKILL.md`.
+- Internal references point at `${CLAUDE_PLUGIN_ROOT}/skills/...`, so skills find the validation pyramid and other plugin files from any project.
+- `code-review`, `execute`, `init-project` and `hopla-claude-setup status` no longer recommend `code-review-fix`.
+- CI and the publish workflow run `claude plugin validate` (pinned Claude Code CLI, no auth).
+
+### Deprecated
+- `parallel-dispatch` and `subagent-execution` → native Workflows (say "use a workflow").
+- `refactoring` → native `/simplify`.
+- `code-review-fix` → native `/code-review --fix`.
+- Agent `code-reviewer` → the `code-review` skill; agent `system-reviewer` → `/hopla:system-review`.
+
+### Added
+- **Deprecation notices** (`hooks/deprecation-notice.js`, replacing the silent `prompt-route.js`): the first time a deprecated skill or agent is used in a session — typed as `/hopla:<name>` or invoked by Claude — you and Claude see one line naming the replacement. It never blocks and never auto-approves the tool call.
+
+### Fixed
+- The `write-skill` guide no longer contains a literal positional placeholder, which Claude Code substituted when the guide was loaded.
+
 ## [2.4.1] - 2026-10-02
 
 Process fixes from the 2.2 and 2.4 system reviews. No breaking changes.

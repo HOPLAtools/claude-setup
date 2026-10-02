@@ -68,8 +68,10 @@ function alreadyShown(sessionId, item) {
     } catch { /* missing or unreadable: nothing shown yet */ }
     if (shown.includes(item)) return true;
     try {
-        fs.writeFileSync(file, JSON.stringify([...shown, item]));
-    } catch { /* unwritable temp dir: show the notice anyway */ }
+        // O_NOFOLLOW: never write through a symlink planted at this predictable path.
+        const { O_WRONLY, O_CREAT, O_TRUNC, O_NOFOLLOW = 0 } = fs.constants;
+        fs.writeFileSync(file, JSON.stringify([...shown, item]), { flag: O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, mode: 0o600 });
+    } catch { /* unwritable temp dir or symlink: show the notice anyway */ }
     return false;
 }
 

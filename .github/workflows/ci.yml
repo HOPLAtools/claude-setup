@@ -32,6 +32,15 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('hooks/hooks.json'))"
           node -e "JSON.parse(require('fs').readFileSync('package.json'))"
 
+      # Pinned Claude Code CLI (a CI tool, not a package dependency; no auth needed). Bump the pin manually.
+      - name: Validate plugin (claude plugin validate)
+        run: |
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict .
+          # Non-strict: its only warning is this repo's own CLAUDE.md at the plugin root (dev rules, not shipped context).
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate .claude-plugin/plugin.json
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict skills
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict agents
+
       - name: Check versions synced across manifests
         run: node scripts/check-versions.js
 
