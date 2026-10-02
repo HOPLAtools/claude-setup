@@ -83,7 +83,7 @@ Versions are tracked in three files and must always match. `scripts/check-versio
 - `.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json` (inside `plugins[0].version`)
 
-Bump all three in the same commit. CI verifies the match.
+Version bumps are done by maintainers, all three files in the same commit; CI verifies the match. Merging a version bump to `main` publishes it to npm automatically (`.github/workflows/publish.yml`), so only merge it with a green CI.
 
 ### Opening a PR
 

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+- **Releases publish to npm automatically.** A new workflow (`.github/workflows/publish.yml`) publishes `@hopla/claude-setup` when a push to `main` carries a version that is not on npm yet, using npm trusted publishing (OIDC, no stored token) with provenance. It repeats the CI checks and runs `prepublishOnly` before uploading; any other push ends green doing nothing. CI now also runs on Node 24, the Node used to publish.
+
 ## [2.3.0] - 2026-10-02
 
 Follow-ups from the 2.2 review and the interactive checks. No breaking changes.

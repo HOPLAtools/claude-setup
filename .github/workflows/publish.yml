@@ -1,0 +1,94 @@
+# Publishes @hopla/claude-setup to npm when a push to main carries a version
+# that is not on the registry yet. Otherwise the run ends green doing nothing.
+#
+# Auth: npm trusted publishing (OIDC). No token is stored anywhere; provenance
+# is generated automatically (public repo + public package).
+#
+# FILENAME MATTERS: the trusted publisher on npmjs.com is registered with the
+# exact, case-sensitive filename "publish.yml". Renaming this file breaks
+# publishing until the npm configuration is recreated.
+name: Publish to npm
+
+on:
+  push:
+    branches: [main] # pushes and merges to main only; pull requests and forks never run this
+
+# One publish at a time. cancel-in-progress stays false so a running publish is
+# never killed; a newer pending run may replace an older pending one, which is
+# fine because every run re-checks the registry.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+# Deny everything by default; the job grants only what it needs.
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest # GitHub-hosted only: npm does not support self-hosted runners for trusted publishing
+    permissions:
+      contents: read # actions/checkout
+      id-token: write # lets the job mint the OIDC token that npm exchanges for a short-lived publish credential
+    # No "environment:" on purpose. Leave "Environment name" blank on npmjs.com as well.
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24" # Node 24 bundles npm >= 11.5.1 (required for OIDC); Node 20/22 bundle npm 10.x
+          registry-url: "https://registry.npmjs.org" # as in npm's official trusted-publishing example
+          package-manager-cache: false # npm docs: never use caching in release builds
+        # No NODE_AUTH_TOKEN / NPM_TOKEN anywhere: npm would silently fall back to a token
+        # and hide a misconfigured trusted publisher.
+
+      - name: Check whether this version is already on npm
+        id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          # Plain HTTP status: independent of npm's output format. Scoped names need "/" encoded as %2F.
+          # "|| true": on a network error curl still prints 000, so the case below reports it clearly.
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "https://registry.npmjs.org/${NAME/\//%2F}/${VERSION}" || true)
+          case "$STATUS" in
+            200) echo "should_publish=false" >> "$GITHUB_OUTPUT"; echo "$NAME@$VERSION is already on npm - nothing to do" ;;
+            404) echo "should_publish=true" >> "$GITHUB_OUTPUT"; echo "$NAME@$VERSION is not on npm - publishing" ;;
+            # Network failure (000), rate limit or 5xx: fail instead of guessing.
+            *) echo "::error::Unexpected HTTP $STATUS from the registry"; exit 1 ;;
+          esac
+
+      - name: Require npm >= 11.5.1
+        if: steps.check.outputs.should_publish == 'true'
+        # An older npm skips OIDC silently and then fails with a confusing auth error.
+        run: |
+          echo "node $(node --version), npm $(npm --version)"
+          node -e '
+            const [a, b, c] = process.argv[1].split(".").map(Number);
+            if (a < 11 || (a === 11 && (b < 5 || (b === 5 && c < 1)))) {
+              console.error("npm " + process.argv[1] + " is older than 11.5.1 (required for trusted publishing)");
+              process.exit(1);
+            }
+          ' "$(npm --version)"
+
+      # This workflow does not wait for ci.yml, so it repeats the CI checks that
+      # prepublishOnly (check-versions + npm test) does not cover.
+      - name: Validate JSON manifests
+        if: steps.check.outputs.should_publish == 'true'
+        run: |
+          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json hooks/hooks.json package.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f'))"
+          done
+
+      - name: CLI dry-runs and hook-audit smoke
+        if: steps.check.outputs.should_publish == 'true'
+        run: |
+          node cli.js --dry-run --force
+          node cli.js --dry-run --uninstall --force
+          bash skills/hook-audit/tests/manual-test.sh
+
+      - name: Publish
+        if: steps.check.outputs.should_publish == 'true'
+        # Plain `npm publish` from the repo directory runs prepublishOnly first
+        # ("node scripts/check-versions.js && npm test"); a failure aborts before anything is uploaded.
+        # Never add --ignore-scripts. No --provenance (automatic with OIDC) and no --access
+        # (publishConfig.access is already "public").
+        run: npm publish

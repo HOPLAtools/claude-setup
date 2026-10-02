@@ -62,7 +62,7 @@ README.md            ← Public documentation
 | Channel | Install | What it provides |
 |---|---|---|
 | **Plugin** | `/plugin install hopla@hopla-marketplace` | Commands, skills, agents, hooks |
-| **CLI (npm)** | `npm i -g @hopla/claude-setup && claude-setup` | Global rules (`~/.claude/CLAUDE.md`) + permissions |
+| **CLI (npm)** | `npm i -g @hopla/claude-setup && hopla-claude-setup` | Global rules (`~/.claude/CLAUDE.md`) + permissions |
 
 **CLI install flow (cli.js):**
 ```
@@ -166,16 +166,16 @@ node cli.js status       # Read-only: inspect current project's .agents/ workflo
 node cli.js status --json # Same, machine-readable JSON for agents
 node cli.js --dry-run    # Preview changes without writing (composes with any other flag)
 node cli.js --version    # Print package version
-npm publish              # Publish to npm (bump version in package.json + plugin.json + marketplace.json first)
+npm publish --otp=<code> # Manual fallback only — merging a version bump to main publishes automatically (publish.yml)
 ```
 
 **Release flow:**
 
 1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match — `scripts/check-versions.js` runs as `prepublishOnly` and blocks publish if they diverge)
 2. `git commit` + open PR
-3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh`)
+3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh` on Node 20 and 24)
 4. Merge PR to `main`
-5. `npm publish` from `main` (only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo)
+5. **Publishing is automatic.** `.github/workflows/publish.yml` runs on every push to `main`: if the `package.json` version is not on npm yet, it repeats the CI checks and runs `npm publish` (which runs `prepublishOnly`) with npm trusted publishing (OIDC, no stored token, provenance included); otherwise it ends green doing nothing. It only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo. Never rename `publish.yml`: npmjs.com trusts that exact filename. Manual fallback: `npm publish --otp=<code>` from `main`.
 6. Plugin-channel users with auto-update enabled get the new version at next session start, automatically. Users without auto-update refresh via:
    ```
    /plugin marketplace update hopla-marketplace
