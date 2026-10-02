@@ -267,7 +267,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | Hook | Type | What it does |
 |---|---|---|
 | `tsc-check.js` | PostToolUse + Stop | Records edited TS/JS files; once per turn runs `tsc -p` on the nearest `tsconfig.json` (monorepo-aware) and shows Claude the first 30 errors in files it edited, plus totals and a full log in `/tmp` |
-| `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit of `.dev.vars` |
+| `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit/MultiEdit of `.dev.vars` |
 | `session-prime.js` | SessionStart | Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars) |
 | `precompact-snapshot.js` | PreCompact | Saves branch, uncommitted files and the active plan + step to `.claude/compact-snapshot.json` |
 | `prompt-route.js` | UserPromptSubmit | Silent since 2.2 (skills are selected natively from `description` / `when_to_use`) |

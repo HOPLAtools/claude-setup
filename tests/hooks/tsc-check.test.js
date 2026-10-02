@@ -55,10 +55,20 @@ const stop = (sid, cwd, active = false) => runHook({
 }, cwd);
 
 // Writes an executable fake tsc that logs its args, counts runs, and prints `body`.
+// `--showConfig` is answered from <binDir>/showconfig.json when present, fails
+// when <binDir>/showconfig.fail exists, and otherwise reports a normal project
+// (one root file). showConfig calls are not counted as runs.
 function fakeTsc(binDir, body, exitCode = 2) {
     fs.mkdirSync(binDir, { recursive: true });
     const tsc = path.join(binDir, "tsc");
     fs.writeFileSync(tsc, `#!/bin/sh
+if [ "$1" = "--showConfig" ]; then
+  echo "$@" >> "${path.join(binDir, "showconfig.log")}"
+  if [ -f "${path.join(binDir, "showconfig.fail")}" ]; then echo "error TS6053: File not found."; exit 1; fi
+  if [ -f "${path.join(binDir, "showconfig.json")}" ]; then cat "${path.join(binDir, "showconfig.json")}"; exit 0; fi
+  echo '{"compilerOptions": {}, "files": ["./src/a.ts"]}'
+  exit 0
+fi
 echo "$@" >> "${path.join(binDir, "args.log")}"
 echo run >> "${path.join(binDir, "runs.log")}"
 ${body}
@@ -316,23 +326,55 @@ test("tsc-check Stop: projects beyond the first 3 stay recorded for the next Sto
     assert.equal(readRecord(sid), null);
 })));
 
-test("tsc-check Stop: solution-style tsconfig (references only) -> not run, one-line notice", () => withTmp((tmp) => withSession((sid) => {
-    writeText(path.join(tmp, "tsconfig.json"),
-        '{\n  // solution file\n  "files": [],\n  "references": [{ "path": "./apps/api" }, ],\n}\n');
-    const bin = fakeTsc(path.join(tmp, "node_modules", ".bin"), errLine("src/a.ts", 1));
-    post(sid, path.join(tmp, "src", "a.ts"), tmp);
-    const res = stop(sid, tmp);
-    assert.equal(res.status, 0);
-    assert.equal(runs(bin), 0);
-    assert.match(JSON.parse(res.stdout).systemMessage, /solution-style tsconfig/);
-    assert.equal(readRecord(sid), null);
-})));
+// Solution detection asks tsc itself (`--showConfig`), so extends chains, npm
+// bases and JSONC follow TypeScript exactly. These cases pin the decision rule.
+const showConfigCalls = (binDir) => {
+    try {
+        return fs.readFileSync(path.join(binDir, "showconfig.log"), "utf8").trim().split("\n").filter(Boolean).length;
+    } catch {
+        return 0;
+    }
+};
 
-test("tsc-check Stop: tsconfig with references AND files is checked normally", () => withTmp((tmp) => withSession((sid) => {
-    writeText(path.join(tmp, "tsconfig.json"), '{"files": ["src/a.ts"], "references": [{"path": "./x"}]}');
+const SOLUTION_CASES = [
+    ["references and no root files -> solution (skipped with notice)",
+        '{"files": [], "references": [{"path": "./a"}]}', '{"compilerOptions": {}, "references": [{"path": "./a"}]}', "solution"],
+    ["references and root files (e.g. inherited include) -> checked",
+        '{"extends": "./base.json", "files": [], "references": [{"path": "./a"}]}',
+        '{"compilerOptions": {}, "references": [{"path": "./a"}], "files": ["./src/a.ts"], "include": ["src"]}', "checked"],
+    ["showConfig fails (unresolvable or broken base) -> checked",
+        '{"extends": ".base/tsconfig.json", "references": [{"path": "./a"}]}', "FAIL", "checked"],
+    ["showConfig prints something that is not JSON -> checked",
+        '{"files": [], "references": [{"path": "./a"}]}', "not json", "checked"],
+];
+
+for (const [label, tsconfig, showConfig, expected] of SOLUTION_CASES) {
+    test(`tsc-check Stop: ${label}`, () => withTmp((tmp) => withSession((sid) => {
+        writeText(path.join(tmp, "tsconfig.json"), tsconfig);
+        const bin = fakeTsc(path.join(tmp, "node_modules", ".bin"), errLine("src/a.ts", 1));
+        if (showConfig === "FAIL") writeText(path.join(bin, "showconfig.fail"), "");
+        else writeText(path.join(bin, "showconfig.json"), showConfig);
+        post(sid, path.join(tmp, "src", "a.ts"), tmp);
+        const res = stop(sid, tmp);
+        assert.equal(showConfigCalls(bin), 1);
+        if (expected === "solution") {
+            assert.equal(res.status, 0);
+            assert.equal(runs(bin), 0);
+            assert.match(JSON.parse(res.stdout).systemMessage, /solution-style tsconfig/);
+            assert.equal(readRecord(sid), null);
+        } else {
+            assert.equal(res.status, 2, res.stdout + res.stderr);
+            assert.equal(runs(bin), 1);
+        }
+    })));
+}
+
+test("tsc-check Stop: tsconfig without references never spawns --showConfig", () => withTmp((tmp) => withSession((sid) => {
+    writeText(path.join(tmp, "tsconfig.json"), '{"include": ["src"]}');
     const bin = fakeTsc(path.join(tmp, "node_modules", ".bin"), errLine("src/a.ts", 1));
     post(sid, path.join(tmp, "src", "a.ts"), tmp);
     assert.equal(stop(sid, tmp).status, 2);
+    assert.equal(showConfigCalls(bin), 0);
     assert.equal(runs(bin), 1);
 })));
 

@@ -109,23 +109,6 @@ function findTsconfigDir(dir) {
     }
 }
 
-// A "solution" tsconfig only lists project references (`files: []`): `tsc -p`
-// on it checks nothing, so it is skipped with a notice instead of passing silently.
-// tsconfig allows comments and trailing commas; parse failures count as "not a solution".
-function isSolutionConfig(dir) {
-    try {
-        const raw = fs.readFileSync(path.join(dir, "tsconfig.json"), "utf8")
-            .replace(/\/\*[\s\S]*?\*\//g, "")
-            .replace(/^\s*\/\/.*$/gm, "")
-            .replace(/,(\s*[}\]])/g, "$1");
-        const cfg = JSON.parse(raw);
-        return Array.isArray(cfg.files) && cfg.files.length === 0 && !cfg.include
-            && Array.isArray(cfg.references) && cfg.references.length > 0;
-    } catch {
-        return false;
-    }
-}
-
 // Local tsc, walking up from the tsconfig dir (hoisted monorepos), else npx.
 function resolveTsc(startDir) {
     let cur = startDir;
@@ -150,6 +133,28 @@ function runTsc(tsconfigDir, timeout = TSC_TIMEOUT_MS) {
     } catch (err) {
         const output = (err.stdout || "").toString() + (err.stderr || "").toString();
         return { ok: false, output };
+    }
+}
+
+// A "solution" tsconfig only lists project references: its program has no root
+// files, so `tsc -p` on it checks nothing. TypeScript itself resolves the
+// effective config (`--showConfig`: extends chains, npm bases, JSONC), and the
+// config counts as a solution only when that succeeds with references and no
+// root files. `references` is never inherited, so files without it skip the spawn.
+// Any failure counts as "not a solution" (tsc runs and reports it).
+function isSolutionConfig(dir) {
+    const file = path.join(dir, "tsconfig.json");
+    try {
+        if (!fs.readFileSync(file, "utf8").includes('"references"')) return false;
+        const { file: bin, pre } = resolveTsc(dir);
+        const out = execFileSync(bin, [...pre, "--showConfig", "-p", file], {
+            cwd: dir, stdio: ["ignore", "pipe", "pipe"], maxBuffer: 32 * 1024 * 1024, timeout: 15000,
+        });
+        const cfg = JSON.parse(out.toString());
+        const roots = Array.isArray(cfg.files) ? cfg.files : [];
+        return Array.isArray(cfg.references) && cfg.references.length > 0 && roots.length === 0;
+    } catch {
+        return false;
     }
 }
 

@@ -13,7 +13,7 @@ Follow-ups from the 2.2 review and the interactive checks. No breaking changes.
 ### Fixed
 - **Session-start context replays the pre-compact snapshot only after `/compact` or on resume.** Before, it was replayed on every session start (startup, `/clear`, fork) for two hours, bringing back context the user had just cleared. With no payload (manual runs) the snapshot is still replayed.
 - **`env-protect` covers `MultiEdit`**: the matcher now includes it, and `.dev.vars` is blocked for MultiEdit like Edit.
-- **`tsc-check` no longer passes silently on a solution-style `tsconfig.json`** (only `references`, `files: []`): it skips it and shows a one-line notice instead of running a check that covers nothing.
+- **`tsc-check` no longer passes silently on a solution-style `tsconfig.json`**: when a tsconfig declares `references`, the hook asks TypeScript for the effective config (`tsc --showConfig`, so `extends` chains, npm bases and comments resolve exactly as in tsc). If it has references and no root files, the check is skipped with a one-line notice instead of running a check that covers nothing; if `--showConfig` fails, tsc runs as before.
 - **`hopla-claude-setup status`** matches code reviews and execution reports to a plan by exact slug (`auth.md`, `auth-…`), so `oauth-refactor.md` no longer counts as the review of plan `auth`.
 
 ### Changed
