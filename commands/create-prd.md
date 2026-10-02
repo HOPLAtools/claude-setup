@@ -1,5 +1,6 @@
 ---
 description: Create or update the PRD for this project through guided questions
+disable-model-invocation: true
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

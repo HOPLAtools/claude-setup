@@ -1,6 +1,8 @@
 ---
 description: Execute a structured plan from start to finish with validation
 argument-hint: "<plan-file-path>"
+arguments: [plan]
+disable-model-invocation: true
 ---
 
 > 💡 **Tip**: For complex tasks with intricate logic, consider using Extended Thinking mode for better reasoning quality.
@@ -12,12 +14,26 @@ Execute the implementation plan provided. You are the executing agent — you ha
 ## Step 1: Load Context
 
 Read in this order:
-1. **$1** — The plan file (read it entirely before writing a single line of code)
+1. **$plan** — The plan file (read it entirely before writing a single line of code)
 2. `CLAUDE.md` or `AGENTS.md` at project root — rules and patterns to follow
 3. All files listed in the plan's **Context References** section
 4. Any `.agents/guides/` files referenced in the plan or relevant to the tasks (e.g. `@.agents/guides/api-guide.md`)
 
 Do not start implementing until you have read everything above.
+
+### Active-plan pointer
+
+Record progress in `.agents/hopla-active-plan.json` at the project root (write it with the Write tool; it creates `.agents/` if missing). It is git-ignored per-machine state. Session hooks, the statusline and `hopla-claude-setup status` read it, so a resumed or compacted session knows which plan and step are in progress:
+
+```json
+{"plan": "<plan path relative to the project root>", "step": "<Task id + title> | null", "status": "planned | executing | done", "updatedAt": "<ISO 8601>", "by": "plan-feature | execute"}
+```
+
+- **Now (start):** `status: "executing"`, `step` = the first task (e.g. `"Task 1: Create the filter component"`), `by: "execute"`.
+- **After each completed task:** set `step` to the next task.
+- **Step 6 (end):** `status: "done"`, `step: null`.
+
+Only these fields — never secrets or plan content. If the file is missing or stale, just overwrite it. If the write is refused, continue without it — never retry or work around it; the hooks fall back to the newest plan.
 
 ### Verification Checkpoints (before writing code)
 
@@ -101,7 +117,7 @@ Work through each task in the plan sequentially. For each task:
 3. **Check for existing implementations** — before creating new functions, constants, or utility modules, search the codebase for existing implementations that serve the same purpose. Reuse or extend rather than duplicate.
 4. **Implement** only what the task specifies — nothing more
 5. **Validate** the task using the method specified in the plan's validate field
-6. **Report completion** with a brief status: what was done, what was skipped, any decision made
+6. **Report completion** with a brief status: what was done, what was skipped, any decision made, then update `step` in `.agents/hopla-active-plan.json` to the next task
 7. **Do not proceed** to the next task if the current one fails validation
 
 **Git strategy:**
@@ -136,7 +152,7 @@ If the user requests changes that are NOT in the plan during execution:
 4. **If new feature or significant addition:**
    - Suggest committing the current planned work first
    - Then create a new branch or add it to the backlog
-   - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `.agents/plans/backlog/` instead?"
+   - Say: "This looks like a separate feature. I recommend we commit the current work first, then handle this in a new branch. Should I add it to `<plans-dir>/backlog/` instead?" (`<plans-dir>` is the `- Plans:` line under `## HOPLA` in AGENTS.md, else CLAUDE.md; default `.agents/plans/`)
 5. **Never** silently add significant unplanned work — it mixes unreviewed changes into an otherwise reviewed plan and breaks the audit trail
 
 ## Step 4.5: Hook structural audit (Level 1.5 gate)
@@ -174,7 +190,7 @@ Level 5 triggers the `code-review` skill (not a slash command). Level 6 is the f
 
 ## Step 6: Completion Report
 
-Provide a summary of what was done:
+First set `.agents/hopla-active-plan.json` to `status: "done"`, `step: null` (see "Active-plan pointer" in Step 1). Then provide a summary of what was done:
 
 ```
 ## Execution Summary

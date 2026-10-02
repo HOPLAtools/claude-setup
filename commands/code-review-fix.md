@@ -9,15 +9,16 @@ Fix the issues identified in a code review.
 
 ## Inputs
 
-- **$1** — Path to a code review report file OR a natural language description of the issues to fix
-- **$2** (optional) — Scope: focus only on a subset of issues (e.g., "security issues only", "critical and high severity only")
+The whole argument string: `$ARGUMENTS`
+
+It is either a path to a code review report file (optionally followed by a scope) or a natural-language description of the issues to fix. A scope narrows the work to a subset of issues (e.g. "security issues only", "critical and high severity only").
 
 ## Step 1: Load the Review
 
-If $1 is a file path, read the entire file first to understand all issues before starting any fixes.
-If $1 is a description, treat it as the list of issues to fix.
+If the argument string starts with a path to an existing file, read the entire file first to understand all issues before starting any fixes; any text after the path is the scope.
+Otherwise, treat the whole argument string as the description of the issues to fix.
 
-If $2 is provided, filter to only the issues within that scope.
+If a scope is given, filter to only the issues within that scope.
 
 ## Pre-Fix Verification
 
@@ -51,7 +52,7 @@ Otherwise, run the standard checks for the project stack:
 
 Provide a summary of:
 - Issues fixed (with file and line reference)
-- Issues skipped and why (if $2 scope was used)
+- Issues skipped and why (if a scope was used)
 - Validation result ✅/❌
 - Any issues that could not be fixed automatically and require human review
 

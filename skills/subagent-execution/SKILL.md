@@ -1,6 +1,7 @@
 ---
 name: subagent-execution
-description: "Subagent-driven execution for large plans. Use when executing plans with 5+ tasks to maintain context quality, when the user says 'use subagents', 'parallel execution', or when context degradation is a concern in long implementations. Do NOT use for small plans (< 5 tasks) or quick fixes."
+description: "Subagent-driven execution for large plans."
+when_to_use: "Use when executing plans with 5+ tasks to maintain context quality, when the user says 'use subagents', 'parallel execution', or when context degradation is a concern in long implementations. Do NOT use for small plans (< 5 tasks) or quick fixes."
 ---
 
 # Subagent-Driven Execution

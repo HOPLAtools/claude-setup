@@ -1,11 +1,7 @@
 ---
 name: code-review
-description: "Technical code review on changed files. Use when the user says 'review code', 'code review', 'check my code', 'review changes', 'look for bugs', or 'audit code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
-triggers:
-  - "review (my |the |this )?code"
-  - "code review"
-  - "audit (my |the |this )?code"
-  - "look for bugs"
+description: "Technical code review on changed files, focused on finding real bugs and issues."
+when_to_use: "Use when the user says 'review code', 'review my code', 'review the code', 'code review', 'check my code', 'check these changes', 'review changes', 'look for bugs', 'audit code' or 'audit my code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

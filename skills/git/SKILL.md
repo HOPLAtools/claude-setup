@@ -1,6 +1,7 @@
 ---
 name: git
-description: "Git operations handler for commits and pull requests. Use when the user mentions 'commit', 'save changes', 'create commit', 'PR', 'pull request', 'push', 'merge request', or any git workflow action. Do NOT use for git status checks or branch management — only for commits and PRs."
+description: "Git operations handler for commits and pull requests."
+when_to_use: "Use when the user mentions 'commit', 'commit this', 'save changes', 'create commit', 'PR', 'create a PR', 'pull request', 'push', 'push changes', 'merge request', or any git workflow action. Do NOT use for git status checks or branch management — only for commits and PRs."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

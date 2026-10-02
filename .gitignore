@@ -5,3 +5,4 @@ files/
 .agents/plans/
 .agents/execution-reports/
 .agents/system-reviews/
+.agents/hopla-active-plan.json

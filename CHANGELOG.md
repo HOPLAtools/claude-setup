@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-01
+
+No breaking changes: nothing is removed. Requires Claude Code ≥ 2.1.218 for the full fork behavior (`background: false`); older versions ignore the new frontmatter fields.
+
+### Fixed
+- **`/hopla:archive` now produces canonical specs.** It reads the plan's own `## Requirements Delta` (before, only the design spec's delta was read, so plans never reached `.agents/specs/canonical/`), follows `See spec: <path>`, merges by requirement ID without double counting, shows conflicts, warns (never rejects) on ADDED/MODIFIED without a scenario, and lists bullets without a `REQ-` ID as "unparsed" instead of dropping them. It also fixes the `claude-setup status` typo (the bin is `hopla-claude-setup`).
+- **Command arguments.** Positional `$N` is 0-based in Claude Code, so `/hopla:system-review plan report` received them swapped. `system-review`, `archive`, `review-plan` and `execute` now declare `arguments: [...]` and use `$plan` / `$report`; `code-review-fix` takes the whole string via `$ARGUMENTS`.
+- **`tsc-check` feedback and monorepos.** Type errors now reach Claude (exit 2 + stderr) and the check runs `tsc -p` on the nearest `tsconfig.json` of each edited file (walking up to the git root) instead of only `<session cwd>/tsconfig.json`.
+- **Agents honor their `tools:` limits**, and SessionStart context is injected on `resume` and `fork` too.
+- **`env-protect` false positives.** Bash commands that only mention a dotenv file — grep patterns, `echo .env >> .gitignore`, commit messages, comments, heredoc prose, `git add .env.example`, `--env-file .env` — are no longer blocked. Commands that read it (readers, `source`, redirects, grep/awk/sed on the file, copies out, git read subcommands, interpreters and shells, heredocs that open it) still are.
+
+### Added
+- **Plans directory declaration**: `## HOPLA` / `- Plans: docs/plans/` in `AGENTS.md` (fallback `CLAUDE.md`), default `.agents/plans/`. Honored by plan-feature, execute, archive, prime, brainstorm, the git skill, the hooks, the statusline and `hopla-claude-setup status`. Unsafe values are ignored with a warning.
+- **`Owns:` line** under `## Requirements Delta`: a plan that references a shared spec lists the spec requirements it delivers; archive merges only those, lists the rest as skipped and does not move a spec another active plan still references.
+- **Active-plan pointer** `.agents/hopla-active-plan.json` (plan, step, status), written by plan-feature and execute, read by session-prime, precompact-snapshot, the statusline and `status`, cleared by archive. After `/compact` the context names the plan and step and says to re-read it.
+- **`status --json` keys**: `plans_dir`, `plans_dir_source`, `plans_dir_present`, `plans_dir_warning`, `active_plan` (additive).
+- **`when_to_use`** on every skill and on plan-feature, rca, review-plan, validate and system-review.
+- Tests: plans-dir/status/pointer cases, a parity test between `cli.js` and `hooks/lib/plans.js`, a frontmatter guard test, session-prime and precompact-snapshot suites, a table-driven env-protect suite.
+
+### Changed
+- **`tsc-check` runs once per turn.** On edits it only records the file; a new Stop hook runs tsc at the end of the turn, shows the first 30 errors in files edited this turn plus totals and a `/tmp` log path, and blocks at most twice per turn (never twice for the same errors). Errors in other files are counted in one line and never block. For per-edit diagnostics, install the official `typescript-lsp` plugin.
+- **SessionStart context is minimal**: branch, uncommitted summary (5 sample lines), active plan + step and the compact-snapshot replay — about 1 K chars typical, hard cap 1,500 (was ~3.9 K). The skills list, the CLAUDE.md excerpt and recent commits are gone (Claude Code already loads CLAUDE.md and lists skills).
+- **Prompt router is silent.** `prompt-route.js` no longer injects routing hints; it stays registered. `triggers:` is no longer used (removed from `code-review`).
+- **Forks on cheaper models**: `prime` (Haiku, via `hopla:codebase-researcher`), `hook-audit` (Sonnet) and `system-review` (Sonnet) run as forked subagents with `background: false`. Every other skill and command inherits the session model. `codebase-researcher` runs on Haiku.
+- **Manual-only commands**: `guide`, `create-prd`, `init-project`, `execute` and `archive` (`disable-model-invocation: true`) — Claude asks you to run them.
+- **`env-protect`**: template files (`.env.example`, `.env.sample`, `.env.template`, …) are readable and editable with every tool; `.env.<x>.local`, case variants and the Grep tool's `glob` are now covered; `.dev.vars` is blocked for Read, Grep and Edit.
+- Delta templates (plan-feature, brainstorm) include a scenario under MODIFIED (a MODIFIED entry is the full replacement body) and write `See spec:` / `Owns:` as plain lines.
+
+### Upgrade
+Plugin users with auto-update get 2.2.0 at the next session start. Otherwise:
+```
+/plugin marketplace update hopla-marketplace
+/plugin disable hopla@hopla-marketplace
+/plugin enable hopla@hopla-marketplace
+/reload-plugins
+```
+Add `.agents/hopla-active-plan.json` and `.claude/compact-snapshot.json` to your project's `.gitignore`.
+
 ## [2.1.1] - 2026-05-12
 
 ### Fixed

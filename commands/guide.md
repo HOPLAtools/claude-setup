@@ -1,5 +1,6 @@
 ---
 description: 4D Framework guide for non-technical users working with AI coding assistants
+disable-model-invocation: true
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

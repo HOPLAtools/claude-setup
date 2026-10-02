@@ -1,6 +1,7 @@
 ---
 name: performance
-description: "Measured performance optimization workflow. Use when the user says 'slow', 'optimize', 'performance', 'bottleneck', 'too slow', 'high memory', 'high CPU', or when asking to make something faster. Do NOT use for correctness bugs or new features — use the debug or plan-feature skills instead."
+description: "Measured performance optimization workflow."
+when_to_use: "Use when the user says 'slow', 'too slow', 'optimize', 'performance', 'bottleneck', 'high memory', 'high CPU', or asks to make something faster. Do NOT use for correctness bugs or new features — use the debug or plan-feature skills instead."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

@@ -23,11 +23,15 @@ tests/
 ├── helpers/
 │   └── fixtures.js                 reusable fixture builders (fake HOME, settings.json, ...)
 ├── fixtures/                       static fixture files used by hook tests
-├── cli.test.js                     unit tests for cli.js helpers
+├── cli.test.js                     unit + integration tests for cli.js (helpers, status, plans dir)
+├── plans-parity.test.js            cli.js plans helpers == hooks/lib/plans.js
+├── frontmatter.test.js             skill/command/agent frontmatter guard
 └── hooks/
-    ├── env-protect.test.js
-    ├── tsc-check.test.js
-    └── prompt-route.test.js
+    ├── env-protect.test.js         table-driven: dotenv reads blocked, mentions/templates allowed
+    ├── tsc-check.test.js           PostToolUse recorder + Stop type check
+    ├── session-prime.test.js       minimal SessionStart context
+    ├── precompact-snapshot.test.js PreCompact snapshot + round trip
+    └── prompt-route.test.js        silent stub
 ```
 
 ## Conventions

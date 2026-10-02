@@ -12,16 +12,24 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseSettingsFile, safeWrite } from "../cli.js";
-import { makeTempDir, writeJson, readJson, rmDir } from "./helpers/fixtures.js";
+import {
+    parseSettingsFile,
+    safeWrite,
+    parsePlansDeclaration,
+    resolvePlansDir,
+    readWorkflowState,
+} from "../cli.js";
+import { makeTempDir, writeJson, readJson, rmDir, writeText } from "./helpers/fixtures.js";
 
 const REPO_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CLI = path.join(REPO_ROOT, "cli.js");
 
 // Run cli.js with a fake $HOME and the given args. Returns { status, stdout, stderr }.
-function runCli(args, { home }) {
+// `cwd` is optional (defaults to the test runner's cwd).
+function runCli(args, { home, cwd } = {}) {
     return spawnSync("node", [CLI, ...args], {
         encoding: "utf8",
+        cwd,
         env: { ...process.env, HOME: home, CLAUDE_DRY_RUN: undefined },
     });
 }
@@ -212,3 +220,244 @@ test("CLI --remove-statusline removes only a Hopla-marked statusLine", () => {
         rmDir(tmp);
     }
 });
+
+// === status / plans dir ================================================
+
+const parseCases = [
+    ["## HOPLA\n- Plans: docs/plans/\n", "docs/plans"],
+    ["## HOPLA\n- Plans: `docs/plans`\n", "docs/plans"],
+    ["# T\n## HOPLA\n- Other: x\n- Plans: docs/plans\n", "docs/plans"],
+    ["## hopla\n* plans:   docs/plans  \n", "docs/plans"],
+    ["## Other\n- Plans: docs/plans\n", null],
+    ["## HOPLA\n- Foo: bar\n## Next\n- Plans: docs/plans\n", null],
+    ["### HOPLA\n- Plans: docs/plans\n", null],
+    ["## HOPLA\n### Paths\n- Plans: docs/plans\n", "docs/plans"],
+    ["```markdown\n## HOPLA\n- Plans: docs/plans/\n```\n", null],
+    ["## HOPLA\n```\n- Plans: bad\n```\n- Plans: good\n", "good"],
+    ["## HOPLA\r\n- Plans: docs/plans/\r\n", "docs/plans"],
+    ["## HOPLA\n- Plans: a/b\n- Plans: c/d\n", "a/b"],
+    ["## HOPLA\n- Plans: ./docs/plans/\n", "docs/plans"],
+    ["## HOPLA\n- Plans: docs\\plans\n", "docs/plans"],
+    ["## HOPLA\n- Plans: .agent/plans\n", ".agent/plans"],
+    ["## HOPLA\n- Plans: docs/plans/ (feature plans)\n", "docs/plans"],
+    ["## HOPLA\n- Plans: `docs/my plans/` (x)\n", "docs/my plans"],
+];
+
+for (const [input, expected] of parseCases) {
+    test(`parsePlansDeclaration: ${JSON.stringify(input)} -> ${expected}`, () => {
+        const r = parsePlansDeclaration(input);
+        assert.equal(r.dir, expected);
+        assert.equal(r.warning, undefined);
+    });
+}
+
+for (const raw of ["/etc/plans", "../outside", "docs/../../x", ".", "~/plans", "$HOME/plans", "C:\\plans"]) {
+    test(`parsePlansDeclaration: unsafe value ${raw} is rejected with a warning`, () => {
+        const r = parsePlansDeclaration(`## HOPLA\n- Plans: ${raw}\n`);
+        assert.equal(r.dir, null);
+        assert.match(r.warning, /unsafe/);
+    });
+}
+
+test("parsePlansDeclaration: empty value -> null without warning", () => {
+    const r = parsePlansDeclaration("## HOPLA\n- Plans:\n");
+    assert.equal(r.dir, null);
+    assert.equal(r.warning, undefined);
+});
+
+function withTmp(fn) {
+    const tmp = makeTempDir();
+    try {
+        return fn(tmp);
+    } finally {
+        rmDir(tmp);
+    }
+}
+
+test("resolvePlansDir: no AGENTS.md / CLAUDE.md -> default", () => withTmp((tmp) => {
+    const r = resolvePlansDir(tmp);
+    assert.equal(r.dir, ".agents/plans");
+    assert.equal(r.source, "default");
+    assert.equal(r.abs, path.join(tmp, ".agents", "plans"));
+}));
+
+test("resolvePlansDir: AGENTS.md declaration wins", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "# P\n\n## HOPLA\n- Plans: docs/plans/\n");
+    const r = resolvePlansDir(tmp);
+    assert.equal(r.dir, "docs/plans");
+    assert.equal(r.source, "AGENTS.md");
+    assert.equal(r.abs, path.join(tmp, "docs", "plans"));
+}));
+
+test("resolvePlansDir: only CLAUDE.md declares -> source CLAUDE.md", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "CLAUDE.md"), "## HOPLA\n- Plans: docs/plans\n");
+    assert.equal(resolvePlansDir(tmp).source, "CLAUDE.md");
+}));
+
+test("resolvePlansDir: AGENTS.md without section falls back to CLAUDE.md", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "# Rules\n- nothing here\n");
+    writeText(path.join(tmp, "CLAUDE.md"), "## HOPLA\n- Plans: docs/plans\n");
+    const r = resolvePlansDir(tmp);
+    assert.equal(r.dir, "docs/plans");
+    assert.equal(r.source, "CLAUDE.md");
+}));
+
+test("resolvePlansDir: AGENTS.md beats CLAUDE.md", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: a/b\n");
+    writeText(path.join(tmp, "CLAUDE.md"), "## HOPLA\n- Plans: c/d\n");
+    const r = resolvePlansDir(tmp);
+    assert.equal(r.dir, "a/b");
+    assert.equal(r.source, "AGENTS.md");
+}));
+
+test("resolvePlansDir: unsafe declaration -> default + warning", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: ../x\n");
+    const r = resolvePlansDir(tmp);
+    assert.equal(r.dir, ".agents/plans");
+    assert.equal(r.source, "default");
+    assert.match(r.warning, /unsafe/);
+}));
+
+test("readWorkflowState: exposes plans_dir keys", () => withTmp((tmp) => {
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    const s = readWorkflowState(tmp);
+    assert.equal(s.plans_dir, ".agents/plans");
+    assert.equal(s.plans_dir_source, "default");
+    assert.equal(s.plans_dir_present, true);
+    assert.equal(s.plans_dir_warning, null);
+    assert.deepEqual(s.plans.active, ["x.md"]);
+}));
+
+function statusJson(cwd) {
+    const home = makeTempDir("hopla-home-");
+    try {
+        const r = runCli(["status", "--json"], { home, cwd });
+        assert.equal(r.status, 0, r.stderr);
+        return JSON.parse(r.stdout);
+    } finally {
+        rmDir(home);
+    }
+}
+
+function statusText(cwd) {
+    const home = makeTempDir("hopla-home-");
+    try {
+        const r = runCli(["status"], { home, cwd });
+        assert.equal(r.status, 0, r.stderr);
+        return r.stdout;
+    } finally {
+        rmDir(home);
+    }
+}
+
+function makeDocsPlansProject(tmp) {
+    writeText(path.join(tmp, "AGENTS.md"), "# P\n\n## HOPLA\n- Plans: docs/plans/\n");
+    writeText(path.join(tmp, "docs", "plans", "add-auth.md"), "# add-auth\n");
+    writeText(path.join(tmp, "docs", "plans", "wip.draft.md"), "# wip\n");
+    writeText(path.join(tmp, "docs", "plans", "done", "old.md"), "# old\n");
+    writeText(path.join(tmp, "docs", "plans", "backlog", "later.md"), "# later\n");
+}
+
+test("CLI status --json: docs/plans project without .agents/", () => withTmp((tmp) => {
+    makeDocsPlansProject(tmp);
+    const j = statusJson(tmp);
+    assert.equal(j.git.in_repo, false);
+    assert.deepEqual(j.plans.active, ["add-auth.md"]);
+    assert.deepEqual(j.plans.draft, ["wip.draft.md"]);
+    assert.deepEqual(j.plans.done, ["old.md"]);
+    assert.deepEqual(j.plans.backlog, ["later.md"]);
+    assert.equal(j.plans_dir, "docs/plans");
+    assert.equal(j.plans_dir_source, "AGENTS.md");
+    assert.equal(j.agents_dir_present, false);
+    assert.equal(j.plans_dir_present, true);
+    assert.match(j.next, /Active plan \(add-auth\.md\)/);
+    assert.doesNotMatch(j.next, /^No \.agents\//);
+    assert.equal(j.active_plan.path, "docs/plans/add-auth.md");
+    assert.equal(j.active_plan.source, "mtime");
+}));
+
+test("CLI status --json: default project keeps every pre-existing key", () => withTmp((tmp) => {
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    const j = statusJson(tmp);
+    for (const k of ["cwd", "git", "agents_dir_present", "plans", "specs", "code_reviews",
+        "execution_reports", "system_reviews", "rca", "audits", "next",
+        "plans_dir", "plans_dir_source", "plans_dir_present", "plans_dir_warning", "active_plan"]) {
+        assert.ok(k in j, `missing key ${k}`);
+    }
+    assert.equal(j.plans_dir, ".agents/plans");
+    assert.equal(j.plans_dir_source, "default");
+    assert.deepEqual(j.plans.active, ["x.md"]);
+}));
+
+test("CLI status --json: declared dir missing -> no fallback to .agents/plans", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans\n");
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    const j = statusJson(tmp);
+    assert.deepEqual(j.plans.active, []);
+    assert.equal(j.plans_dir_present, false);
+    assert.equal(j.active_plan, null);
+}));
+
+test("CLI status --json: ../escape declaration -> default + warning", () => withTmp((tmp) => {
+    writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: ../escape\n");
+    const j = statusJson(tmp);
+    assert.equal(j.plans_dir, ".agents/plans");
+    assert.ok(typeof j.plans_dir_warning === "string" && j.plans_dir_warning.length > 0);
+}));
+
+test("CLI status (text): docs/plans project prints dir and source", () => withTmp((tmp) => {
+    makeDocsPlansProject(tmp);
+    const out = statusText(tmp);
+    assert.match(out, /docs\/plans/);
+    assert.match(out, /AGENTS\.md/);
+}));
+
+test("CLI status: empty dir still prints the No .agents/ guidance", () => withTmp((tmp) => {
+    const j = statusJson(tmp);
+    assert.match(j.next, /^No \.agents\//);
+    assert.match(statusText(tmp), /No \.agents\//);
+}));
+
+// --- active-plan pointer ------------------------------------------------
+
+function writePointer(tmp, obj) {
+    writeText(path.join(tmp, ".agents", "hopla-active-plan.json"),
+        typeof obj === "string" ? obj : JSON.stringify(obj));
+}
+
+test("CLI status --json: valid pointer wins over mtime", () => withTmp((tmp) => {
+    makeDocsPlansProject(tmp);
+    writeText(path.join(tmp, "docs", "plans", "x.md"), "# x\n");
+    const old = new Date(Date.now() - 3 * 3600 * 1000);
+    fs.utimesSync(path.join(tmp, "docs", "plans", "x.md"), old, old);
+    writePointer(tmp, { plan: "docs/plans/x.md", step: "Task 3", status: "executing",
+        updatedAt: new Date().toISOString(), by: "execute" });
+    const j = statusJson(tmp);
+    assert.deepEqual(j.active_plan, { path: "docs/plans/x.md", step: "Task 3", source: "pointer" });
+    assert.match(j.next, /x\.md/);
+}));
+
+test("CLI status (text): pointer prints Active line with step", () => withTmp((tmp) => {
+    makeDocsPlansProject(tmp);
+    writePointer(tmp, { plan: "docs/plans/add-auth.md", step: "Task 2", status: "executing" });
+    assert.match(statusText(tmp), /Active: docs\/plans\/add-auth\.md — step: Task 2 \(pointer\)/);
+}));
+
+const badPointers = [
+    ["missing file", { plan: "docs/plans/nope.md", status: "executing" }],
+    ["done/ file", { plan: "docs/plans/done/old.md", status: "executing" }],
+    ["status done", { plan: "docs/plans/add-auth.md", status: "done" }],
+    ["malformed JSON", "{ not json"],
+    ["unsafe path", { plan: "../outside.md", status: "executing" }],
+    ["absolute path", { plan: "/etc/hosts", status: "executing" }],
+];
+
+for (const [label, ptr] of badPointers) {
+    test(`CLI status --json: pointer ignored (${label}) -> source mtime`, () => withTmp((tmp) => {
+        makeDocsPlansProject(tmp);
+        writePointer(tmp, ptr);
+        const j = statusJson(tmp);
+        assert.equal(j.active_plan.source, "mtime");
+        assert.equal(j.active_plan.path, "docs/plans/add-auth.md");
+    }));
+}

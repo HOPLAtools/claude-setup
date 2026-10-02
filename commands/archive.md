@@ -1,137 +1,146 @@
 ---
-description: Archive a completed plan — fold its delta-specs into canonical specs and move artifacts to archive locations
+description: Archive a completed plan — fold its requirement deltas into canonical specs and move artifacts to archive locations
 argument-hint: "<plan-file-path>"
+arguments: [plan]
+disable-model-invocation: true
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
-Close the lifecycle of a completed plan: fold its proposed requirement changes into the canonical specs, move the plan and design files to their archive locations, and leave the project in a clean post-feature state.
+Close the lifecycle of a completed plan: fold its requirement changes into the canonical specs, move the plan and design files to their archive locations, and leave the project in a clean post-feature state.
 
-> Use this command **after** `/hopla:execute` has finished, code-review and execution-report skills have run, and changes are committed (or staged for the merge commit). The command does not write code — it only updates docs and moves files.
+> Run **after** `/hopla:execute` has finished, the code-review and execution-report skills have run, and changes are committed (or staged). This command writes no code — it only updates docs and moves files. **Nothing is written before the user answers "yes" in Step 3.**
 
 ## Step 0: Locate Inputs
 
-The first argument `$1` should be the path to the completed plan (e.g. `.agents/plans/add-auth.md`). If the user did not pass a path:
+**Plans dir.** Resolve `<plans-dir>` once, first that works:
 
-1. Run `node ~/.claude/plugins/marketplaces/hopla-marketplace/cli.js status` — or `claude-setup status` if installed via npm — to list active plans.
-2. Ask the user which one to archive.
+1. `hopla-claude-setup status --json` → field `plans_dir` (npm install).
+2. `node ~/.claude/plugins/marketplaces/hopla-marketplace/cli.js status --json` → `plans_dir`.
+3. Manual rule (older CLI without `plans_dir`): in `AGENTS.md`, else `CLAUDE.md`, find the `## HOPLA` section (ignore fenced code blocks) and its first `- Plans: <dir>` line. Reject absolute paths, `..`, `~` or `$` values (warn). Default: `.agents/plans`.
 
-Derive the **feature slug** from the filename (e.g. `add-auth.md` → `add-auth`).
+**Plan.** The plan path is `$plan` (e.g. `<plans-dir>/add-auth.md`). If it is empty, list `plans.active` from the same `status --json` output (and `active_plan`, the plan recorded in `.agents/hopla-active-plan.json`, if set), then ask the user which one to archive.
 
-Then look for related artifacts:
+- If the plan is already inside `<plans-dir>/done/` → say it is already archived and stop.
+- **Slug** = filename without `.md`. If it ends in `.draft`, drop it and warn ("draft plans were never finalized"). When matching specs, also drop a leading `YYYY-MM-DD-`.
+
+Related artifacts:
 
 | Artifact | Expected path |
 |---|---|
-| Plan | `$1` (e.g. `.agents/plans/add-auth.md`) |
-| Design spec | `.agents/specs/<slug>.md` or `.agents/specs/YYYY-MM-DD-<slug>.md` (latest match) |
-| Code review | `.agents/code-reviews/<slug>.md` (ephemeral — do NOT preserve) |
-| Execution report | `.agents/execution-reports/<slug>.md` (preserve) |
-| System review | `.agents/system-reviews/<slug>-review.md` (preserve) |
+| Plan | `$plan` |
+| Design spec | from `See spec:` (Step 1), else `.agents/specs/<slug>.md` or `.agents/specs/YYYY-MM-DD-<slug>.md` (latest match), else none |
+| Code review | `.agents/code-reviews/<slug>.md` (ephemeral — deleted) |
+| Execution report | `.agents/execution-reports/<slug>.md` (kept) |
+| System review | `.agents/system-reviews/<slug>-review.md` (kept) |
 
-If the design spec is missing, that's OK — many features start from `/hopla:plan-feature` directly without a brainstorm step. Skip the spec-merge phase.
+## Step 1: Build the Requirements Delta
 
-## Step 1: Read the Spec's Requirements Delta (if any)
-
-If a design spec exists at `.agents/specs/<slug>.md`, read it and look for a `## Requirements Delta` section with subsections:
+Delta format (in plans and specs):
 
 ```markdown
 ## Requirements Delta
+See spec: .agents/specs/2026-01-10-auth.md
+Owns: REQ-AUTH-001, REQ-AUTH-002
 
 ### ADDED Requirements
 - REQ-AUTH-002: 2FA enrollment
   - Scenario: enabling 2FA — Given the user is authenticated, When they enable 2FA, Then ...
 
 ### MODIFIED Requirements
-- REQ-AUTH-001: User login (replaces previous version)
-  - Now includes 2FA challenge step when the account has 2FA enabled.
+- REQ-AUTH-001: User login (full replacement body)
+  - Scenario: login with 2FA — Given 2FA is enabled, When the user logs in, Then a code is required
 
 ### REMOVED Requirements
 - REQ-AUTH-003: SMS-only fallback (deprecated)
 ```
 
-If no `## Requirements Delta` section exists, the spec is informational only — skip to Step 4 (archive moves).
+1. **Plan delta P** = the plan's `## Requirements Delta` section, up to the next `## ` heading.
+2. **Spec reference.** Find a line containing `See spec:` followed by a path (tolerate surrounding backticks, a leading `>` or `-`). The path may be in any directory. If the file is missing, warn and fall back to the slug match. No reference → slug-matched spec (table above) or none.
+3. **Spec delta D** = the spec's `## Requirements Delta`, read **once**.
+4. **Ownership.** `Owns:` (directly under `## Requirements Delta` in the plan) lists spec IDs this plan delivers, comma- or space-separated.
+   - Result = P's own bullets + D's entries whose ID is in `Owns:`.
+   - D's other IDs → **Skipped (not owned by this plan)**. List them; never merge them.
+   - `See spec:` present but no `Owns:` line → list D's IDs and ask "Merge all of these spec requirements? (yes / pick / none)".
+   - Spec found only by slug (no `See spec:`) → treat all of D as owned.
+5. **Requirement ID** = the leading `REQ-…` token of a top-level bullet, up to the first `:`, space or `(`. A tag like `(E2)` is not part of the ID. The numeric suffix is optional (`REQ-SKILLS-TRIGGERS` is valid).
+6. **Merge key** = (section, ID).
+   - Same ID, bodies equal after collapsing whitespace → one entry (no double counting).
+   - Same ID with different bodies, or in different sections → `⚠ conflict`: show both bodies; the user picks plan / spec / skip.
+7. Top-level bullets without a `REQ-` ID → **Unparsed entries (not merged)**. Show them; never drop them silently.
 
-## Step 2: Locate Canonical Specs
+If the result is empty (no delta anywhere) → skip to Step 3 with file moves only.
 
-Canonical specs live at `.agents/specs/canonical/<domain>.md` (one file per domain — e.g. `auth.md`, `payments.md`, `ui.md`). They represent the **current behavior of the system**.
+## Step 2: Map to Canonical Specs
 
-For each ADDED / MODIFIED / REMOVED requirement, determine which canonical file it belongs to. The domain is usually inferable from the requirement ID prefix (`REQ-AUTH-*` → `auth.md`) or from the project's directory structure.
+Canonical specs live at `.agents/specs/canonical/<domain>.md`, one file per domain, each requirement under a `### REQ-…` heading. They describe the **current behavior** of the system.
 
-If `.agents/specs/canonical/` does not exist:
-- Ask the user: "No canonical specs directory found. Should I create `.agents/specs/canonical/` and start it with the requirements from this change?"
-- If yes, create `.agents/specs/canonical/<domain>.md` for each domain touched and treat ALL requirements from this change as initial content (no merge needed — bootstrap mode).
+- **Domain** of an ID: the longest hyphen-prefix of its segments that matches an existing canonical file (`REQ-IOS-COS-001` → `ios-cos.md` if it exists), else the first segment (`ios.md`). IDs without a number map by first segment.
+- If `.agents/specs/canonical/` does not exist, ask: "No canonical specs directory found. Create `.agents/specs/canonical/` and start it with this change's requirements?" If yes → bootstrap mode: ADDED and MODIFIED entries become initial content; REMOVED entries are ignored.
 
-## Step 3: Propose the Merge Diff (human approval required)
+**Checks (warn, never reject):**
+- An ADDED or MODIFIED entry "has a scenario" when some line under it contains `Then` and (`Given` or `When`). Otherwise add `⚠ no scenario: <ID>`.
+- MODIFIED without a scenario: also warn "replacing the canonical body drops its existing scenarios — review the diff".
+- MODIFIED whose ID is not in the canonical file → treat as ADDED and warn.
 
-For each affected canonical file, build the proposed new content **in memory**:
+## Step 3: Show the Summary and Ask
 
-- For each entry under `### ADDED Requirements` → append the requirement (with its scenarios) to the canonical file under `## Requirements`.
-- For each entry under `### MODIFIED Requirements` → find the requirement by ID in the canonical file and **replace** its body with the new version. If the ID is not found, treat as ADDED and warn the user.
-- For each entry under `### REMOVED Requirements` → find the requirement by ID and **delete** its block (heading + body until the next `### ` heading or end of section).
-
-Show the user a summary:
+Build the new canonical content **in memory**: ADDED → append under `## Requirements`; MODIFIED → replace the body of that ID's block; REMOVED → delete the block (heading + body up to the next `### `).
 
 ```
 ## Archive plan: <slug>
+Plans dir: <plans-dir> (<source>)
+Spec: <path> (via See spec: | slug match | none)
 
 Canonical specs to update:
   .agents/specs/canonical/auth.md
     + ADDED:    REQ-AUTH-002 (2FA enrollment)
-    ~ MODIFIED: REQ-AUTH-001 (User login — now requires 2FA step)
+    ~ MODIFIED: REQ-AUTH-001 (User login)
     - REMOVED:  REQ-AUTH-003 (SMS-only fallback)
 
-Files to move:
-  .agents/plans/<slug>.md             → .agents/plans/done/<slug>.md
-  .agents/specs/<slug>.md             → .agents/specs/archived/<slug>.md
-  .agents/code-reviews/<slug>.md      → DELETE (ephemeral)
+Warnings:            ⚠ no scenario: REQ-AUTH-004
+Conflicts:           ⚠ conflict REQ-AUTH-001 — plan body vs spec body (choose: plan / spec / skip)
+Skipped (not owned by this plan): REQ-AUTH-009
+Unparsed entries (not merged):    - <bullet text>
 
-Files to keep in place:
-  .agents/execution-reports/<slug>.md
-  .agents/system-reviews/<slug>-review.md
+Files to move:
+  <plans-dir>/<slug>.md          → <plans-dir>/done/<slug>.md
+  <spec path>                    → .agents/specs/archived/<spec file>   (or "kept: referenced by <other plan>")
+  .agents/code-reviews/<slug>.md → DELETE (ephemeral)
+
+Files kept: .agents/execution-reports/<slug>.md, .agents/system-reviews/<slug>-review.md
 ```
 
-Then ask:
+Resolve every conflict and the "merge all?" question first, then ask:
 > "Apply these changes? (yes / show diff / cancel)"
 
-- **show diff:** print a unified diff of each canonical file (before vs after) so the user can review the exact merge before approval.
-- **cancel:** abort with no changes.
-- **yes:** proceed to Step 4.
+- **show diff:** unified diff of each canonical file (before vs after), then ask again.
+- **cancel:** stop. Nothing is written.
+- **yes:** Step 4.
 
-## Step 4: Apply the Changes
+## Step 4: Apply (only after "yes")
 
-Only after explicit `yes`:
-
-1. Write each updated canonical spec file via the Edit tool. Never overwrite blindly — always anchor on the requirement ID heading.
-2. Move (or copy + delete) the plan: `.agents/plans/<slug>.md` → `.agents/plans/done/<slug>.md`. If `.agents/plans/done/` does not exist, create it.
-3. If a design spec exists, move `.agents/specs/<slug>.md` → `.agents/specs/archived/<slug>.md`. Create `archived/` if missing.
-4. Delete the ephemeral code review at `.agents/code-reviews/<slug>.md` (if it exists). Per project policy, code reviews are working state and not committed.
-5. Leave `execution-reports/` and `system-reviews/` untouched — they are part of the cross-session learning loop.
+1. Edit each canonical file with the Edit tool, anchored on the `### REQ-…` heading (never overwrite blindly). Create files/dirs in bootstrap mode. Skip IDs the user chose to skip.
+2. Move the plan to `<plans-dir>/done/` (create it if missing).
+3. Move the spec to `.agents/specs/archived/` **unless** another plan in `<plans-dir>` (not in `done/`) has a `See spec:` line pointing at it — then keep it and say why.
+4. Never overwrite an existing destination: ask the user instead.
+5. Delete `.agents/code-reviews/<slug>.md` if it exists. Leave execution reports and system reviews untouched.
+6. If `.agents/hopla-active-plan.json` exists and its `plan` is the archived plan, delete that file.
 
 ## Step 5: Confirm and Suggest Next
 
-Print a final summary:
-
 ```
 ✅ Archived <slug>
-
-Canonical specs updated:
-  - .agents/specs/canonical/auth.md (3 changes)
-
-Files moved:
-  - plans/<slug>.md → plans/done/<slug>.md
-  - specs/<slug>.md → specs/archived/<slug>.md
-
-Files removed:
-  - code-reviews/<slug>.md (ephemeral)
+Canonical specs updated: .agents/specs/canonical/auth.md (3 changes)
+Moved:   <plans-dir>/<slug>.md → <plans-dir>/done/<slug>.md
+         <spec> → .agents/specs/archived/<spec file>
+Removed: .agents/code-reviews/<slug>.md
 ```
 
-Suggest:
-> "Archive complete. The canonical specs now reflect this change. Consider running the `git` skill (say 'commit') to capture the merged specs, and `/hopla:system-review` if you want to mine this implementation for process improvements."
+Suggest the `git` skill (say "commit") to capture the merged specs, and `/hopla:system-review` to mine the implementation for process improvements.
 
-## Notes & Edge Cases
+## Notes
 
-- **No spec, no Requirements Delta:** Step 4 still runs (file moves) but no canonical specs are updated. This is the common case for tactical fixes that do not change documented requirements.
-- **Canonical bootstrap:** if `.agents/specs/canonical/` is empty, this command may be the first to populate it. Use the change's specs as initial content (treat all ADDED entries as initial requirements, ignore MODIFIED/REMOVED — there is nothing to modify).
-- **Conflicting modifications:** if the same REQ-* ID is modified by two parallel plans, the later archive wins. Surface this in the diff with a `⚠ conflict` marker so the user can reconcile manually before approving.
-- **Reverting an archive:** this command is one-way. To revert, restore from git history (`git restore`).
-- **Do not auto-commit:** per global rules, never run `git commit` or `git push` from this command. After archiving, suggest the `git` skill.
+- **No delta anywhere:** Step 4 still runs (file moves only).
+- **Reverting:** one-way; restore from git history.
+- **Never** run `git commit` or `git push` from this command.

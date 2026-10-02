@@ -1,6 +1,7 @@
 ---
 name: brainstorm
-description: "Design exploration and brainstorming before planning. Use when the user wants to explore options for a new feature, discuss approaches, design a solution, brainstorm ideas, or evaluate trade-offs. Trigger on: 'new feature', 'brainstorm', 'explore options', 'design', 'how should we', 'what approach', 'trade-offs'. Do NOT use when the user already has a clear plan or is asking to execute existing work."
+description: "Design exploration and brainstorming before planning: explore options, compare approaches and evaluate trade-offs for a new feature."
+when_to_use: "Use when the user wants to explore options for a new feature, discuss approaches, design a solution, or brainstorm ideas. Trigger phrases: 'new feature', 'brainstorm', 'explore options', 'explore approaches', 'design', 'how should we', 'what approach', 'trade-offs'. Do NOT use when the user already has a clear plan or is asking to execute existing work."
 ---
 
 # Brainstorming: Design Exploration Before Planning
@@ -17,7 +18,7 @@ Explore the problem space and arrive at a validated design BEFORE creating an im
 - Read the project's AGENTS.md (or CLAUDE.md as fallback), README, and relevant source files
 - Understand the existing architecture, patterns, and conventions
 - Identify what already exists that relates to this feature
-- Check `.agents/plans/` for any related previous work
+- Check `<plans-dir>` for any related previous work (`<plans-dir>` is the `- Plans: <dir>` line under `## HOPLA` in `AGENTS.md` (else `CLAUDE.md`), default `.agents/plans/`)
 
 ### Step 2: Ask Clarifying Questions
 Ask questions **one at a time** (don't overwhelm with a list):
@@ -62,15 +63,16 @@ Which approach and why
 Conceptual design details
 
 ## Requirements Delta
-> **Include only when the feature changes documented system behavior** — i.e. it adds, modifies, or removes a user-visible capability or business rule. Pure refactors, perf fixes, and infra changes can omit this section. The delta is consumed by `/hopla:archive` to fold the change into `.agents/specs/canonical/`.
+> **Include only when the feature changes documented system behavior** — i.e. it adds, modifies, or removes a user-visible capability or business rule. Pure refactors, perf fixes, and infra changes can omit this section. The delta is consumed by `/hopla:archive` to fold the change into `.agents/specs/canonical/`. A MODIFIED entry is the **full replacement body** (archive replaces the canonical body), so always include its scenarios. Plans that implement this spec reference it with two plain lines under their own `## Requirements Delta`: `See spec: <path to this spec>` and `Owns: <the REQ IDs that plan delivers>`.
 
 ### ADDED Requirements
 - REQ-<DOMAIN>-<NNN>: <short title>
   - Scenario: <name> — Given <state>, When <action>, Then <outcome>
 
 ### MODIFIED Requirements
-- REQ-<DOMAIN>-<NNN>: <short title> (replaces previous version)
-  - <description of how the requirement changes>
+- REQ-<DOMAIN>-<NNN>: <short title> (full replacement body)
+  - <the complete new requirement text — archive replaces the canonical body with it>
+  - Scenario: <name> — Given <state>, When <action>, Then <outcome>
 
 ### REMOVED Requirements
 - REQ-<DOMAIN>-<NNN>: <short title> (deprecated — reason)

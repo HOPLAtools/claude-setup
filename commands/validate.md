@@ -1,5 +1,6 @@
 ---
 description: Run the full validation pyramid on the current project
+when_to_use: "Use when the user wants to run lint, type checks and tests across the whole project. Trigger phrases: 'validate', 'run the checks', 'run lint and tests'."
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

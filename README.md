@@ -9,6 +9,7 @@ Hopla team agentic coding system for Claude Code. Delivers commands, skills, age
 - **Claude Code CLI** — install from https://claude.com/claude-code
 - **Node.js ≥18** — required for the npm CLI (`node --version`)
 - **git** — plugin installs clone this repo
+- **Claude Code ≥ 2.1.218** recommended — forked skills (`prime`, `hook-audit`, `system-review`) use `background: false`; older versions ignore unknown frontmatter fields
 
 ---
 
@@ -102,7 +103,7 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 | `hopla-claude-setup --force` | Install without prompts |
 | `hopla-claude-setup --migrate` | Remove legacy CLI-installed duplicates only |
 | `hopla-claude-setup --uninstall` | Remove global rules + legacy files |
-| `hopla-claude-setup status` | Read-only inspection of the current project's `.agents/` workflow state (plans, specs, reviews, suggested next step) |
+| `hopla-claude-setup status` | Read-only inspection of the current project's workflow state (plans from the [plans directory](#plans-directory), active plan + step, specs, reviews, suggested next step) |
 | `hopla-claude-setup status --json` | Same as above, JSON output for agents to parse |
 | `hopla-claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
 | `hopla-claude-setup --version` | Print package version |
@@ -225,19 +226,21 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 | Command | Description |
 |---|---|
-| `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure |
-| `create-prd` | Create a Product Requirements Document through guided questions |
+| `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure — manual only |
+| `create-prd` | Create a Product Requirements Document through guided questions — manual only |
 | `plan-feature` | Research codebase and create a structured implementation plan |
 | `review-plan` | Review a plan before execution — get a summary and approve |
-| `execute` | Execute a structured plan from start to finish with validation |
+| `execute` | Execute a structured plan from start to finish with validation — manual only |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `code-review-fix` | Fix issues found in a code review report |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
-| `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations |
-| `guide` | 4D Framework walkthrough for non-technical users |
-| `system-review` | Analyze implementation against plan to find process improvements |
+| `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
+| `guide` | 4D Framework walkthrough for non-technical users — manual only |
+| `system-review` | Analyze implementation against plan to find process improvements (runs as a forked subagent on Sonnet) |
 
 > `prime`, `code-review`, and `execution-report` are **skills only** (no slash command needed).
+>
+> **Manual only** commands (`guide`, `create-prd`, `init-project`, `execute`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them.
 
 **Skills** — Auto-activate by semantic matching:
 
@@ -245,7 +248,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 |---|---|
 | `git` | "commit this", "create a PR", "push changes" |
 | `worktree` | "use a worktree", "isolated branch", "parallel feature work" |
-| `prime` | "orient yourself", "catch me up", "what is this project" |
+| `prime` | "orient yourself", "catch me up", "what is this project" — runs as a forked subagent on Haiku and returns a summary |
 | `code-review` | "review the code", "code review", "check these changes" |
 | `execution-report` | "generate the report", "document what was done" |
 | `verify` | "verify it works", "make sure it's correct" |
@@ -253,19 +256,27 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `debug` | "debug this", "find the bug", "why is this failing" |
 | `tdd` | "write tests first", "TDD", "red-green-refactor" |
 | `refactoring` | "refactor", "clean up", "simplify", "extract", "deduplicate" |
-| `performance` | "slow", "optimize", "bottleneck", "lento", "tarda mucho" |
+| `performance` | "slow", "too slow", "optimize", "bottleneck" |
 | `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
 | `subagent-execution` | "use subagents", plans with 5+ tasks |
 | `parallel-dispatch` | "run in parallel", "parallelize this", independent tasks |
-| `hook-audit` | "audit hook", "check hook", "hook review" — mechanical static audit of `src/hooks/use*.ts` files (memoization, stale-id guards, error-match strictness, cache+dedup integrity) |
+| `hook-audit` | "audit hook", "check hook", "hook review" — forked subagent on Sonnet; mechanical static audit of `src/hooks/use*.ts` files (memoization, stale-id guards, error-match strictness, cache+dedup integrity) |
 
 **Hooks** — Run automatically:
 
 | Hook | Type | What it does |
 |---|---|---|
-| `tsc-check.js` | PostToolUse | Runs `tsc --noEmit` after file edits; feeds errors back to Claude |
-| `env-protect.js` | PreToolUse | Blocks reads/greps targeting `.env` files |
-| `session-prime.js` | SessionStart | Loads git context + CLAUDE.md summary + skills list |
+| `tsc-check.js` | PostToolUse + Stop | Records edited TS/JS files; once per turn runs `tsc -p` on the nearest `tsconfig.json` (monorepo-aware) and shows Claude the first 30 errors in files it edited, plus totals and a full log in `/tmp` |
+| `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit of `.dev.vars` |
+| `session-prime.js` | SessionStart | Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars) |
+| `precompact-snapshot.js` | PreCompact | Saves branch, uncommitted files and the active plan + step to `.claude/compact-snapshot.json` |
+| `prompt-route.js` | UserPromptSubmit | Silent since 2.2 (skills are selected natively from `description` / `when_to_use`) |
+
+> **Type errors once per turn.** `tsc-check` runs at the end of each turn, not after every edit, and blocks only for errors in files Claude edited in that turn (at most twice per turn); errors elsewhere are reported in one line. For per-edit diagnostics, install the official TypeScript language server plugin (optional, your choice):
+>
+> ```
+> /plugin install typescript-lsp@claude-plugins-official
+> ```
 
 **Agents** — Specialized subagents for delegation:
 
@@ -333,11 +344,30 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 > **Tip:** Many commands also exist as skills — they auto-activate when you describe what you want in natural language. Say "debug this" to trigger the `debug` skill, "let's brainstorm" for `brainstorm`, without typing any slash command.
 
+### Plans directory
+
+Plans live in `.agents/plans/` by default. To keep them elsewhere, declare the directory in the project's `AGENTS.md` (or `CLAUDE.md` when there is no `AGENTS.md` declaration):
+
+```markdown
+## HOPLA
+- Plans: docs/plans/
+```
+
+- The first `- Plans:` line under a `## HOPLA` heading wins; examples inside fenced code blocks are ignored.
+- The path is relative to the project root. Wrap it in backticks if it contains spaces: `` - Plans: `docs/my plans/` ``.
+- Unsafe values (absolute paths, `..`, `~`, `$`, drive letters) are ignored with a warning and the default is used.
+- A declared directory always wins, even if it does not exist yet (no fallback to `.agents/plans/`).
+- `done/` (archived plans) and `backlog/` (deferred ideas) live under the plans directory.
+
+Honored by `/hopla:plan-feature`, `/hopla:execute`, `/hopla:archive`, the `prime`/`brainstorm`/`git` skills, the session hooks, the statusline and `hopla-claude-setup status`.
+
+**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore`.
+
 ---
 
 ## Command Chaining
 
-Commands are modular — the output of one becomes the input of the next. Some accept arguments (`$1`, `$2`) to receive files generated by previous commands.
+Commands are modular — the output of one becomes the input of the next. Some accept arguments (file paths, passed in order) to receive files generated by previous commands.
 
 ### Commands that accept arguments
 
@@ -460,7 +490,7 @@ project/
 ├── AGENTS.md                      ← Canonical project rules (tool-agnostic, from /hopla:init-project)
 ├── CLAUDE.md                      ← Thin alias: contains @AGENTS.md so Claude Code auto-loads the rules
 ├── .agents/
-│   ├── plans/                     ← Implementation plans (commit)
+│   ├── plans/                     ← Implementation plans (commit; or the declared plans directory)
 │   │   ├── done/                  ← Plans archived by /hopla:archive (commit)
 │   │   └── backlog/               ← Deferred ideas from Scope Guard (commit)
 │   ├── specs/                     ← Design specs from brainstorming (commit)
@@ -471,7 +501,9 @@ project/
 │   ├── execution-reports/         ← Post-implementation reports (commit)
 │   ├── system-reviews/            ← Process improvement reports (commit)
 │   ├── audits/                    ← Persistent audit reports (commit — opt-in)
-│   └── code-reviews/              ← Code review reports (don't commit — ephemeral)
+│   ├── code-reviews/              ← Code review reports (don't commit — ephemeral)
+│   └── hopla-active-plan.json     ← Active plan + step (don't commit)
 └── .claude/
-    └── commands/                  ← Project-specific commands (optional)
+    ├── commands/                  ← Project-specific commands (optional)
+    └── compact-snapshot.json      ← Pre-compact snapshot (don't commit)
 ```

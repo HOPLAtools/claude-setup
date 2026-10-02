@@ -1,16 +1,23 @@
 ---
 description: Analyze implementation against plan to find process improvements
+when_to_use: "Use after a plan was executed and an execution report exists, to find process improvements. Trigger phrases: 'system review', 'process review', 'review the process'. Do NOT use for reviewing code."
 argument-hint: "<plan-file> <execution-report-file>"
+arguments: [plan, report]
+context: fork
+model: sonnet
+background: false
 ---
 
-> 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
+> **Runs as a forked subagent:** you cannot see the conversation and cannot ask the user anything. Write the review file, then return the Step 7 final answer (in English unless the project's AGENTS.md/CLAUDE.md asks otherwise); the main assistant relays it in the user's language. Code, paths, and commands stay in English.
 
 Perform a meta-level analysis of how well the implementation followed the plan. This is NOT code review — you're looking for bugs in the process, not the code.
 
 ## Inputs
 
-- **$1** — Path to the structured plan file
-- **$2** — Path to the execution report file
+- **$plan** — Path to the structured plan file
+- **$report** — Path to the execution report file
+
+If either path is empty or the file does not exist, stop and return: "Usage: /hopla:system-review <plan-file> <execution-report-file>".
 
 ## Step 0: Check for Existing Review
 
@@ -20,9 +27,9 @@ Before doing anything else, check if a system review already exists for this pla
 ls .agents/system-reviews/
 ```
 
-Look for a file that matches the feature name derived from **$1** (the plan filename). If a matching review exists:
+Look for a file that matches the feature name derived from **$plan** (the plan filename). If a matching review exists:
 - Skip Steps 1–6
-- Notify the user: "✅ A system review already exists at `.agents/system-reviews/[feature]-review.md`. If you haven't closed the lifecycle yet, run `/hopla:archive $1` to fold delta-specs into canonical specs and move the plan to `done/`."
+- Notify the user: "✅ A system review already exists at `.agents/system-reviews/[feature]-review.md`. If you haven't closed the lifecycle yet, run `/hopla:archive $plan` to fold delta-specs into canonical specs and move the plan to `done/`."
 - Exit.
 
 If no matching review exists, continue with Step 1.
@@ -34,14 +41,14 @@ If no matching review exists, continue with Step 1.
 Read these artifacts in order:
 
 0. `.agents/system-reviews/` — Read ALL previous system review files (if any exist) to identify recurring patterns. Pay special attention to: bug categories that appear across multiple reviews, process improvement suggestions that were made before but not yet applied, and alignment score trends (improving or declining).
-1. `.claude/commands/plan-feature.md` — understand how plans are created
-2. **$1** (the plan) — what the agent was supposed to do
-3. `.claude/commands/execute.md` — understand how execution is guided
-4. **$2** (the execution report) — what the agent actually did and why
+1. `${CLAUDE_PLUGIN_ROOT}/commands/plan-feature.md` (the HOPLA plugin's own command file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/commands/plan-feature.md`) — understand how plans are created
+2. **$plan** (the plan) — what the agent was supposed to do
+3. `${CLAUDE_PLUGIN_ROOT}/commands/execute.md` (the HOPLA plugin's own command file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/commands/execute.md`) — understand how execution is guided
+4. **$report** (the execution report) — what the agent actually did and why
 
 ## Step 2: Understand the Planned Approach
 
-From the plan ($1), extract:
+From the plan ($plan), extract:
 - What features were planned?
 - What architecture was specified?
 - What validation steps were defined?
@@ -49,7 +56,7 @@ From the plan ($1), extract:
 
 ## Step 3: Understand the Actual Implementation
 
-From the execution report ($2), extract:
+From the execution report ($report), extract:
 - What was actually implemented?
 - What diverged from the plan?
 - What challenges were encountered?
@@ -125,8 +132,8 @@ Save to: `.agents/system-reviews/[feature-name]-review.md`
 ---
 
 ### Meta Information
-- Plan reviewed: [path to $1]
-- Execution report: [path to $2]
+- Plan reviewed: [path to $plan]
+- Execution report: [path to $report]
 - Date: [current date]
 
 ### Overall Alignment Score: __/10
@@ -199,5 +206,5 @@ After the analysis, use this to prioritize actions:
 
 Do **not** move or delete any files. The lifecycle closure (moving the plan to `done/`, folding delta-specs into canonical specs, deleting the ephemeral code review) is the responsibility of `/hopla:archive`.
 
-Notify the user:
-> "✅ System review saved to `.agents/system-reviews/[feature]-review.md`. To close the lifecycle of this plan, run `/hopla:archive $1` — it will fold any delta-specs into the canonical specs and move the plan to `done/`."
+Final answer: the alignment score and the top 3 process improvements in a few lines, ending with:
+> "✅ System review saved to `.agents/system-reviews/[feature]-review.md`. To close the lifecycle of this plan, run `/hopla:archive $plan` — it will fold any delta-specs into the canonical specs and move the plan to `done/`."
