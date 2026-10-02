@@ -188,7 +188,7 @@ After all tasks are complete, run **Levels 1–7** from `/hopla:guides:validatio
 
 Use the exact commands from the plan's **Validation Checklist**. If not specified, read `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" to find the correct commands.
 
-Level 5 triggers the `code-review` skill (not a slash command) and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If a subagent does the review, it returns the report as its final message (read-only agents cannot write files): save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
+Level 5 triggers the `code-review` skill (not a slash command) — when phases were already committed, pass the feature branch as its target so the committed work is reviewed too — and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If a subagent does the review, it returns the report as its final message (read-only agents cannot write files): save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 
 ## Step 6: Completion Report
 

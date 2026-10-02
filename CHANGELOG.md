@@ -6,8 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-02
+
+`code-review` now wraps Claude Code's native `/code-review`. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
 ### Changed
+- **`/hopla:code-review [effort] [--fix] [target]` wraps the native `/code-review`.** It runs the native review (default `medium`, never `low` when the project has a checklist), then a checklist pass the native review does not do (HOPLA's `checklist.md` + `.agents/guides/review-checklist.md`), dropping duplicates. Every finding gets a severity and a 0–100 confidence; only findings ≥ 80 are kept, the rest are listed as dropped. The report is always saved to `.agents/code-reviews/` with `source` and `confidence` per finding; with `--fix` the fixes are applied and each finding records its outcome. A target (branch, PR number or path) reviews committed work too; `/hopla:execute` passes the feature branch at Level 5 when phases were already committed (before, only the uncommitted diff was reviewed).
+- **`code-review-fix`** (deprecated in 3.0.0) now points to `/hopla:code-review --fix`.
+- **Guides are manual-only** (`disable-model-invocation`): they no longer take space in the skill listing, where 7 of 9 showed without a description. Use `/hopla:guides:<name>`; HOPLA skills keep reading them by path.
 - **`/hopla:plan-feature`** (from the 3.0.0 system review): the dependents search also covers the old names of renamed or moved files, and phased plans list which test files land in each commit, so no commit carries a failing test.
+
+### Added
+- **`/hopla:review-plan` completeness check:** the summary flags plans without a dependents search (incl. old names), unproven platform claims, phased plans without tests per commit, and an open `[Unreleased]` the release does not fold in.
+
+### Security
+- `tsc-check` writes its per-session record through an exclusive temp file with mode `0600`, never through a planted symlink.
 
 ## [3.0.0] - 2026-10-02
 

@@ -2,14 +2,15 @@
 name: code-review
 description: "Technical code review on changed files, focused on finding real bugs and issues."
 when_to_use: "Use when the user says 'review code', 'review my code', 'review the code', 'code review', 'check my code', 'check these changes', 'review changes', 'look for bugs', 'audit code' or 'audit my code'. Also use after completing implementation when validation passes. Do NOT use for reviewing plans or documents — only code."
-argument-hint: "[low|medium|high|max] [--fix]"
+argument-hint: "[low|medium|high|max] [--fix] [target]"
+allowed-tools: Read, Grep, Glob, Bash
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
 Review the changed code by wrapping Claude Code's native `/code-review`, add a checklist pass it does not do, keep only confident findings, and always save the report.
 
-Arguments (`$ARGUMENTS`, both optional, any order): an effort level (`low`, `medium`, `high`, `max`) and `--fix`.
+Arguments (`$ARGUMENTS`, all optional, any order): an effort level (`low`, `medium`, `high`, `max`), `--fix`, and a **target** — a branch, PR number or path — that the native review reviews instead of the uncommitted diff. Without a target only uncommitted changes are reviewed, so after work was already committed (e.g. a phased plan) pass the branch, e.g. `/hopla:code-review feature/x`.
 
 ## Step 1: Load Context
 
@@ -19,7 +20,7 @@ Arguments (`$ARGUMENTS`, both optional, any order): an effort level (`low`, `med
 
 ## Step 2: Native Review
 
-Invoke the **Skill tool** with skill `code-review` — the built-in native review; the bare name resolves to it — and args `<effort>` plus `--fix` when it was requested. **Never invoke `hopla:code-review`** (that is this skill: it would recurse).
+Invoke the **Skill tool** with skill `code-review` — the built-in native review; the bare name resolves to it — and args `<effort>`, plus `--fix` when it was requested and the target when one was given. **Never invoke `hopla:code-review`** (that is this skill: it would recurse).
 
 Let it finish. It reports its findings through `ReportFindings` (file, line, summary, failure scenario; with `--fix` it also applies its fixes). Keep that list: these are the `source: native` findings.
 
@@ -29,7 +30,7 @@ If the Skill tool is unavailable or the native review fails, say so in the repor
 
 The native review does not read project checklists. Review the same changed files against:
 
-1. `checklist.md` (same directory as this skill) — every category.
+1. `${CLAUDE_SKILL_DIR}/checklist.md` (HOPLA's checklist, next to this skill) — every category.
 2. `.agents/guides/review-checklist.md`, if it exists.
 
 Read each changed file in full, not just the diff. Report only issues the native review did not already report: same file, line within ±3 and the same problem is a **duplicate** — drop it. These are the `source: checklist` findings.

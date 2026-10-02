@@ -72,3 +72,10 @@ test("code-review wrapper: 0-100 confidence, threshold 80, dropped findings list
     assert.match(body, /^source: native \| checklist/m);
     assert.match(body, /^outcome: /m);
 });
+
+test("code-review wrapper: passes a review target (branch, PR number or path) through to the native review", () => {
+    const body = WRAPPER();
+    assert.match(body, /target/i);
+    assert.match(body, /branch, PR number or path/i);
+    assert.match(body, /committed/i, "explains why a phased plan needs a target");
+});
