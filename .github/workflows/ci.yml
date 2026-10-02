@@ -6,16 +6,24 @@ on:
   push:
     branches: [main]
 
+# Read-only token: CI only reads the repo (the repository default token is write).
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 24 is the Node used by publish.yml (prepublishOnly runs npm test there).
+        node-version: ["20", "24"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ matrix.node-version }}
 
       - name: Validate JSON manifests
         run: |
