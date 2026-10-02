@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-10-02
+
+Fixes and process improvements after 3.1.0. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
 ### Fixed
 - `code-review` and the `write-skill` guide no longer write the ARGUMENTS placeholder in prose: Claude Code substituted it there, so the skill read "Arguments (``, …)".
 
