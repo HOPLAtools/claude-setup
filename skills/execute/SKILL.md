@@ -107,7 +107,7 @@ Before executing, summarize:
 - How many tasks are in the plan
 - Any constraints or gotchas flagged in the plan
 - Anything unclear that needs clarification before proceeding
-- Which tasks will run as a workflow (Step 4a) and with how many agents — or why Step 4a does not apply
+- Which tasks will run as a workflow (Step 4a) and with how many agents — or why Step 4a does not apply. When a workflow will run, add that its approval dialog can be declined and that replying "sequential" then runs those tasks one by one
 
 If anything in the plan is ambiguous or contradictory, **stop and ask** before writing code.
 
@@ -129,7 +129,7 @@ Use the workflow only when there are **3 or more independent tasks**. Launch **a
 ```js
 export const meta = {
   name: 'hopla-execute-tasks',
-  description: 'Implement and verify independent plan tasks in parallel',
+  description: 'Implement and verify independent plan tasks in parallel. Decline and reply "sequential" to run them one by one',
   phases: [{ title: 'Implement' }, { title: 'Verify' }],
 }
 const IMPLEMENTED = {
@@ -155,13 +155,14 @@ return await pipeline(args.tasks,
     { phase: 'Implement', label: `task ${t.id}`, schema: IMPLEMENTED }),
   (r, t) => agent(
     `Verify task ${t.id}. Run from ${ROOT}: cd ${ROOT} && ${t.validate}\nThe implementer reported: ${JSON.stringify(r)}\n` +
-    `ok=true only if the command passes, each of ${t.files.map(abs).join(', ')} exists under ${ROOT}, and every changed file is one of them.`,
+    `Use Bash only to run the Validation command; check that files exist with the Read tool (no ls, no git status). Other files changing meanwhile belong to sibling tasks running in parallel: ignore them.\n` +
+    `ok=true only if the command passes, each of ${t.files.map(abs).join(', ')} exists under ${ROOT}, and the implementer's files_changed lists only those files.`,
     { phase: 'Verify', label: `verify ${t.id}`, schema: VERIFIED, model: 'sonnet', effort: 'low' }))
 ```
 
-A task whose Validate runs the whole suite (e.g. `npm test`) would see the other tasks half-written: pass its `validate` as `true` (a no-op), so its verify agent only checks that its files exist and nothing else changed; the suite runs once in Step 5. Implement agents inherit the session model; verify agents run on `model: 'sonnet'` with `effort: 'low'`; the final judgment stays in this session (Step 5). No worktree isolation: files are disjoint by construction. Workflow agents **never commit**.
+A task whose Validate runs the whole suite (e.g. `npm test`) would see the other tasks half-written: pass its `validate` as `true` (a no-op), so its verify agent only checks that its files exist and that the implementer reports changing only them (Level 6 file drift in Step 5 catches unreported edits); the suite runs once in Step 5. Implement agents inherit the session model; verify agents run on `model: 'sonnet'` with `effort: 'low'`; the final judgment stays in this session (Step 5). No worktree isolation: files are disjoint by construction. Workflow agents **never commit**.
 
-**Consent.** The Workflow tool shows an approval dialog — that is the user's consent for this run. Right before calling the Workflow tool, say in one line (in the user's language) which tasks it will run and that if they decline the dialog they can reply "sequential" and you will run them one by one. A declined dialog ends the turn (Claude Code tells the session to stop and wait), so wait for the user's reply; on "sequential" — or the same word in their language, or that request written in the decline feedback — run those tasks in Step 4. If the tool is refused without a dialog (e.g. a headless run), say so and go to Step 4 directly.
+**Consent.** The Workflow tool shows an approval dialog — that is the user's consent for this run. Right before calling the Workflow tool, write one line as **visible text** in your reply — in the same message as the Workflow call, not only in your reasoning, where the user cannot see it — in the user's language: which tasks it will run, and that if they decline the dialog they can reply "sequential" and you will run them one by one. A declined dialog ends the turn, so wait for the user's "sequential" reply (Claude Code tells the session to stop and wait); after a decline, repeat that line in visible text if you can still reply. On "sequential" — or the same word in their language, or that request written in the decline feedback — run those tasks in Step 4. If the tool is refused without a dialog (e.g. a headless run), say so and go to Step 4 directly.
 
 **After launching.** The workflow runs in the background and reports back with a completion notification. **End your turn** saying which tasks are running; when the notification arrives, read the result: tasks with `DONE` and `ok: true` are complete (update the pointer); anything else (`DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, `BLOCKED`, `ok: false` or `null`) is handled here — fix and validate it in Step 4, or file a Blocker Report. Then apply the git strategy below and continue with the remaining tasks and Step 5.
 

@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.3.2] - 2026-10-02
+
+Fixes from the interactive check of `/hopla:execute` 3.3.1. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Fixed
+- **The "reply sequential" notice is visible.** It had stayed in the model's reasoning, where the user cannot see it. A smoke showed that a stronger instruction alone does not fix this. The notice now also appears in two other places:
+  - the Step 3 summary, which is always visible text;
+  - the workflow's own description, which Claude Code shows in the approval dialog.
+
+  Step 4a still asks for it as visible text next to the Workflow call, and repeats it after a decline.
+- **Workflow verifiers no longer report false failures.**
+  - Before, they failed a task because the files of sibling tasks running in parallel showed up as changes. Now they judge only their own task's files, and check that the implementer's `files_changed` lists only those.
+  - They also ran extra Bash (`ls`, `git status`), which asks for approval in `acceptEdits`. Now they check that files exist with Read and use Bash only for the Validation command.
+
 ## [3.3.1] - 2026-10-02
 
 Fixes from the interactive check of `/hopla:execute`, and spike-fidelity rules. No breaking changes.
