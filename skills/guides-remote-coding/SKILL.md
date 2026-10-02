@@ -1,6 +1,7 @@
 ---
 name: guides:remote-coding
 description: Forward-looking guide for remote agentic coding workflows — long-running agents, async coordination, sandboxed execution.
+disable-model-invocation: true
 ---
 
 # Remote Agentic Coding Guide (Future)

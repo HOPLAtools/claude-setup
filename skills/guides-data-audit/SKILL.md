@@ -1,6 +1,7 @@
 ---
 name: guides:data-audit
 description: Reference for auditing existing data sources (schema, value semantics, null cases, derived value propagation) before implementing data-consuming features.
+disable-model-invocation: true
 ---
 
 # Guide: Data Audit and Value Semantics

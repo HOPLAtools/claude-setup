@@ -37,6 +37,10 @@ const INHERIT = [
 const MANUAL_ONLY = [
     "skills/guide/SKILL.md", "skills/create-prd/SKILL.md", "skills/init-project/SKILL.md",
     "skills/execute/SKILL.md", "skills/archive/SKILL.md",
+    // Guides are manual-only since 3.1 (they stay out of the skill-listing budget).
+    ...["ai-optimized-codebase", "data-audit", "hooks-reference", "mcp-integration", "remote-coding",
+        "review-checklist", "scaling-beyond-engineering", "validation-pyramid", "write-skill"]
+        .map((g) => `skills/guides-${g}/SKILL.md`),
 ];
 // Former commands that are model-invocable need when_to_use; these three deliberately have none.
 const NO_WHEN_TO_USE = ["execute", "archive", "code-review-fix"];

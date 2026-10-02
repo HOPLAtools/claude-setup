@@ -1,6 +1,7 @@
 ---
 name: guides:write-skill
 description: Internal guide for authoring new skills in this plugin — SKILL.md frontmatter (description, when_to_use, forks, arguments), naming, organization.
+disable-model-invocation: true
 ---
 
 # Writing Skills Guide (Internal)

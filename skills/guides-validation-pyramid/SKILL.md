@@ -1,6 +1,7 @@
 ---
 name: guides:validation-pyramid
 description: Shared reference for the full validation sequence (lint, types, tests, code review, manual smoke). Used by execute, validate, and verify.
+disable-model-invocation: true
 ---
 
 # Validation Pyramid
