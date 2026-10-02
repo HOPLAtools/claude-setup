@@ -83,6 +83,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 
 - Commands, skills, agents, and hooks are **only delivered by the plugin** — the CLI no longer copies them
 - **Never duplicate** a command and a skill with the same name — both appear in Claude's autocomplete, causing duplicates. Use commands for explicit `/slash` invocation only; use skills for auto-triggered behavior
+- **Deduplication check:** before deleting a command, skill or agent that another file replaces (a command folded into a skill, a deprecated skill covered by another), diff the two and move into the survivor every step, flag or behavior only the deleted one has. Then delete it. In system-audit-v2 the git commit command was dropped for the skill and its Version Bump step and PR suggestion were nearly lost
 - `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` paths for the plugin channel
 - When removing an installed artifact (command, skill, agent, hook, permission) in a new version, add its old name/path to the legacy cleanup lists in `cli.js` so existing users get it cleaned on next `install` / `--migrate` / `--uninstall`
 
