@@ -1,4 +1,5 @@
 ---
+name: system-review
 description: Analyze implementation against plan to find process improvements
 when_to_use: "Use after a plan was executed and an execution report exists, to find process improvements. Trigger phrases: 'system review', 'process review', 'review the process'. Do NOT use for reviewing code."
 argument-hint: "<plan-file> <execution-report-file>"
@@ -41,9 +42,9 @@ If no matching review exists, continue with Step 1.
 Read these artifacts in order:
 
 0. `.agents/system-reviews/` — Read ALL previous system review files (if any exist) to identify recurring patterns. Pay special attention to: bug categories that appear across multiple reviews, process improvement suggestions that were made before but not yet applied, and alignment score trends (improving or declining).
-1. `${CLAUDE_PLUGIN_ROOT}/commands/plan-feature.md` (the HOPLA plugin's own command file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/commands/plan-feature.md`) — understand how plans are created
+1. `${CLAUDE_PLUGIN_ROOT}/skills/plan-feature/SKILL.md` (the HOPLA plugin's own skill file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/skills/plan-feature/SKILL.md`) — understand how plans are created
 2. **$plan** (the plan) — what the agent was supposed to do
-3. `${CLAUDE_PLUGIN_ROOT}/commands/execute.md` (the HOPLA plugin's own command file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/commands/execute.md`) — understand how execution is guided
+3. `${CLAUDE_PLUGIN_ROOT}/skills/execute/SKILL.md` (the HOPLA plugin's own skill file; if that path was not resolved, read the newest `~/.claude/plugins/cache/hopla-marketplace/hopla/*/skills/execute/SKILL.md`) — understand how execution is guided
 4. **$report** (the execution report) — what the agent actually did and why
 
 ## Step 2: Understand the Planned Approach
@@ -118,10 +119,10 @@ When you detect a pattern in the current review that matches one of the standard
 
 The standard codes below come from cross-review trend analysis. Consumer projects may also define their own project-specific codes (`R1`–`R8` are typically defined per-project in their own `AGENTS.md` or `.agents/guides/review-checklist.md`) — keep those untouched and append the standard codes as needed.
 
-- **R6 — UX iteration budget declared (MANDATORY when visible UI is introduced).** Did the plan declare `Expected UX iterations: N` for any task that adds or modifies a visible component? See `commands/plan-feature.md` Phase 4 for the rule. Missing declaration → tag `R6`.
-- **R9 — Workflow classification (async vs sequential).** Did the plan classify each workflow as `async data-arrival` vs `sequential user-driven` BEFORE specifying reactive-effect-based mutations (React `useEffect`, Vue `watch`, Svelte `$effect`, RxJS subscriptions, message handlers, etc.)? See `commands/plan-feature.md` Phase 4 for the rule. Sequential workflows specified as reactive effect chains → tag `R9`.
-- **R10 — Empirical verification of "out-of-scope" claims.** Did the plan document the exact verification command used to confirm negative claims ("X is not available, so it's out of scope")? The command depends on the claim type — database CLI for SQL claims, `curl` for HTTP, `grep` for source code, etc. See `commands/plan-feature.md` Phase 3 for the rule. Unverified deferrals → tag `R10`.
-- **R11 — Call-chain trace for "automatic side effect" claims.** Did the plan document the full call chain (file:line for each link) when asserting that a side effect happens automatically? See `commands/plan-feature.md` Phase 3 for the rule. Partial or missing traces → tag `R11`.
+- **R6 — UX iteration budget declared (MANDATORY when visible UI is introduced).** Did the plan declare `Expected UX iterations: N` for any task that adds or modifies a visible component? See `skills/plan-feature/SKILL.md` Phase 4 for the rule. Missing declaration → tag `R6`.
+- **R9 — Workflow classification (async vs sequential).** Did the plan classify each workflow as `async data-arrival` vs `sequential user-driven` BEFORE specifying reactive-effect-based mutations (React `useEffect`, Vue `watch`, Svelte `$effect`, RxJS subscriptions, message handlers, etc.)? See `skills/plan-feature/SKILL.md` Phase 4 for the rule. Sequential workflows specified as reactive effect chains → tag `R9`.
+- **R10 — Empirical verification of "out-of-scope" claims.** Did the plan document the exact verification command used to confirm negative claims ("X is not available, so it's out of scope")? The command depends on the claim type — database CLI for SQL claims, `curl` for HTTP, `grep` for source code, etc. See `skills/plan-feature/SKILL.md` Phase 3 for the rule. Unverified deferrals → tag `R10`.
+- **R11 — Call-chain trace for "automatic side effect" claims.** Did the plan document the full call chain (file:line for each link) when asserting that a side effect happens automatically? See `skills/plan-feature/SKILL.md` Phase 3 for the rule. Partial or missing traces → tag `R11`.
 
 When a divergence matches more than one code, list all that apply. When it matches none, no code is needed — describe the pattern in prose.
 

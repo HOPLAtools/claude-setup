@@ -1,4 +1,5 @@
 ---
+name: validate
 description: Run the full validation pyramid on the current project
 when_to_use: "Use when the user wants to run lint, type checks and tests across the whole project. Trigger phrases: 'validate', 'run the checks', 'run lint and tests'."
 ---
@@ -15,7 +16,7 @@ If a `.claude/commands/validate.md` exists at the project root, use the commands
 
 ## Step 2: Run the Validation Pyramid
 
-Execute levels **1–4** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails — fix it first.
+Execute levels **1–4** from `/hopla:guides:validation-pyramid` (file: `${CLAUDE_PLUGIN_ROOT}/skills/guides-validation-pyramid/SKILL.md`). Do not skip levels. Do not proceed if a level fails — fix it first.
 
 Use the exact commands from the project's `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" section. If a `.claude/commands/validate.md` exists at the project root, use the commands defined there instead.
 

@@ -1,4 +1,5 @@
 ---
+name: guide
 description: 4D Framework guide for non-technical users working with AI coding assistants
 disable-model-invocation: true
 ---

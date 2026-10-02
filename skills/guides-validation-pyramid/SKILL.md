@@ -1,10 +1,11 @@
 ---
+name: guides:validation-pyramid
 description: Shared reference for the full validation sequence (lint, types, tests, code review, manual smoke). Used by execute, validate, and verify.
 ---
 
 # Validation Pyramid
 
-Shared reference for the full validation sequence. Callers (`commands/execute.md`, `commands/validate.md`, `skills/verify/SKILL.md`, plus plans' `Validation Checklist`) pick the levels that apply to their scope.
+Shared reference for the full validation sequence. Callers (`skills/execute/SKILL.md`, `skills/validate/SKILL.md`, `skills/verify/SKILL.md`, plus plans' `Validation Checklist`) pick the levels that apply to their scope.
 
 Run levels **in order**. Do not skip a level. Do not proceed if a level fails — fix it first.
 
@@ -30,7 +31,7 @@ For every new or modified file matching `src/hooks/use*.ts` in this branch, invo
 
 Block on any HIGH-severity finding (missing `useMemo` on hook return, `setLoading(false)` inside stale-id guard, anchored-vs-substring error matcher, missing inFlight map next to module-level cache). Medium/low findings surface as warnings — fix before the PR but they do not block.
 
-The skill ships with `@hopla/claude-setup` from release 1.19.0 onward. If it is not available (consumer project on an older plugin release, or marketplace not synced), warn and continue — see `commands/execute.md` Step 4.5 for the full gate description and the fallback policy.
+The skill ships with `@hopla/claude-setup` from release 1.19.0 onward. If it is not available (consumer project on an older plugin release, or marketplace not synced), warn and continue — see `skills/execute/SKILL.md` Step 4.5 for the full gate description and the fallback policy.
 
 ## Level 2 — Type Check
 
@@ -58,7 +59,7 @@ If not available, skip and note it in the report.
 
 Trigger the `code-review` skill on the changed files. This catches bugs that lint, types, and tests miss (security issues, logic errors, pattern violations).
 
-Save the review to a file, even when it finds nothing: `.agents/code-reviews/<plan-slug>.md` when executing a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else a descriptive name. If the `hopla:code-reviewer` agent did the review, it returns the report as its final message — save it yourself.
+Save the review to a file, even when it finds nothing: `.agents/code-reviews/<plan-slug>.md` when executing a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else a descriptive name. If a subagent did the review, it returns the report as its final message (read-only agents cannot write files) — save it yourself.
 
 If the review finds `critical` or `high` severity issues, **fix them before proceeding**.
 

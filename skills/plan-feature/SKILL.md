@@ -1,4 +1,5 @@
 ---
+name: plan-feature
 description: Research the codebase and create a structured implementation plan from requirements
 when_to_use: "Use when the user wants an implementation plan for a feature or change. Trigger phrases: 'plan this feature', 'create a plan', 'write the plan', 'plan the implementation'. Do NOT use to execute an existing plan (use execute) or to explore design options (use brainstorm)."
 argument-hint: "<feature-name-or-description>"

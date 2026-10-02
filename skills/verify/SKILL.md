@@ -48,7 +48,7 @@ Instead, run the verification and report actual results.
 
 ## Integration with Validation Pyramid
 
-When completing a feature (not just a single file edit), run levels **1–4 + 7** from `commands/guides/validation-pyramid.md` (Lint, Types, Unit, Integration, Human review).
+When completing a feature (not just a single file edit), run levels **1–4 + 7** from `/hopla:guides:validation-pyramid` (file: `${CLAUDE_PLUGIN_ROOT}/skills/guides-validation-pyramid/SKILL.md`) (Lint, Types, Unit, Integration, Human review).
 
 Reference `/hopla:validate` for project-specific validation commands.
 

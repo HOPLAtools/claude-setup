@@ -1,4 +1,5 @@
 ---
+name: guides:data-audit
 description: Reference for auditing existing data sources (schema, value semantics, null cases, derived value propagation) before implementing data-consuming features.
 ---
 

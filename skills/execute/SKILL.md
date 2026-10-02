@@ -1,4 +1,5 @@
 ---
+name: execute
 description: Execute a structured plan from start to finish with validation
 argument-hint: "<plan-file-path>"
 arguments: [plan]
@@ -183,11 +184,11 @@ Medium and low findings surface as warnings — fix them before opening the PR, 
 
 ## Step 5: Run Full Validation Pyramid
 
-After all tasks are complete, run **Levels 1–7** from `commands/guides/validation-pyramid.md` (same repo). Do not skip levels. Do not proceed if a level fails.
+After all tasks are complete, run **Levels 1–7** from `/hopla:guides:validation-pyramid` (file: `${CLAUDE_PLUGIN_ROOT}/skills/guides-validation-pyramid/SKILL.md`). Do not skip levels. Do not proceed if a level fails.
 
 Use the exact commands from the plan's **Validation Checklist**. If not specified, read `AGENTS.md` (or `CLAUDE.md` as fallback) "Development Commands" to find the correct commands.
 
-Level 5 triggers the `code-review` skill (not a slash command) and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If you delegate the review to the `hopla:code-reviewer` agent, it returns the report as its final message and cannot write files: save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
+Level 5 triggers the `code-review` skill (not a slash command) and must leave the review at `.agents/code-reviews/<plan-slug>.md` (`<plan-slug>` = plan filename without `.md`), even when it finds nothing. If a subagent does the review, it returns the report as its final message (read-only agents cannot write files): save that report to the same path yourself. Level 5 is ✅ only when that file exists. Level 6 is the file-drift check specific to plan execution. Level 7 surfaces items for human verification.
 
 ## Step 6: Completion Report
 

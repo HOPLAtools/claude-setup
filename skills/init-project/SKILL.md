@@ -1,4 +1,5 @@
 ---
+name: init-project
 description: Initialize a new project with AGENTS.md (+ CLAUDE.md alias) and .agents/ structure
 disable-model-invocation: true
 ---

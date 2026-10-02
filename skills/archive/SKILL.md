@@ -1,4 +1,5 @@
 ---
+name: archive
 description: Archive a completed plan — fold its requirement deltas into canonical specs and move artifacts to archive locations
 argument-hint: "<plan-file-path>"
 arguments: [plan]

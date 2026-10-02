@@ -1,4 +1,5 @@
 ---
+name: guides:review-checklist
 description: Guide for creating a project-specific code review checklist (.agents/guides/review-checklist.md) consumed by the code-review skill.
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: review-plan
 description: Review a plan before execution — get a concise summary and approve or request changes
 when_to_use: "Use when the user wants to review, summarize or approve a plan before executing it. Trigger phrases: 'review the plan', 'summarize the plan', 'approve the plan'. Do NOT use for reviewing code."
 argument-hint: "<plan-file-path>"

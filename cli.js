@@ -156,7 +156,7 @@ const LEGACY_HOOK_COMMANDS = [
 ];
 
 // Guide files the pre-plugin CLI (≤ v1.11.x) copied to ~/.claude/commands/guides/.
-// The plugin now ships them via commands/guides/, namespaced as /hopla:guides:<name>,
+// The plugin now ships them as skills/guides-<name>/ (since 3.0), invoked as /hopla:guides:<name>,
 // so the user-level copies show up as duplicates in autocomplete (no "(hopla)" suffix).
 // Cleanup removes only files whose name matches a plugin-shipped guide, leaving any
 // custom user guides in ~/.claude/commands/guides/ untouched.

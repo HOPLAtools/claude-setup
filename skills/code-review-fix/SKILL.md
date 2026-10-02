@@ -1,4 +1,5 @@
 ---
+name: code-review-fix
 description: Fix issues found in a code review report
 argument-hint: "<review-file-or-description> [scope]"
 ---

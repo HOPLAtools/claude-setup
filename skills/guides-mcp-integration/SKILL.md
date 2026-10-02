@@ -1,4 +1,5 @@
 ---
+name: guides:mcp-integration
 description: Reference for integrating Model Context Protocol (MCP) servers with Claude Code projects — config, auth, and common patterns.
 ---
 

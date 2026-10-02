@@ -1,4 +1,5 @@
 ---
+name: guides:hooks-reference
 description: Reference for creating Claude Code hooks — event names, matchers, payload shapes, exit code contracts, and stdout conventions.
 ---
 

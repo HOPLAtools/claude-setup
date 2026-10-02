@@ -72,7 +72,7 @@ Each phase should land as its own PR.
 
 Execute phase by phase. After every phase:
 
-- Run the full validation pyramid (`commands/guides/validation-pyramid.md`)
+- Run the full validation pyramid (`/hopla:guides:validation-pyramid` (file: `${CLAUDE_PLUGIN_ROOT}/skills/guides-validation-pyramid/SKILL.md`))
 - Check for mixed-version pitfalls — modules importing both the old and new API in the same request
 - Confirm the rollback path still works (git revert + redeploy, or feature flag off)
 

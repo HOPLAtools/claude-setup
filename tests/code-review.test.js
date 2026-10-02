@@ -29,15 +29,15 @@ test("code-reviewer agent returns its report for the caller to save", () => {
     assert.match(body, /\.agents\/code-reviews\//);
 });
 
-test("execute: Level 5 passes only when the review file exists, also when delegated to the agent", () => {
-    const body = read("commands/execute.md");
+test("execute: Level 5 passes only when the review file exists, also when a subagent did the review", () => {
+    const body = read("skills/execute/SKILL.md");
     assert.ok(body.includes(REVIEW_PATH), "execute.md must name the review file");
-    assert.match(body, /hopla:code-reviewer/);
+    assert.match(body, /subagent/i);
     assert.match(body, /Level 5 Code Review: ✅ `\.agents\/code-reviews\/<plan-slug>\.md`/);
 });
 
 test("validation pyramid and code-review skill save the review even when clean", () => {
-    assert.ok(read("commands/guides/validation-pyramid.md").includes(REVIEW_PATH));
+    assert.ok(read("skills/guides-validation-pyramid/SKILL.md").includes(REVIEW_PATH));
     const skill = read("skills/code-review/SKILL.md");
     assert.ok(skill.includes(REVIEW_PATH));
     assert.match(skill, /even when (it passes|no issues)/i);

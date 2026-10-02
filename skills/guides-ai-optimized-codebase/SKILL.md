@@ -1,4 +1,5 @@
 ---
+name: guides:ai-optimized-codebase
 description: Guide for structuring codebases to be navigable and editable by AI agents (file layout, naming, comments, doc placement).
 ---
 

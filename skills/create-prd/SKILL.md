@@ -1,4 +1,5 @@
 ---
+name: create-prd
 description: Create or update the PRD for this project through guided questions
 disable-model-invocation: true
 ---
