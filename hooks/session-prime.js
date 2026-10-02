@@ -4,7 +4,9 @@
 // from .agents/hopla-active-plan.json or newest non-draft plan) and the
 // pre-compact snapshot replay. No skills list, no rules excerpt, no commits —
 // Claude Code already loads CLAUDE.md and lists skills natively.
-// Never reads stdin (manual TTY runs would hang). Always exits 0.
+// The snapshot is replayed only after /compact or on resume (stdin `source`);
+// with no payload (manual run, TTY) the source is unknown and it is replayed.
+// Always exits 0.
 
 import { execSync } from "child_process";
 import fs from "fs";
@@ -25,7 +27,27 @@ function run(cmd) {
     }
 }
 
-const clip = (s, max = MAX_LINE) => (s.length > max ? s.slice(0, max) + "…" : s);
+const REPLAY_SOURCES = new Set(["compact", "resume"]);
+
+// Clips at the last word boundary before `max` (hard cut only when the last
+// space is too far back), then appends "…".
+function clip(s, max = MAX_LINE) {
+    if (s.length <= max) return s;
+    const cut = s.slice(0, max);
+    const space = cut.lastIndexOf(" ");
+    return (space >= max * 0.6 ? cut.slice(0, space) : cut).trimEnd() + "…";
+}
+
+// SessionStart `source` from stdin, or null when unknown. Never blocks on a TTY.
+function readSource() {
+    if (process.stdin.isTTY) return null;
+    try {
+        const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+        return payload && typeof payload.source === "string" ? payload.source : null;
+    } catch {
+        return null;
+    }
+}
 
 // First `max` lines plus a "… +K more" tail.
 function capLines(text, max) {
@@ -72,7 +94,8 @@ function main() {
     }
     if (active) lines.push(clip(`Active plan: ${active.path}${active.step ? ` — step: ${active.step}` : ""}`));
 
-    const replay = readSnapshot(cwd);
+    const source = readSource();
+    const replay = source === null || REPLAY_SOURCES.has(source) ? readSnapshot(cwd) : null;
     if (replay) {
         const { snap, minutes } = replay;
         lines.push(`Resuming from pre-compact snapshot (${minutes} min ago):`);

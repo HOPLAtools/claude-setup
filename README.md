@@ -267,7 +267,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | Hook | Type | What it does |
 |---|---|---|
 | `tsc-check.js` | PostToolUse + Stop | Records edited TS/JS files; once per turn runs `tsc -p` on the nearest `tsconfig.json` (monorepo-aware) and shows Claude the first 30 errors in files it edited, plus totals and a full log in `/tmp` |
-| `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit of `.dev.vars` |
+| `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit/MultiEdit of `.dev.vars` |
 | `session-prime.js` | SessionStart | Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars) |
 | `precompact-snapshot.js` | PreCompact | Saves branch, uncommitted files and the active plan + step to `.claude/compact-snapshot.json` |
 | `prompt-route.js` | UserPromptSubmit | Silent since 2.2 (skills are selected natively from `description` / `when_to_use`) |
@@ -361,7 +361,7 @@ Plans live in `.agents/plans/` by default. To keep them elsewhere, declare the d
 
 Honored by `/hopla:plan-feature`, `/hopla:execute`, `/hopla:archive`, the `prime`/`brainstorm`/`git` skills, the session hooks, the statusline and `hopla-claude-setup status`.
 
-**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore`.
+**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore` (`/hopla:init-project` does it). If the pointer is not git-ignored, `/hopla:execute` asks before writing it and recommends adding the line; `/hopla:plan-feature` skips it. The session-start context replays the pre-compact snapshot only after `/compact` or on resume.
 
 ---
 

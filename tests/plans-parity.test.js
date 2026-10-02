@@ -79,6 +79,9 @@ const POINTERS = [
     ["malformed", "{ nope"],
     ["unsafe", { plan: "../x.md", status: "executing" }],
     ["backslashes", { plan: "docs\\plans\\a.md", status: "executing" }],
+    ["multiline step", { plan: "docs/plans/a.md", step: "Task 3:\n\tdo\u0007 it", status: "executing" }],
+    ["long step", { plan: "docs/plans/a.md", step: "Task 9: " + "word ".repeat(40), status: "executing" }],
+    ["blank step", { plan: "docs/plans/a.md", step: " \n\t ", status: "executing" }],
 ];
 
 for (const [label, ptr] of POINTERS) {
@@ -99,6 +102,17 @@ test("getActivePlan: valid pointer -> source pointer", () => withTmp((tmp) => {
     writeText(path.join(tmp, ".agents", "hopla-active-plan.json"),
         JSON.stringify({ plan: "docs/plans/a.md", step: "Task 2", status: "executing" }));
     assert.deepEqual(lib.getActivePlan(tmp), { path: "docs/plans/a.md", step: "Task 2", source: "pointer" });
+}));
+
+test("readActivePlanPointer: step is a single sanitized line of at most 80 chars", () => withTmp((tmp) => {
+    baseProject(tmp);
+    const ptr = path.join(tmp, ".agents", "hopla-active-plan.json");
+    writeText(ptr, JSON.stringify({ plan: "docs/plans/a.md", step: "Task 3:\n\tdo\u0007 it", status: "executing" }));
+    assert.equal(lib.readActivePlanPointer(tmp).step, "Task 3: do it");
+    writeText(ptr, JSON.stringify({ plan: "docs/plans/a.md", step: "Task 9: " + "word ".repeat(40), status: "executing" }));
+    const step = lib.readActivePlanPointer(tmp).step;
+    assert.ok(step.length <= 80, String(step.length));
+    assert.ok(step.endsWith("…"));
 }));
 
 test("getActivePlan: no pointer -> newest by mtime", () => withTmp((tmp) => {

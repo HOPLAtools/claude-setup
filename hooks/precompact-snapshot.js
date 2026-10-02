@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // PreCompact hook: snapshot the session's work state so it survives /compact.
-// The SessionStart hook (session-prime.js) re-injects this when it exists and is recent.
+// The SessionStart hook (session-prime.js) re-injects it after /compact or on resume (within 2 h).
 
 import { execSync } from "child_process";
 import fs from "fs";

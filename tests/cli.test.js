@@ -461,3 +461,15 @@ for (const [label, ptr] of badPointers) {
         assert.equal(j.active_plan.path, "docs/plans/add-auth.md");
     }));
 }
+
+// --- suggestNext matches artifacts by exact slug ----------------------------
+
+test("CLI status --json: a review for another slug (oauth-refactor) does not count for plan auth", () => withTmp((tmp) => {
+    writeText(path.join(tmp, ".agents", "plans", "auth.md"), "# auth\n");
+    writeText(path.join(tmp, ".agents", "code-reviews", "oauth-refactor.md"), "# r\n");
+    assert.match(statusJson(tmp).next, /Active plan \(auth\.md\) — execute it/);
+    writeText(path.join(tmp, ".agents", "code-reviews", "auth.md"), "# r\n");
+    assert.match(statusJson(tmp).next, /Active plan \(auth\.md\) reviewed — run execution-report/);
+    writeText(path.join(tmp, ".agents", "execution-reports", "auth-smokes.md"), "# s\n");
+    assert.match(statusJson(tmp).next, /reviewed and reported/);
+}));

@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-02
+
+Follow-ups from the 2.2 review and the interactive checks. No breaking changes.
+
+### Fixed
+- **Session-start context replays the pre-compact snapshot only after `/compact` or on resume.** Before, it was replayed on every session start (startup, `/clear`, fork) for two hours, bringing back context the user had just cleared. With no payload (manual runs) the snapshot is still replayed.
+- **`env-protect` covers `MultiEdit`**: the matcher now includes it, and `.dev.vars` is blocked for MultiEdit like Edit.
+- **`tsc-check` no longer passes silently on a solution-style `tsconfig.json`**: when a tsconfig declares `references`, the hook asks TypeScript for the effective config (`tsc --showConfig`, so `extends` chains, npm bases and comments resolve exactly as in tsc). If it has references and no root files, the check is skipped with a one-line notice instead of running a check that covers nothing; if `--showConfig` fails, tsc runs as before.
+- **`hopla-claude-setup status`** matches code reviews and execution reports to a plan by exact slug (`auth.md`, `auth-…`), so `oauth-refactor.md` no longer counts as the review of plan `auth`.
+
+### Changed
+- **Active-plan pointer**: no `updatedAt` field (the model had to invent it); the step is sanitized to one printable line of at most 80 chars before it reaches the context, statusline or `status`.
+- Long context lines are clipped at a word boundary instead of mid-word.
+- `/hopla:execute` checks that `.agents/hopla-active-plan.json` is git-ignored before the first write and asks to add it to `.gitignore` otherwise; `/hopla:plan-feature` skips the write in that case.
+
 ## [2.2.0] - 2026-10-01
 
 No breaking changes: nothing is removed. Requires Claude Code ≥ 2.1.218 for the full fork behavior (`background: false`); older versions ignore the new frontmatter fields.

@@ -4,8 +4,8 @@
 // Semantics (2.2): block tool calls that READ dotenv contents; allow commands
 // that merely MENTION the name (grep patterns, echo text, commit messages,
 // heredoc prose, git add of templates). Templates (.env.example, ...) are
-// readable/editable with every tool. `.dev.vars` is blocked for Read, Grep and
-// Edit only. Bash writes to dotenv files are not blocked.
+// readable/editable with every tool. `.dev.vars` is blocked for Read, Grep, Edit and
+// MultiEdit only. Bash writes to dotenv files are not blocked.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -365,14 +365,25 @@ const FILE_TOOL = [
     ["Grep", { path: "/p" }, 0],
     ["Grep", { glob: "!.env" }, 0],
     ["Glob", { pattern: ".env*" }, 0],
-    // .dev.vars: Read, Grep and Edit only
+    // .dev.vars: Read, Grep, Edit and MultiEdit only
     ["Read", { file_path: "/p/.dev.vars" }, 2],
     ["Read", { file_path: "/p/.DEV.VARS" }, 2],
     ["Edit", { file_path: "/p/.dev.vars" }, 2],
     ["Grep", { path: "/p/.dev.vars" }, 2],
     ["Grep", { pattern: "K", glob: ".dev.vars" }, 2],
     ["Write", { file_path: "/p/.dev.vars" }, 0],
+    // MultiEdit is matched in hooks.json since 2.3
+    ["MultiEdit", { file_path: "/p/.env", edits: [] }, 2],
+    ["MultiEdit", { file_path: "/p/.dev.vars", edits: [] }, 2],
+    ["MultiEdit", { file_path: "/p/.env.example", edits: [] }, 0],
 ];
+
+test("env-protect: hooks.json PreToolUse matcher covers MultiEdit", async () => {
+    const { readFileSync } = await import("node:fs");
+    const hooks = JSON.parse(readFileSync(path.join(REPO_ROOT, "hooks", "hooks.json"), "utf8")).hooks;
+    const entry = hooks.PreToolUse.find((e) => JSON.stringify(e).includes("env-protect.js"));
+    assert.ok(entry.matcher.split("|").includes("MultiEdit"), entry.matcher);
+});
 
 for (const [tool, input, expected] of FILE_TOOL) {
     test(`env-protect: file tool ${tool} ${JSON.stringify(input)} -> ${expected}`, () => {

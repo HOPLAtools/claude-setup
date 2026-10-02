@@ -610,6 +610,16 @@ function normalizeRelPath(raw) {
     return v;
 }
 
+// The pointer's step reaches Claude's context: keep it to one short line of
+// printable text (no newlines or control characters, at most 80 chars).
+const MAX_STEP = 80;
+function cleanStep(raw) {
+    if (typeof raw !== "string") return null;
+    const line = raw.replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!line) return null;
+    return line.length > MAX_STEP ? line.slice(0, MAX_STEP - 1).trimEnd() + "…" : line;
+}
+
 // True when `abs` is strictly inside `cwd`.
 function isInside(cwd, abs) {
     const rel = path.relative(cwd, abs);
@@ -703,7 +713,7 @@ export function readActivePlanPointer(cwd = process.cwd()) {
     } catch {
         return null;
     }
-    const step = typeof data.step === "string" && data.step.trim() ? data.step.trim() : null;
+    const step = cleanStep(data.step);
     const status = typeof data.status === "string" ? data.status : null;
     return { path: rel, step, status };
 }
@@ -799,8 +809,10 @@ function suggestNext(state) {
             ? path.posix.basename(state.active_plan.path)
             : state.plans.active[0];
         const baseName = plan.replace(/\.md$/, "");
-        const hasReport = state.execution_reports.some((r) => r.includes(baseName));
-        const hasReview = state.code_reviews.some((r) => r.includes(baseName));
+        // Exact slug or "<slug>-…" (e.g. auth.md, auth-smokes.md) — never a substring (oauth-refactor.md).
+        const forPlan = (f) => f === `${baseName}.md` || f.startsWith(`${baseName}-`);
+        const hasReport = state.execution_reports.some(forPlan);
+        const hasReview = state.code_reviews.some(forPlan);
         if (!hasReview) return `Active plan (${plan}) — execute it or run code-review skill on changes.`;
         if (!hasReport) return `Active plan (${plan}) reviewed — run execution-report skill.`;
         return `Active plan (${plan}) reviewed and reported — consider /hopla:archive or /hopla:system-review.`;

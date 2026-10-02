@@ -356,5 +356,5 @@ Before saving the draft, review the plan against these criteria:
 
 **Finalize:**
 1. Rename `<plans-dir>/[feature-name].draft.md` → `<plans-dir>/[feature-name].md` (overwrite if it already exists)
-2. Write the active-plan pointer `.agents/hopla-active-plan.json` (format: "Active-plan pointer" in `/hopla:execute`) with the Write tool: `{"plan": "<plans-dir>/[feature-name].md", "step": null, "status": "planned", "updatedAt": "<ISO 8601 now>", "by": "plan-feature"}`. If the write is refused, continue without it (never work around it).
+2. Write the active-plan pointer `.agents/hopla-active-plan.json` (format: "Active-plan pointer" in `/hopla:execute`) only if `git check-ignore -q .agents/hopla-active-plan.json` succeeds (otherwise skip it and mention that the line belongs in `.gitignore`), with the Write tool: `{"plan": "<plans-dir>/[feature-name].md", "step": null, "status": "planned", "by": "plan-feature"}`. If the write is refused, continue without it (never work around it).
 3. Confirm: "✅ Plan saved to `<plans-dir>/[feature-name].md`. Run `/hopla:review-plan <plans-dir>/[feature-name].md` to review it, then `/hopla:execute <plans-dir>/[feature-name].md` to implement it."
