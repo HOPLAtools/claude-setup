@@ -53,7 +53,7 @@ function silent(res) {
 
 const REPLACEMENTS = [
     ["refactoring", /\/simplify/],
-    ["code-review-fix", /\/code-review --fix/],
+    ["code-review-fix", /\/hopla:code-review --fix/],
     ["parallel-dispatch", /Workflows/],
     ["subagent-execution", /Workflows/],
 ];

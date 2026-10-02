@@ -15,7 +15,7 @@ const DEPRECATED = {
     "skills/parallel-dispatch/SKILL.md": /Workflows/,
     "skills/subagent-execution/SKILL.md": /Workflows/,
     "skills/refactoring/SKILL.md": /\/simplify/,
-    "skills/code-review-fix/SKILL.md": /\/code-review --fix/,
+    "skills/code-review-fix/SKILL.md": /\/hopla:code-review --fix/,
     "agents/code-reviewer.md": /code-review/,
     "agents/system-reviewer.md": /\/hopla:system-review/,
 };
@@ -54,6 +54,17 @@ test("deprecations: no plugin file recommends /hopla:code-review-fix or the hopl
     for (const f of files) {
         fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
             if (/\/hopla:code-review-fix|hopla:code-reviewer\b/.test(line)) hits.push(`${path.relative(ROOT, f)}:${i + 1}`);
+        });
+    }
+    assert.deepEqual(hits, []);
+});
+
+test("deprecations: code-review-fix is redirected to the HOPLA wrapper, not the bare native fix", () => {
+    const files = [...walk(path.join(ROOT, "skills")), ...walk(path.join(ROOT, "hooks")), path.join(ROOT, "cli.js")];
+    const hits = [];
+    for (const f of files) {
+        fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
+            if (/native `?\/code-review --fix/.test(line)) hits.push(`${path.relative(ROOT, f)}:${i + 1}`);
         });
     }
     assert.deepEqual(hits, []);

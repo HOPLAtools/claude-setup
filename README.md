@@ -264,7 +264,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
 | `subagent-execution` skill | Native Workflows (say "use a workflow") |
 | `refactoring` skill | Native `/simplify` |
-| `code-review-fix` skill | Native `/code-review --fix` |
+| `code-review-fix` skill | `/hopla:code-review --fix` |
 | `code-reviewer` agent | The `code-review` skill |
 | `system-reviewer` agent | `/hopla:system-review` |
 
@@ -328,7 +328,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 /hopla:execute            → implement plan with validation
 /hopla:validate           → lint → types → tests → integration
 "review the code"         → code-review skill runs automatically
-"fix the findings"        → fix the issues (or the native /code-review --fix)
+"fix the findings"        → fix the issues (or /hopla:code-review --fix)
 "generate the report"     → execution-report skill documents what was built
 /hopla:archive            → fold delta-specs into canonical specs, move plan to done/, drop ephemeral code-review (opt-in — when delta-specs were declared)
 "commit this"             → git skill handles commits and PRs

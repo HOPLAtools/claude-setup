@@ -42,3 +42,33 @@ test("validation pyramid and code-review skill save the review even when clean",
     assert.ok(skill.includes(REVIEW_PATH));
     assert.match(skill, /even when (it passes|no issues)/i);
 });
+
+// 3.1: the code-review skill wraps the native /code-review.
+const WRAPPER = () => read("skills/code-review/SKILL.md");
+
+test("code-review wrapper: runs the native review through the Skill tool with effort and --fix", () => {
+    const body = WRAPPER();
+    assert.match(body, /Skill tool/);
+    assert.match(body, /skill `code-review`/);
+    assert.match(body, /--fix/);
+    assert.match(body, /\bmedium\b/, "default effort");
+    assert.match(body, /never `low`/i);
+    assert.match(body, /never invoke `hopla:code-review`/i, "no recursion");
+});
+
+test("code-review wrapper: checklist pass with the HOPLA and project checklists, duplicates dropped", () => {
+    const body = WRAPPER();
+    assert.match(body, /checklist\.md/);
+    assert.match(body, /\.agents\/guides\/review-checklist\.md/);
+    assert.match(body, /duplicate/i);
+});
+
+test("code-review wrapper: 0-100 confidence, threshold 80, dropped findings listed", () => {
+    const body = WRAPPER();
+    assert.match(body, /0[–-]100/);
+    assert.match(body, /\b80\b/);
+    assert.match(body, /Dropped \(low confidence\)/);
+    assert.match(body, /^confidence: /m);
+    assert.match(body, /^source: native \| checklist/m);
+    assert.match(body, /^outcome: /m);
+});
