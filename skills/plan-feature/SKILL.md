@@ -111,12 +111,17 @@ When the plan changes how something is selected, filtered, detected, parsed, nam
 - Code, docs and **tests — including fixtures** that only passed because of the old rule (e.g. sample files whose content no longer qualifies).
 - Existing artifacts the change must merge with: an open `[Unreleased]` section in `CHANGELOG.md`, a README paragraph, a copy of the same logic elsewhere.
 - When the plan renames or moves files, also search for the **old names of every renamed or moved file** (file name and identifier, e.g. `prompt-route` when `prompt-route.js` becomes `deprecation-notice.js`), not only the old directory: docs such as `SECURITY.md` often describe a file by name.
+- When the plan changes the behavior of a file without renaming it (a hook, a script, a config), search the docs that describe that file by name — `SECURITY.md`, README tables, the `CLAUDE.md` architecture tree — and give each a task.
 
 Paste the exact search command and the hit count into **Context References**, and give every affected file a place in a task. **Why:** plans that list only the obvious files leave execution to discover the rest (one release broke 19 fixtures in 4 test files when the plan named 2).
 
 ### Verification spike for platform claims (required)
 
 When a task depends on the platform, tool or runtime behaving a certain way that reading this codebase cannot prove — "a command can write file X", "this hook event fires on Y", "`${VAR}` is substituted here", "this CLI flag exists" — run the smallest command that proves it **before** specifying dependent tasks, in the same mode users run (never in a bypass-permissions or admin session that skips the check). Paste the command and its output into **Context References**.
+
+Two traps seen in practice:
+- **A negative proves only half.** When a spike shows "X does not restrict / block Y" and the plan then removes or changes X, also prove the **positive side** the current behavior may depend on ("X is what grants Z"): a spike showed `allowed-tools` does not restrict tools, the plan dropped it, and execution found it was what pre-approved reads outside the project.
+- **Spike the real shape.** Run the spike in the shape the plan will run in: the same permission mode, files outside the project when the real case has them, and work **already committed** when phases commit before the step under test (a review spiked only on an uncommitted diff missed that committed work was never reviewed).
 
 If it cannot be run while planning, make it **Task 0 (spike)** with a fallback, and let no other task depend on the claim until Task 0 passes. **Why:** a state file designed under a directory the platform protects survived planning untested and forced a redesign of 6+ tasks mid-execution.
 

@@ -50,3 +50,17 @@ test("plan-feature: phased plans say which test file lands in which commit and n
     const phase6 = section("## Phase 6:", "## Phase 7:");
     assert.match(phase6, /\*\*Tests per commit:\*\*/);
 });
+
+test("plan-feature: the dependents search covers docs that describe a changed file by name", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /changes the behavior of a file/i);
+    assert.match(phase3, /SECURITY\.md.*README.*CLAUDE\.md/s);
+});
+
+test("plan-feature: spikes check the positive side of a negative claim and run in the plan's real shape", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /negative/i);
+    assert.match(phase3, /positive side/i);
+    assert.match(phase3, /real shape/i);
+    assert.match(phase3, /already committed/i);
+});
