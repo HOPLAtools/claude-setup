@@ -122,6 +122,7 @@ When a task depends on the platform, tool or runtime behaving a certain way that
 
 Two traps seen in practice:
 - **A negative proves only half.** When a spike shows "X does not restrict / block Y" and the plan then removes or changes X, also prove the **positive side** the current behavior may depend on ("X is what grants Z"): a spike showed `allowed-tools` does not restrict tools, the plan dropped it, and execution found it was what pre-approved reads outside the project.
+- **Check where, not only that.** When the spike involves subagents or a workflow that write files, check **where they write** (their working directory, absolute vs relative paths), not only that a file appeared: a workflow agent started elsewhere wrote a task file outside the project and its verifier, in the same directory, confirmed it.
 - **Spike the real shape.** Run the spike in the shape the plan will run in: the same permission mode, files outside the project when the real case has them, and work **already committed** when phases commit before the step under test (a review spiked only on an uncommitted diff missed that committed work was never reviewed).
 
 If it cannot be run while planning, make it **Task 0 (spike)** with a fallback, and let no other task depend on the claim until Task 0 passes. **Why:** a state file designed under a directory the platform protects survived planning untested and forced a redesign of 6+ tasks mid-execution.
@@ -247,7 +248,7 @@ Each bullet is a user-confirmable assumption the planner made about meaning, beh
 - **Pattern:** `[exact reference file to follow]` — or `N/A` if no existing pattern
 - **Details:** [Step-by-step description of what to implement]
 - **Gotcha:** [Known pitfall or constraint] — or `N/A`
-- **Validate:** [Exact command or check to confirm this task is done correctly]
+- **Validate:** [Exact command or check to confirm this task is done correctly — task-scoped (it checks this task's files or behavior); the whole suite (e.g. `npm test`) runs once in the Validation Checklist, because independent tasks may run in parallel (`/hopla:execute` Step 4a) and a whole-suite run would see sibling tasks half-written]
 - **Time-box:** [Optional — for tasks with known technical risk, specify a maximum time and fallback. E.g., "30 min max. If auto-sizing doesn't work, fall back to fixed widths." Omit for straightforward tasks.]
 
 #### For tasks that create or modify API endpoints, also include:
