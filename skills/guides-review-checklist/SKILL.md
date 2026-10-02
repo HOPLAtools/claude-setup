@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Guide: Creating a Project-Specific Review Checklist
 
-Use this guide to create a `.agents/guides/review-checklist.md` file in your project with code review checks specific to your tech stack, domain, and known anti-patterns. The the `code-review` skill command loads this file automatically when it exists, applying your custom checks alongside the standard review categories.
+Use this guide to create a `.agents/guides/review-checklist.md` file in your project with code review checks specific to your tech stack, domain, and known anti-patterns. The `code-review` skill loads this file automatically when it exists (its checklist pass), applying your custom checks alongside the standard review categories.
 
 ---
 
@@ -16,7 +16,7 @@ Create a review checklist when:
 - The same bug pattern appears in **2+ code reviews** (e.g., stale closures in grid callbacks)
 - Your project uses a framework with non-obvious gotchas (AG Grid, Hono, Prisma, D3, etc.)
 - A `/hopla:system-review` flags a recurring issue that should be caught during code review
-- A the `execution-report` skill documents a new technical pattern in its "Technical Patterns Discovered" section
+- The `execution-report` skill documents a new technical pattern in its "Technical Patterns Discovered" section
 
 ---
 
@@ -74,7 +74,7 @@ Patterns that have caused bugs in this project before:
 
 Update this file when:
 - `/hopla:system-review` flags a recurring bug pattern (3+ occurrences across reviews)
-- the `execution-report` skill discovers a new technical pattern in "Technical Patterns Discovered"
+- The `execution-report` skill discovers a new technical pattern in "Technical Patterns Discovered"
 - A code review finds a bug that should have been caught by a checklist item
 - A framework is upgraded and known gotchas change
 

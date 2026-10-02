@@ -142,6 +142,7 @@ tests/
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
 ├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
 ├── execute.test.js                 execute Step 4a: independent tasks as a workflow, sequential fallbacks
+├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
