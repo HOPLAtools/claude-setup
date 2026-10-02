@@ -107,12 +107,67 @@ Before executing, summarize:
 - How many tasks are in the plan
 - Any constraints or gotchas flagged in the plan
 - Anything unclear that needs clarification before proceeding
+- Which tasks will run as a workflow (Step 4a) and with how many agents — or why Step 4a does not apply
 
 If anything in the plan is ambiguous or contradictory, **stop and ask** before writing code.
 
+## Step 4a: Independent Tasks as a Workflow
+
+Run the plan's independent tasks in parallel with the **Workflow tool**, then continue in this session. Skip this step (go straight to Step 4) when it does not apply.
+
+**Eligible tasks.** A task is eligible when:
+- its `File` fields are disjoint from every other eligible task's (no shared file, no shared state such as a database or a generated file), and nothing in its Details or Validate refers to another task's output or order;
+- it is not `delete`, not a manual or human step, and does not touch `CHANGELOG.md`, version files, lockfiles, CI, deploy, remote migrations or DNS;
+- it is not a tests-first task the others depend on: do that task first, sequentially and following Step 4's per-task rules, then launch the workflow for the eligible tasks.
+
+Use the workflow only when there are **3 or more independent tasks**. Launch **at most 6** implement agents; leave the rest for Step 4 and say which ones (no silent caps).
+
+**Skip Step 4a** (sequential Step 4 for everything) when: fewer than 3 tasks are eligible; the session model is **Fable** (never orchestrate from Fable — say so and run sequentially); or the Workflow tool is unavailable.
+
+**Script.** Call the Workflow tool with this script as is — it is complete, no need to load `workflow-authoring`. Pass `args` as `{root, tasks}`: `root` = the absolute path of the project root (`git rev-parse --show-toplevel`), `tasks` = the eligible tasks as `{id, title, files, pattern, details, gotcha, validate}` from the plan, never interpolated into `meta`. Workflow agents may start in another directory, so they work only under `root` with absolute paths:
+
+```js
+export const meta = {
+  name: 'hopla-execute-tasks',
+  description: 'Implement and verify independent plan tasks in parallel',
+  phases: [{ title: 'Implement' }, { title: 'Verify' }],
+}
+const IMPLEMENTED = {
+  type: 'object',
+  properties: {
+    status: { type: 'string', enum: ['DONE', 'DONE_WITH_CONCERNS', 'NEEDS_CONTEXT', 'BLOCKED'] },
+    files_changed: { type: 'array', items: { type: 'string' } },
+    notes: { type: 'string' },
+  },
+  required: ['status', 'files_changed', 'notes'],
+}
+const VERIFIED = {
+  type: 'object',
+  properties: { ok: { type: 'boolean' }, evidence: { type: 'string' } },
+  required: ['ok', 'evidence'],
+}
+const ROOT = args.root
+const abs = (f) => `${ROOT}/${f}`
+return await pipeline(args.tasks,
+  (t) => agent(
+    `Implement this task from the plan in the project at ${ROOT} (use absolute paths; first cd ${ROOT}). Task ${t.id}: ${t.title}\nFiles (touch ONLY these): ${t.files.map(abs).join(', ')}\nPattern: ${t.pattern}\nDetails: ${t.details}\nGotcha: ${t.gotcha}\nValidation: ${t.validate}\n` +
+    `Follow the project conventions. Never commit, never touch other files. Report DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.`,
+    { phase: 'Implement', label: `task ${t.id}`, schema: IMPLEMENTED }),
+  (r, t) => agent(
+    `Verify task ${t.id}. Run from ${ROOT}: cd ${ROOT} && ${t.validate}\nThe implementer reported: ${JSON.stringify(r)}\n` +
+    `ok=true only if the command passes, each of ${t.files.map(abs).join(', ')} exists under ${ROOT}, and every changed file is one of them.`,
+    { phase: 'Verify', label: `verify ${t.id}`, schema: VERIFIED, model: 'sonnet', effort: 'low' }))
+```
+
+A task whose Validate runs the whole suite (e.g. `npm test`) would see the other tasks half-written: pass its `validate` as `true` (a no-op), so its verify agent only checks that its files exist and nothing else changed; the suite runs once in Step 5. Implement agents inherit the session model; verify agents run on `model: 'sonnet'` with `effort: 'low'`; the final judgment stays in this session (Step 5). No worktree isolation: files are disjoint by construction. Workflow agents **never commit**.
+
+**Consent.** The Workflow tool shows an approval dialog — that is the user's consent for this run. If it is declined (or refused, e.g. in a headless run), say so and run those tasks sequentially in Step 4.
+
+**After launching.** The workflow runs in the background and reports back with a completion notification. **End your turn** saying which tasks are running; when the notification arrives, read the result: tasks with `DONE` and `ok: true` are complete (update the pointer); anything else (`DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, `BLOCKED`, `ok: false` or `null`) is handled here — fix and validate it in Step 4, or file a Blocker Report. Then apply the git strategy below and continue with the remaining tasks and Step 5.
+
 ## Step 4: Execute Tasks in Order
 
-Work through each task in the plan sequentially. For each task:
+Work through the remaining tasks (all of them, when Step 4a did not apply) sequentially. For each task:
 
 1. **Announce** the task you are starting (e.g., "Starting Task 2: Create the filter component")
 2. **Follow the pattern** referenced in the plan — do not invent new patterns

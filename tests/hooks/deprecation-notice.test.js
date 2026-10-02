@@ -55,7 +55,7 @@ const REPLACEMENTS = [
     ["refactoring", /\/simplify/],
     ["code-review-fix", /\/hopla:code-review --fix/],
     ["parallel-dispatch", /Workflows/],
-    ["subagent-execution", /Workflows/],
+    ["subagent-execution", /\/hopla:execute/],
 ];
 
 for (const [item, replacement] of REPLACEMENTS) {

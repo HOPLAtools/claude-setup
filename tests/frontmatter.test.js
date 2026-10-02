@@ -169,3 +169,12 @@ test("frontmatter: $ARGUMENTS only where the skill shows the argument value", ()
         .filter((f) => !ARGUMENTS_CONSUMERS.includes(f));
     assert.deepEqual(bad, []);
 });
+
+// effort is set only where the spike showed it pays off (3.2): it applies to
+// the skill's turn and keeps the prompt cache.
+const EFFORT = { "skills/plan-feature/SKILL.md": "high", "skills/debug/SKILL.md": "high", "skills/rca/SKILL.md": "high" };
+
+test("frontmatter: effort exactly on plan-feature, debug and rca (high)", () => {
+    const set = Object.fromEntries(SKILLS.filter((f) => "effort" in fm(f)).map((f) => [rel(f), fm(f).effort]));
+    assert.deepEqual(set, EFFORT);
+});

@@ -30,6 +30,7 @@ tests/
 ├── deprecations.test.js            deprecation banners + notifier entries
 ├── git-skill.test.js               git skill standing-approval guard
 ├── plan-feature.test.js            plan-feature research-rules guard
+├── execute.test.js                 execute workflow (Step 4a) guard
 ├── review-plan.test.js             review-plan completeness-check guard
 ├── code-review.test.js             code-review file guard (execute, pyramid, skill, agents)
 └── hooks/

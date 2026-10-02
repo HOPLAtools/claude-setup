@@ -13,7 +13,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 const DEPRECATED = {
     "skills/parallel-dispatch/SKILL.md": /Workflows/,
-    "skills/subagent-execution/SKILL.md": /Workflows/,
+    "skills/subagent-execution/SKILL.md": /\/hopla:execute/,
     "skills/refactoring/SKILL.md": /\/simplify/,
     "skills/code-review-fix/SKILL.md": /\/hopla:code-review --fix/,
     "agents/code-reviewer.md": /code-review/,

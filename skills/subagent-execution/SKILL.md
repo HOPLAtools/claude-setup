@@ -4,7 +4,7 @@ description: "Subagent-driven execution for large plans."
 when_to_use: "Use when executing plans with 5+ tasks to maintain context quality, when the user says 'use subagents', 'parallel execution', or when context degradation is a concern in long implementations. Do NOT use for small plans (< 5 tasks) or quick fixes."
 ---
 
-> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use native Workflows instead (say "use a workflow").
+> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use `/hopla:execute` instead (it runs independent tasks as a workflow).
 
 # Subagent-Driven Execution
 
