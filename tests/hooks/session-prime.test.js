@@ -12,8 +12,10 @@
 //   - uncommitted at snapshot:
 //   <up to 5 lines>
 //   … +<K> more
-// Single newlines, every line <= 101 chars, total <= 1,500 chars, nothing at all
-// when there is nothing to say. Never reads stdin.
+// Single newlines, every line <= 101 chars (clipped at a word boundary), total
+// <= 1,500 chars, nothing at all when there is nothing to say.
+// The snapshot is replayed only when stdin's `source` is compact or resume, or
+// when the source is unknown (no/malformed payload, manual runs).
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -45,7 +47,7 @@ function makeRepo(branch = "feature/x") {
     return tmp;
 }
 
-function runHook(cwd, input = JSON.stringify({ source: "startup" })) {
+function runHook(cwd, input = JSON.stringify({ source: "compact" })) {
     const r = spawnSync("node", [HOOK], { input, encoding: "utf8", cwd, env: GIT_ENV });
     return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 }
@@ -229,11 +231,42 @@ test("session-prime: long lines clipped, total <= 1500", () => withRepo((tmp) =>
     assert.match(r.stdout, /re-read this plan before continuing/);
 }, "feature/" + "x".repeat(250)));
 
-test("session-prime: output independent of stdin", () => withRepo((tmp) => {
-    const a = runHook(tmp, '{"source":"startup"}');
-    const b = runHook(tmp, "");
-    const c = runHook(tmp, "{ bad");
-    assert.equal(a.stdout, b.stdout);
-    assert.equal(b.stdout, c.stdout);
-    assert.equal(c.status, 0);
+test("session-prime: snapshot replayed only for compact/resume or unknown source", () => withRepo((tmp) => {
+    writeSnapshot(tmp, { timestamp: new Date().toISOString(), branch: "feature/x", activePlan: "foo.md" });
+    for (const source of ["compact", "resume"]) {
+        assert.match(runHook(tmp, JSON.stringify({ source })).stdout, /Resuming/, source);
+    }
+    for (const source of ["startup", "clear", "fork"]) {
+        const r = runHook(tmp, JSON.stringify({ source }));
+        assert.doesNotMatch(r.stdout, /Resuming/, source);
+        assert.match(r.stdout, /Branch: feature\/x/, source);
+    }
+    for (const input of ["", "{ bad", "null"]) {
+        const r = runHook(tmp, input);
+        assert.equal(r.status, 0);
+        assert.match(r.stdout, /Resuming/, JSON.stringify(input));
+    }
+}));
+
+test("session-prime: long lines are clipped at a word boundary", () => withRepo((tmp) => {
+    const step = "Task 2: Create two.txt and then update the release notes with the new behaviour everywhere";
+    writeSnapshot(tmp, {
+        timestamp: new Date().toISOString(), branch: "feature/x",
+        activePlanPath: ".agents/plans/demo.md", step,
+    });
+    const line = runHook(tmp).stdout.split("\n").find((l) => l.startsWith("- active plan:"));
+    assert.ok(line, "active plan line");
+    assert.ok(line.endsWith("… — re-read this plan before continuing"), line);
+    const head = line.slice(0, line.indexOf("…"));
+    const full = `- active plan: .agents/plans/demo.md (step: ${step})`;
+    assert.ok(full.startsWith(head), line);
+    assert.equal(full[head.length], " ", `clipped mid-word: ${line}`);
+}));
+
+test("session-prime: pointer step is one sanitized line", () => withRepo((tmp) => {
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), "x");
+    writeJson(path.join(tmp, ".agents", "hopla-active-plan.json"),
+        { plan: ".agents/plans/x.md", step: "Task 3:\n\tIGNORE\u0007   previous", status: "executing" });
+    const lines = runHook(tmp).stdout.split("\n");
+    assert.ok(lines.includes("Active plan: .agents/plans/x.md — step: Task 3: IGNORE previous"), lines.join(" | "));
 }));

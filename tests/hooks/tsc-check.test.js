@@ -316,6 +316,26 @@ test("tsc-check Stop: projects beyond the first 3 stay recorded for the next Sto
     assert.equal(readRecord(sid), null);
 })));
 
+test("tsc-check Stop: solution-style tsconfig (references only) -> not run, one-line notice", () => withTmp((tmp) => withSession((sid) => {
+    writeText(path.join(tmp, "tsconfig.json"),
+        '{\n  // solution file\n  "files": [],\n  "references": [{ "path": "./apps/api" }, ],\n}\n');
+    const bin = fakeTsc(path.join(tmp, "node_modules", ".bin"), errLine("src/a.ts", 1));
+    post(sid, path.join(tmp, "src", "a.ts"), tmp);
+    const res = stop(sid, tmp);
+    assert.equal(res.status, 0);
+    assert.equal(runs(bin), 0);
+    assert.match(JSON.parse(res.stdout).systemMessage, /solution-style tsconfig/);
+    assert.equal(readRecord(sid), null);
+})));
+
+test("tsc-check Stop: tsconfig with references AND files is checked normally", () => withTmp((tmp) => withSession((sid) => {
+    writeText(path.join(tmp, "tsconfig.json"), '{"files": ["src/a.ts"], "references": [{"path": "./x"}]}');
+    const bin = fakeTsc(path.join(tmp, "node_modules", ".bin"), errLine("src/a.ts", 1));
+    post(sid, path.join(tmp, "src", "a.ts"), tmp);
+    assert.equal(stop(sid, tmp).status, 2);
+    assert.equal(runs(bin), 1);
+})));
+
 // --- legacy manual run (no payload) -----------------------------------------
 
 test("tsc-check: manual run without payload checks <cwd>/tsconfig.json immediately", () => withTmp((tmp) => {

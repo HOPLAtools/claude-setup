@@ -26,14 +26,15 @@ Do not start implementing until you have read everything above.
 Record progress in `.agents/hopla-active-plan.json` at the project root (write it with the Write tool; it creates `.agents/` if missing). It is git-ignored per-machine state. Session hooks, the statusline and `hopla-claude-setup status` read it, so a resumed or compacted session knows which plan and step are in progress:
 
 ```json
-{"plan": "<plan path relative to the project root>", "step": "<Task id + title> | null", "status": "planned | executing | done", "updatedAt": "<ISO 8601>", "by": "plan-feature | execute"}
+{"plan": "<plan path relative to the project root>", "step": "<Task id + title> | null", "status": "planned | executing | done", "by": "plan-feature | execute"}
 ```
 
+- **Before the first write:** run `git check-ignore -q .agents/hopla-active-plan.json`. If it is not ignored, ask the user whether to add that line to `.gitignore` (recommended) before writing the pointer; if they decline, continue without the pointer — it must never be committed.
 - **Now (start):** `status: "executing"`, `step` = the first task (e.g. `"Task 1: Create the filter component"`), `by: "execute"`.
 - **After each completed task:** set `step` to the next task.
 - **Step 6 (end):** `status: "done"`, `step: null`.
 
-Only these fields — never secrets or plan content. If the file is missing or stale, just overwrite it. If the write is refused, continue without it — never retry or work around it; the hooks fall back to the newest plan.
+Only these fields (no timestamps) — never secrets or plan content. If the file is missing or stale, just overwrite it. If the write is refused, continue without it — never retry or work around it; the hooks fall back to the newest plan.
 
 ### Verification Checkpoints (before writing code)
 

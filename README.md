@@ -361,7 +361,7 @@ Plans live in `.agents/plans/` by default. To keep them elsewhere, declare the d
 
 Honored by `/hopla:plan-feature`, `/hopla:execute`, `/hopla:archive`, the `prime`/`brainstorm`/`git` skills, the session hooks, the statusline and `hopla-claude-setup status`.
 
-**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore`.
+**Active-plan pointer.** `/hopla:plan-feature` and `/hopla:execute` record the plan in progress and its current step in `.agents/hopla-active-plan.json`. The session-start context, the pre-compact snapshot, the statusline and `status` read it first (fallback: the newest non-draft plan by modification time); `/hopla:archive` clears it. Together with `.claude/compact-snapshot.json` it is per-machine state — add both to `.gitignore` (`/hopla:init-project` does it). If the pointer is not git-ignored, `/hopla:execute` asks before writing it and recommends adding the line; `/hopla:plan-feature` skips it. The session-start context replays the pre-compact snapshot only after `/compact` or on resume.
 
 ---
 

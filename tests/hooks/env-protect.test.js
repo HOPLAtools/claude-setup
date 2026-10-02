@@ -372,7 +372,18 @@ const FILE_TOOL = [
     ["Grep", { path: "/p/.dev.vars" }, 2],
     ["Grep", { pattern: "K", glob: ".dev.vars" }, 2],
     ["Write", { file_path: "/p/.dev.vars" }, 0],
+    // MultiEdit is matched in hooks.json since 2.3
+    ["MultiEdit", { file_path: "/p/.env", edits: [] }, 2],
+    ["MultiEdit", { file_path: "/p/.dev.vars", edits: [] }, 2],
+    ["MultiEdit", { file_path: "/p/.env.example", edits: [] }, 0],
 ];
+
+test("env-protect: hooks.json PreToolUse matcher covers MultiEdit", async () => {
+    const { readFileSync } = await import("node:fs");
+    const hooks = JSON.parse(readFileSync(path.join(REPO_ROOT, "hooks", "hooks.json"), "utf8")).hooks;
+    const entry = hooks.PreToolUse.find((e) => JSON.stringify(e).includes("env-protect.js"));
+    assert.ok(entry.matcher.split("|").includes("MultiEdit"), entry.matcher);
+});
 
 for (const [tool, input, expected] of FILE_TOOL) {
     test(`env-protect: file tool ${tool} ${JSON.stringify(input)} -> ${expected}`, () => {

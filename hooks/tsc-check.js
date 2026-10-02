@@ -109,6 +109,23 @@ function findTsconfigDir(dir) {
     }
 }
 
+// A "solution" tsconfig only lists project references (`files: []`): `tsc -p`
+// on it checks nothing, so it is skipped with a notice instead of passing silently.
+// tsconfig allows comments and trailing commas; parse failures count as "not a solution".
+function isSolutionConfig(dir) {
+    try {
+        const raw = fs.readFileSync(path.join(dir, "tsconfig.json"), "utf8")
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/^\s*\/\/.*$/gm, "")
+            .replace(/,(\s*[}\]])/g, "$1");
+        const cfg = JSON.parse(raw);
+        return Array.isArray(cfg.files) && cfg.files.length === 0 && !cfg.include
+            && Array.isArray(cfg.references) && cfg.references.length > 0;
+    } catch {
+        return false;
+    }
+}
+
 // Local tsc, walking up from the tsconfig dir (hoisted monorepos), else npx.
 function resolveTsc(startDir) {
     let cur = startDir;
@@ -229,11 +246,16 @@ function onStop(payload, cwd) {
         const dir = findTsconfigDir(path.dirname(f));
         if (dir && !projects.includes(dir)) projects.push(dir);
     }
-    const checked = projects.slice(0, MAX_PROJECTS);
+    const solutions = projects.filter(isSolutionConfig);
+    const solutionNote = solutions.length
+        ? `tsc: skipped solution-style tsconfig (references only) in ${solutions
+            .map((d) => path.relative(base, d).split(path.sep).join("/") || ".").join(", ")}; per-turn type check needs a tsconfig that includes the edited files`
+        : "";
+    const checked = projects.filter((d) => !solutions.includes(d)).slice(0, MAX_PROJECTS);
     // Files of projects beyond MAX_PROJECTS stay recorded for the next Stop.
     const leftover = record.files.filter((f) => {
         const dir = findTsconfigDir(path.dirname(f));
-        return dir && !checked.includes(dir);
+        return dir && !checked.includes(dir) && !solutions.includes(dir);
     });
     const finish = () => {
         if (leftover.length) writeRecord(file, { files: leftover, blocks: 0, lastSignature: null });
@@ -244,7 +266,7 @@ function onStop(payload, cwd) {
 
     if (ownLines.length === 0) {
         finish();
-        const notice = otherNotice(results);
+        const notice = [otherNotice(results), solutionNote].filter(Boolean).join("; ");
         if (notice) process.stdout.write(JSON.stringify({ systemMessage: notice }) + "\n");
         return 0;
     }
@@ -257,7 +279,8 @@ function onStop(payload, cwd) {
     record.blocks += 1;
     record.lastSignature = signature;
     writeRecord(file, record);
-    process.stderr.write(formatBlock(results, projects.length - checked.length));
+    process.stderr.write(formatBlock(results, projects.length - solutions.length - checked.length)
+        + (solutionNote ? solutionNote + "\n" : ""));
     return 2;
 }
 

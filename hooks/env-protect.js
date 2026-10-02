@@ -5,7 +5,7 @@
 // are tokenized and blocked only when a command READS a dotenv file; commands
 // that merely MENTION the name (echo, git add, grep patterns, comments,
 // commit messages, heredoc prose) pass. Bash writes are not blocked.
-// `.dev.vars` (Cloudflare) is blocked for Read, Grep and Edit only.
+// `.dev.vars` (Cloudflare) is blocked for Read, Grep and Edit/MultiEdit only.
 //
 // Accident prevention, not a sandbox: see SECURITY.md "Known limits".
 // Fails open on malformed input or parser errors. hooks.json matcher must
@@ -386,7 +386,7 @@ async function main() {
     // Read / Grep / Glob / Edit / Write — check file_path, path and the Grep glob
     const filePath = input.file_path || input.path || "";
     if (isEnvPath(filePath) || (name === "Grep" && grepGlobTargetsDotenv(input.glob))) deny(FILE_DENY);
-    if ((name === "Read" || name === "Edit" || name === "Grep") &&
+    if ((name === "Read" || name === "Edit" || name === "MultiEdit" || name === "Grep") &&
         (isDevVarsPath(filePath) || (name === "Grep" && grepGlobTargetsDevVars(input.glob)))) deny(DEV_VARS_DENY);
 
     // Bash — block only commands that read a dotenv file
