@@ -74,4 +74,4 @@ If no issues found, the file says: "Code review passed. No technical issues dete
 
 After the review, suggest:
 
-> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, run `/hopla:code-review-fix .agents/code-reviews/[name].md` to fix them. If the review passed clean, proceed to the `execution-report` skill."
+> "Code review saved to `.agents/code-reviews/[name].md`. If issues were found, fix them (or run the native `/code-review --fix`, which reviews again and applies fixes). If the review passed clean, proceed to the `execution-report` skill."

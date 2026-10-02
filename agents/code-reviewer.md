@@ -4,6 +4,8 @@ description: "Senior code reviewer agent for thorough code quality analysis. Use
 tools: Read, Grep, Glob, Bash
 ---
 
+> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use the `code-review` skill instead.
+
 You are a Senior Code Reviewer. Your job is to review code changes thoroughly and provide actionable feedback.
 
 ## Your Review Process

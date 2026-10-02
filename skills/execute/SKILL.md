@@ -226,6 +226,6 @@ First set `.agents/hopla-active-plan.json` to `status: "done"`, `step: null` (se
 
 After the summary, suggest:
 1. Run the `code-review` skill for a standalone review of the changes (recommended — a fresh review catches issues the executing agent may have missed)
-2. If issues are found, run `/hopla:code-review-fix` to fix them
+2. If issues are found, fix them (or run the native `/code-review --fix`)
 3. Run the `execution-report` skill to document the implementation
 4. Run the `git` skill (say "commit") to commit the changes

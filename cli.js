@@ -831,7 +831,7 @@ function suggestNext(state) {
         return `Active plan (${plan}) reviewed and reported — consider /hopla:archive or /hopla:system-review.`;
     }
     if (state.code_reviews.length > 0) {
-        return `Pending code reviews — run /hopla:code-review-fix on them.`;
+        return `Pending code reviews — fix the findings (native /code-review --fix re-reviews and fixes).`;
     }
     return "Workflow clean — start with /hopla:plan-feature.";
 }

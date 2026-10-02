@@ -33,6 +33,16 @@
             "async": false
           }
         ]
+      },
+      {
+        "matcher": "Skill|Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deprecation-notice.js\"",
+            "async": false
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -52,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-route.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deprecation-notice.js\"",
             "async": false
           }
         ]
