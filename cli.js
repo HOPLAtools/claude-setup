@@ -592,7 +592,8 @@ async function install() {
 // Plans dir: `## HOPLA` / `- Plans: <dir>` in AGENTS.md (fallback CLAUDE.md),
 // default .agents/plans; unsafe values are rejected. Symlink escapes are NOT
 // handled. Active plan: .agents/hopla-active-plan.json when valid, else the
-// newest non-draft *.md in the plans dir by mtime.
+// newest non-draft *.md in the plans dir by mtime that has an
+// "## Implementation Tasks" or "### Task" heading.
 // Exported for unit testing.
 
 const DEFAULT_PLANS_DIR = ".agents/plans";
@@ -680,6 +681,17 @@ export function resolvePlansDir(cwd = process.cwd()) {
     return { dir: DEFAULT_PLANS_DIR, abs: path.resolve(cwd, DEFAULT_PLANS_DIR), source: "default", warning };
 }
 
+// A plan has an "## Implementation Tasks" or a "### Task" heading; notes and
+// research files kept in the plans dir do not.
+const PLAN_HEADING = /^(##\s+Implementation Tasks|###\s+Task)\b/m;
+function looksLikePlan(file) {
+    try {
+        return PLAN_HEADING.test(fs.readFileSync(file, "utf8"));
+    } catch {
+        return false;
+    }
+}
+
 export function findActivePlan(plansAbs) {
     try {
         const candidates = fs.readdirSync(plansAbs, { withFileTypes: true })
@@ -689,7 +701,8 @@ export function findActivePlan(plansAbs) {
                 && !e.name.startsWith("."))
             .map((e) => ({ name: e.name, mtime: fs.statSync(path.join(plansAbs, e.name)).mtimeMs }));
         candidates.sort((a, b) => (b.mtime - a.mtime) || (a.name < b.name ? 1 : a.name > b.name ? -1 : 0));
-        return candidates.length ? candidates[0].name : null;
+        const plan = candidates.find((c) => looksLikePlan(path.join(plansAbs, c.name)));
+        return plan ? plan.name : null;
     } catch {
         return null;
     }
@@ -800,7 +813,7 @@ function suggestNext(state) {
     if (!(state.agents_dir_present || state.plans_dir_present)) {
         return "No .agents/ found — run /hopla:init-project to scaffold the workflow.";
     }
-    // An active plan (pointer, else newest non-draft by mtime) wins over drafts.
+    // An active plan (pointer, else newest non-draft plan by mtime) wins over drafts.
     if (!state.active_plan && state.plans.draft.length > 0) {
         return `Plan in draft (${state.plans.draft[0]}) — run /hopla:review-plan or finalize it.`;
     }

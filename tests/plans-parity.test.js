@@ -63,9 +63,12 @@ function setMtime(file, hoursAgo) {
     fs.utimesSync(file, t, t);
 }
 
+// The mtime fallback only picks files that look like plans.
+const PLAN = "# p\n\n## Implementation Tasks\n\n### Task 1: x\n";
+
 function baseProject(tmp) {
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans\n");
-    writeText(path.join(tmp, "docs", "plans", "a.md"), "# a\n");
+    writeText(path.join(tmp, "docs", "plans", "a.md"), PLAN);
     writeText(path.join(tmp, "docs", "plans", "done", "old.md"), "# old\n");
 }
 
@@ -129,29 +132,46 @@ test("getActivePlan: empty project -> null", () => withTmp((tmp) => {
 const FIND_CASES = [
     ["missing dir", () => {}, null],
     ["empty dir", (d) => fs.mkdirSync(d, { recursive: true }), null],
-    ["drafts only", (d) => { writeText(path.join(d, "x.draft.md"), "x"); }, null],
+    ["drafts only", (d) => { writeText(path.join(d, "x.draft.md"), PLAN); }, null],
     ["mixed", (d) => {
-        writeText(path.join(d, "old.md"), "x"); setMtime(path.join(d, "old.md"), 3);
-        writeText(path.join(d, "newest.md"), "x"); setMtime(path.join(d, "newest.md"), 1);
-        writeText(path.join(d, "newer.draft.md"), "x"); setMtime(path.join(d, "newer.draft.md"), 0);
+        writeText(path.join(d, "old.md"), PLAN); setMtime(path.join(d, "old.md"), 3);
+        writeText(path.join(d, "newest.md"), PLAN); setMtime(path.join(d, "newest.md"), 1);
+        writeText(path.join(d, "newer.draft.md"), PLAN); setMtime(path.join(d, "newer.draft.md"), 0);
     }, "newest.md"],
     ["done and backlog ignored", (d) => {
-        writeText(path.join(d, "p.md"), "x"); setMtime(path.join(d, "p.md"), 5);
-        writeText(path.join(d, "done", "z.md"), "x");
-        writeText(path.join(d, "backlog", "y.md"), "x");
+        writeText(path.join(d, "p.md"), PLAN); setMtime(path.join(d, "p.md"), 5);
+        writeText(path.join(d, "done", "z.md"), PLAN);
+        writeText(path.join(d, "backlog", "y.md"), PLAN);
     }, "p.md"],
     ["dotfiles ignored", (d) => {
-        writeText(path.join(d, ".hidden.md"), "x");
-        writeText(path.join(d, "p.md"), "x"); setMtime(path.join(d, "p.md"), 5);
+        writeText(path.join(d, ".hidden.md"), PLAN);
+        writeText(path.join(d, "p.md"), PLAN); setMtime(path.join(d, "p.md"), 5);
     }, "p.md"],
     ["directory named x.md ignored", (d) => {
         fs.mkdirSync(path.join(d, "x.md"), { recursive: true });
-        writeText(path.join(d, "p.md"), "x"); setMtime(path.join(d, "p.md"), 5);
+        writeText(path.join(d, "p.md"), PLAN); setMtime(path.join(d, "p.md"), 5);
     }, "p.md"],
     ["equal mtimes -> name desc", (d) => {
-        writeText(path.join(d, "a.md"), "x"); setMtime(path.join(d, "a.md"), 2);
-        writeText(path.join(d, "b.md"), "x"); setMtime(path.join(d, "b.md"), 2);
+        writeText(path.join(d, "a.md"), PLAN); setMtime(path.join(d, "a.md"), 2);
+        writeText(path.join(d, "b.md"), PLAN); setMtime(path.join(d, "b.md"), 2);
     }, "b.md"],
+    ["newer notes file without tasks skipped", (d) => {
+        writeText(path.join(d, "plan.md"), PLAN); setMtime(path.join(d, "plan.md"), 3);
+        writeText(path.join(d, "notes.md"), "# Notes\n\n## Ideas\n- tasks later\n"); setMtime(path.join(d, "notes.md"), 1);
+    }, "plan.md"],
+    ["### Task heading alone is enough", (d) => {
+        writeText(path.join(d, "t.md"), "# t\n\n### Task 1: do it\n");
+    }, "t.md"],
+    ["## Implementation Tasks alone is enough (CRLF)", (d) => {
+        writeText(path.join(d, "c.md"), "# c\r\n\r\n## Implementation Tasks\r\n");
+    }, "c.md"],
+    ["heading text inside a line does not count", (d) => {
+        writeText(path.join(d, "n.md"), "# n\nSee ## Implementation Tasks and ### Task 1 in the plan.\n");
+    }, null],
+    ["only notes files -> null", (d) => {
+        writeText(path.join(d, "notes.md"), "# Notes\n");
+        writeText(path.join(d, "research.md"), "## Findings\n### Taskforce\n");
+    }, null],
 ];
 
 for (const [label, setup, expected] of FIND_CASES) {

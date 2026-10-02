@@ -21,6 +21,9 @@ import {
 } from "../cli.js";
 import { makeTempDir, writeJson, readJson, rmDir, writeText } from "./helpers/fixtures.js";
 
+// Plan fixture: the mtime fallback only picks files with a task heading.
+const PLAN_MD = "# p\n\n## Implementation Tasks\n\n### Task 1: x\n";
+
 const REPO_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CLI = path.join(REPO_ROOT, "cli.js");
 
@@ -319,7 +322,7 @@ test("resolvePlansDir: unsafe declaration -> default + warning", () => withTmp((
 }));
 
 test("readWorkflowState: exposes plans_dir keys", () => withTmp((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), PLAN_MD);
     const s = readWorkflowState(tmp);
     assert.equal(s.plans_dir, ".agents/plans");
     assert.equal(s.plans_dir_source, "default");
@@ -352,10 +355,10 @@ function statusText(cwd) {
 
 function makeDocsPlansProject(tmp) {
     writeText(path.join(tmp, "AGENTS.md"), "# P\n\n## HOPLA\n- Plans: docs/plans/\n");
-    writeText(path.join(tmp, "docs", "plans", "add-auth.md"), "# add-auth\n");
-    writeText(path.join(tmp, "docs", "plans", "wip.draft.md"), "# wip\n");
-    writeText(path.join(tmp, "docs", "plans", "done", "old.md"), "# old\n");
-    writeText(path.join(tmp, "docs", "plans", "backlog", "later.md"), "# later\n");
+    writeText(path.join(tmp, "docs", "plans", "add-auth.md"), PLAN_MD);
+    writeText(path.join(tmp, "docs", "plans", "wip.draft.md"), PLAN_MD);
+    writeText(path.join(tmp, "docs", "plans", "done", "old.md"), PLAN_MD);
+    writeText(path.join(tmp, "docs", "plans", "backlog", "later.md"), PLAN_MD);
 }
 
 test("CLI status --json: docs/plans project without .agents/", () => withTmp((tmp) => {
@@ -377,7 +380,7 @@ test("CLI status --json: docs/plans project without .agents/", () => withTmp((tm
 }));
 
 test("CLI status --json: default project keeps every pre-existing key", () => withTmp((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), PLAN_MD);
     const j = statusJson(tmp);
     for (const k of ["cwd", "git", "agents_dir_present", "plans", "specs", "code_reviews",
         "execution_reports", "system_reviews", "rca", "audits", "next",
@@ -391,7 +394,7 @@ test("CLI status --json: default project keeps every pre-existing key", () => wi
 
 test("CLI status --json: declared dir missing -> no fallback to .agents/plans", () => withTmp((tmp) => {
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans\n");
-    writeText(path.join(tmp, ".agents", "plans", "x.md"), "# x\n");
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), PLAN_MD);
     const j = statusJson(tmp);
     assert.deepEqual(j.plans.active, []);
     assert.equal(j.plans_dir_present, false);
@@ -427,7 +430,7 @@ function writePointer(tmp, obj) {
 
 test("CLI status --json: valid pointer wins over mtime", () => withTmp((tmp) => {
     makeDocsPlansProject(tmp);
-    writeText(path.join(tmp, "docs", "plans", "x.md"), "# x\n");
+    writeText(path.join(tmp, "docs", "plans", "x.md"), PLAN_MD);
     const old = new Date(Date.now() - 3 * 3600 * 1000);
     fs.utimesSync(path.join(tmp, "docs", "plans", "x.md"), old, old);
     writePointer(tmp, { plan: "docs/plans/x.md", step: "Task 3", status: "executing",
@@ -465,7 +468,7 @@ for (const [label, ptr] of badPointers) {
 // --- suggestNext matches artifacts by exact slug ----------------------------
 
 test("CLI status --json: a review for another slug (oauth-refactor) does not count for plan auth", () => withTmp((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "auth.md"), "# auth\n");
+    writeText(path.join(tmp, ".agents", "plans", "auth.md"), PLAN_MD);
     writeText(path.join(tmp, ".agents", "code-reviews", "oauth-refactor.md"), "# r\n");
     assert.match(statusJson(tmp).next, /Active plan \(auth\.md\) — execute it/);
     writeText(path.join(tmp, ".agents", "code-reviews", "auth.md"), "# r\n");

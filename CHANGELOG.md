@@ -6,8 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-02
+
+Two follow-ups from 2.3, and the first release published automatically. No breaking changes.
+
 ### Changed
+- **The `git` skill honors standing approvals.** Commit, push and PR creation still ask by default; when the user's instructions (a `CLAUDE.md` or a file in `~/.claude/rules/`) grant a standing approval for that exact action, the skill does it without asking and reports it (branch, commit, push, PR URL). Merging, tags, deleting branches or worktrees and commits or pushes on `main`/`master` still ask unless the approval names them. `global-rules.md` is unchanged.
 - **Releases publish to npm automatically.** A new workflow (`.github/workflows/publish.yml`) publishes `@hopla/claude-setup` when a push to `main` carries a version that is not on npm yet, using npm trusted publishing (OIDC, no stored token) with provenance. It repeats the CI checks and runs `prepublishOnly` before uploading; any other push ends green doing nothing. CI now also runs on Node 24, the Node used to publish.
+
+### Fixed
+- **Active-plan fallback skips notes files.** Without a valid pointer, the newest plan by modification time now must have an `## Implementation Tasks` or `### Task` heading, so a notes or research file in the plans dir no longer shows up as "Active plan" on every session start (session-start context, pre-compact snapshot, statusline, `hopla-claude-setup status`).
 
 ## [2.3.0] - 2026-10-02
 

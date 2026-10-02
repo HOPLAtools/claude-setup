@@ -118,6 +118,7 @@ tests/
 ├── cli.test.js                     parseSettingsFile + safeWrite + status/plans-dir + CLI integration tests
 ├── plans-parity.test.js            cli.js copy == hooks/lib/plans.js (plans dir, pointer, active plan)
 ├── frontmatter.test.js             skill/command/agent frontmatter rules (forks, models, manual-only, arguments)
+├── git-skill.test.js               git skill honors standing approvals; merging stays manual
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
     ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)

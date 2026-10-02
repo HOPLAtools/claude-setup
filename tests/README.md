@@ -26,6 +26,7 @@ tests/
 ├── cli.test.js                     unit + integration tests for cli.js (helpers, status, plans dir)
 ├── plans-parity.test.js            cli.js plans helpers == hooks/lib/plans.js
 ├── frontmatter.test.js             skill/command/agent frontmatter guard
+├── git-skill.test.js               git skill standing-approval guard
 └── hooks/
     ├── env-protect.test.js         table-driven: dotenv reads blocked, mentions/templates allowed
     ├── tsc-check.test.js           PostToolUse recorder + Stop type check
