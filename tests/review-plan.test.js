@@ -21,6 +21,7 @@ for (const [label, re] of [
     ["platform claims spiked", /platform claim.*(spike|Task 0)/i],
     ["tests per commit", /tests? (per|in each) commit/i],
     ["[Unreleased] merged", /\[Unreleased\]/],
+    ["human check states what ships unobserved", /human check[\s\S]{0,200}ships unobserved/i],
 ]) {
     test(`review-plan: completeness check covers ${label}`, () => assert.match(body, re));
 }

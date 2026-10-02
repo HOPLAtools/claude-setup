@@ -83,7 +83,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 
 - Skills, agents, and hooks are **only delivered by the plugin** — the CLI no longer copies them
 - **Never create two skills that resolve to the same `/hopla:<name>`** (a `name:` equal to another skill's directory or name). Skills meant only for explicit `/slash` invocation set `disable-model-invocation: true`; the others also auto-trigger from `description` / `when_to_use`
-- **Deprecating** a skill or agent: add a first body line `> ⚠️ **Deprecated in X, removed in Y.** Use <replacement> instead.`, an entry in `hooks/deprecation-notice.js`, a row in README's deprecated table, and update `tests/deprecations.test.js`. Remove it one major later
+- **Deprecating** a skill or agent: add a first body line `> ⚠️ **Deprecated in X, removed in Y.** Use <replacement> instead.`, an entry in `hooks/deprecation-notice.js`, a row in README's deprecated table, and update `tests/deprecations.test.js`; a deprecation in a release other than 3.0.0 also gets an entry in the notifier's `SINCE` map (the notice names that release). Remove it one major later
 - **Deduplication check:** before deleting a command, skill or agent that another file replaces (a command folded into a skill, a deprecated skill covered by another), diff the two and move into the survivor every step, flag or behavior only the deleted one has. Then delete it. In system-audit-v2 the git commit command was dropped for the skill and its Version Bump step and PR suggestion were nearly lost
 - `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` paths for the plugin channel
 - When removing an installed artifact (command, skill, agent, hook, permission) in a new version, add its old name/path to the legacy cleanup lists in `cli.js` so existing users get it cleaned on next `install` / `--migrate` / `--uninstall`
@@ -144,7 +144,7 @@ tests/
 ├── init-project.test.js            init-project: native /init for existing code, alias, never overwrites
 ├── execute.test.js                 execute Step 4a: independent tasks as a workflow, sequential fallbacks
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
-├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, [Unreleased])
+├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/

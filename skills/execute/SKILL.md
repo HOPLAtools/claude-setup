@@ -151,7 +151,7 @@ const abs = (f) => `${ROOT}/${f}`
 return await pipeline(args.tasks,
   (t) => agent(
     `Implement this task from the plan in the project at ${ROOT} (use absolute paths; first cd ${ROOT}). Task ${t.id}: ${t.title}\nFiles (touch ONLY these): ${t.files.map(abs).join(', ')}\nPattern: ${t.pattern}\nDetails: ${t.details}\nGotcha: ${t.gotcha}\nValidation: ${t.validate}\n` +
-    `Follow the project conventions. Never commit, never touch other files. Report DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.`,
+    `Follow the project conventions. Create and edit files with the Write and Edit tools; use Bash only to run the Validation command. Never commit, never touch other files. Report DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.`,
     { phase: 'Implement', label: `task ${t.id}`, schema: IMPLEMENTED }),
   (r, t) => agent(
     `Verify task ${t.id}. Run from ${ROOT}: cd ${ROOT} && ${t.validate}\nThe implementer reported: ${JSON.stringify(r)}\n` +
@@ -161,7 +161,7 @@ return await pipeline(args.tasks,
 
 A task whose Validate runs the whole suite (e.g. `npm test`) would see the other tasks half-written: pass its `validate` as `true` (a no-op), so its verify agent only checks that its files exist and nothing else changed; the suite runs once in Step 5. Implement agents inherit the session model; verify agents run on `model: 'sonnet'` with `effort: 'low'`; the final judgment stays in this session (Step 5). No worktree isolation: files are disjoint by construction. Workflow agents **never commit**.
 
-**Consent.** The Workflow tool shows an approval dialog — that is the user's consent for this run. If it is declined (or refused, e.g. in a headless run), say so and run those tasks sequentially in Step 4.
+**Consent.** The Workflow tool shows an approval dialog — that is the user's consent for this run. Right before calling the Workflow tool, say in one line (in the user's language) which tasks it will run and that if they decline the dialog they can reply "sequential" and you will run them one by one. A declined dialog ends the turn (Claude Code tells the session to stop and wait), so wait for the user's reply; on "sequential" — or the same word in their language, or that request written in the decline feedback — run those tasks in Step 4. If the tool is refused without a dialog (e.g. a headless run), say so and go to Step 4 directly.
 
 **After launching.** The workflow runs in the background and reports back with a completion notification. **End your turn** saying which tasks are running; when the notification arrives, read the result: tasks with `DONE` and `ok: true` are complete (update the pointer); anything else (`DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, `BLOCKED`, `ok: false` or `null`) is handled here — fix and validate it in Step 4, or file a Blocker Report. Then apply the git strategy below and continue with the remaining tasks and Step 5.
 

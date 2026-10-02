@@ -229,7 +229,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `create-prd` | Create a Product Requirements Document through guided questions — manual only |
 | `plan-feature` | Research codebase and create a structured implementation plan (runs at `effort: high`); migrations get inventory, strategy, rollback and validation per phase and a cleanup phase |
 | `review-plan` | Review a plan before execution — get a summary and approve |
-| `execute` | Execute a structured plan from start to finish with validation — manual only. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog, then validates in the main session |
+| `execute` | Execute a structured plan from start to finish with validation — manual only. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog (decline it and reply "sequential" to run them one by one), then validates in the main session |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
 | `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
