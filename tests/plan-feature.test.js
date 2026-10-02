@@ -37,3 +37,16 @@ test("plan-feature: Phase 6 checklist covers both rules", () => {
     assert.match(phase6, /\*\*Dependents listed:\*\*/);
     assert.match(phase6, /\*\*Platform claims spiked:\*\*/);
 });
+
+test("plan-feature: the dependents search also covers the old names of renamed or moved files", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /old names? of (every )?(renamed|moved)/i);
+});
+
+test("plan-feature: phased plans say which test file lands in which commit and never commit a RED test", () => {
+    const size = section("### Plan Size Check", "## Phase 6:");
+    assert.match(size, /which test files? lands? in/i);
+    assert.match(size, /never commit a RED test/i);
+    const phase6 = section("## Phase 6:", "## Phase 7:");
+    assert.match(phase6, /\*\*Tests per commit:\*\*/);
+});

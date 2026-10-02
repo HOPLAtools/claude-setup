@@ -98,12 +98,14 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 - All logic stays in a single file
 
 ### Hooks (hooks/*.js)
+- Per-session files in the temp dir (markers, records): validate the session id (`^[A-Za-z0-9_-]{1,128}$`) before it reaches a path, write with `O_NOFOLLOW` and mode `0600`, and test the guard with an id that would otherwise be a valid file name (`a.b`), not only with `../x` (which fails for unrelated reasons)
 - A hook that runs an external command built from file paths uses `execFileSync` (argument array, no shell) and has a regression test with a hostile directory name (spaces, quotes, `$(…)`, `;`) — the 2.2 code review found a shell injection in `tsc-check`
 
 ### Skill files (skills/**/*.md)
 
 - Directory: `skills/[kebab-case-name]/SKILL.md` with `name: [kebab-case-name]` — the plugin namespaces it as `/hopla:[name]`; extra files next to `SKILL.md` are workflows or shared references
 - Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the skill renders (`${CLAUDE_SKILL_DIR}` too) (verified in the 2.2 smokes)
+- Never write a literal positional placeholder (a `$` followed by a digit) in a skill body, not even as an example: Claude Code substitutes it when the skill renders. Describe it in words
 - Never make a skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
 
 ---
@@ -189,7 +191,7 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
 2. `git commit` + open PR
 3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh` on Node 20 and 24)
 4. Merge PR to `main`
-5. **Publishing is automatic.** `.github/workflows/publish.yml` runs on every push to `main`: if the `package.json` version is not on npm yet, it repeats the CI checks and runs `npm publish` (which runs `prepublishOnly`) with npm trusted publishing (OIDC, no stored token, provenance included); otherwise it ends green doing nothing. It only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo. Never rename `publish.yml`: npmjs.com trusts that exact filename. Manual fallback: `npm publish --otp=<code>` from `main`.
+5. **Publishing is automatic.** `.github/workflows/publish.yml` runs on every push to `main`: if the `package.json` version is not on npm yet, it repeats the CI checks and runs `npm publish` (which runs `prepublishOnly`) with npm trusted publishing (OIDC, no stored token, provenance included); otherwise it ends green doing nothing. It only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo. Never rename `publish.yml`: npmjs.com trusts that exact filename. Anything `publish.yml` downloads at run time (npx, curl | sh) runs in its own job with `contents: read` (see `validate-plugin`); never give such a step `id-token: write`. Manual fallback: `npm publish --otp=<code>` from `main`.
    To confirm a release, poll the registry until it answers 200 (about a minute after the publish log shows `+ @hopla/claude-setup@<version>`; `npm view` may still report the previous `latest` before that), then check `latest`:
    ```bash
    curl -s -o /dev/null -w '%{http_code}\n' https://registry.npmjs.org/@hopla%2Fclaude-setup/<version>

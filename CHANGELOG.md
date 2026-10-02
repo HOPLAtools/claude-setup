@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+- **`/hopla:plan-feature`** (from the 3.0.0 system review): the dependents search also covers the old names of renamed or moved files, and phased plans list which test files land in each commit, so no commit carries a failing test.
+
 ## [3.0.0] - 2026-10-02
 
 First release of the 3.x series: commands become skills and six items are deprecated. **Nothing is removed** — every `/hopla:<name>` and `/hopla:guides:<name>` keeps working with the same arguments. Deprecated items are removed in 4.0.0.

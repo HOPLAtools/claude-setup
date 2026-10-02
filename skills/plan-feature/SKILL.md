@@ -110,6 +110,7 @@ When the plan changes how something is selected, filtered, detected, parsed, nam
 
 - Code, docs and **tests — including fixtures** that only passed because of the old rule (e.g. sample files whose content no longer qualifies).
 - Existing artifacts the change must merge with: an open `[Unreleased]` section in `CHANGELOG.md`, a README paragraph, a copy of the same logic elsewhere.
+- When the plan renames or moves files, also search for the **old names of every renamed or moved file** (file name and identifier, e.g. `prompt-route` when `prompt-route.js` becomes `deprecation-notice.js`), not only the old directory: docs such as `SECURITY.md` often describe a file by name.
 
 Paste the exact search command and the hit count into **Context References**, and give every affected file a place in a task. **Why:** plans that list only the obvious files leave execution to discover the rest (one release broke 19 fixtures in 4 test files when the plan named 2).
 
@@ -315,6 +316,8 @@ After generating the plan, count the implementation tasks (excluding test tasks)
 - **8–11 tasks:** Consider grouping tasks into logical phases with intermediate commit points. Add a `## Phase Boundaries` section to the plan listing where commits should happen.
 - **12+ tasks:** The plan should be split into multiple plans or phased with mandatory intermediate commits. Large plans tend to drift during execution; phase boundaries give reviewers and the executing agent natural checkpoints. Consider whether independent task groups can be separate plans.
 
+When the plan has `## Phase Boundaries` and writes tests first, list for each commit which test files land in it: a test lands in the same commit as the code that makes it pass. Never commit a RED test — if one test task covers several phases, split its tests into separate files (one per phase).
+
 ---
 
 ## Phase 6: Verify the Plan
@@ -342,6 +345,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **UX iteration budget declared:** If the feature touches UI per the Phase 4 heuristic, the plan includes `Expected UX iterations: N` (with N a positive integer ≥ 1) in Out of Scope or Notes for Executing Agent. If UI is NOT involved, the line is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Dependents listed:** If the plan changes a selection, detection, path or naming rule, Context References show the search command and hit count, and every dependent file (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) has a task
+- [ ] **Tests per commit:** If the plan has `## Phase Boundaries`, each commit lists the test files it includes, and none of them is RED at that commit
 - [ ] **Platform claims spiked:** Every task that relies on platform/tool behavior the codebase cannot prove has the proving command and output in Context References, or depends on a Task 0 spike with a fallback
 - [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.
 
