@@ -48,3 +48,14 @@ for (const [label, re] of [
 test("execute Step 3 announces which tasks run as a workflow", () => {
     assert.match(between("## Step 3:", "## Step 4a:"), /workflow/i);
 });
+
+test("execute Step 4a: a declined dialog stops the turn; the notice offers a \"sequential\" reply and execute waits for it", () => {
+    const s = step4a();
+    assert.match(s, /before calling the Workflow tool[\s\S]{0,300}"sequential"/i);
+    assert.match(s, /declin[\s\S]{0,300}wait/i);
+    assert.match(s, /refus[\s\S]{0,200}headless[\s\S]{0,200}Step 4/i);
+});
+
+test("execute Step 4a: implement agents create files with Write/Edit and use Bash only for Validation", () => {
+    assert.match(step4a(), /Write and Edit tools; use Bash only to run the Validation command/);
+});

@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-10-02
+
+Fixes from the interactive check of `/hopla:execute`, and spike-fidelity rules. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Fixed
+- **Declined workflow dialog in `/hopla:execute`.** A decline makes Claude Code stop the turn, so execute never fell back to sequential on its own as documented. Before the dialog, execute now says in one line that if you decline it you can reply "sequential" (in your language too) and it will run the tasks one by one. After a decline it waits for that reply. A refusal without a dialog (headless) still goes sequential directly.
+- **Workflow agents create files with Write/Edit**, using Bash only for the Validation command. Outside bypass, the Bash heredocs they used before needed one approval per file.
+
+### Changed
+- **`/hopla:plan-feature`** has a new spike trap: approve and decline paths of a dialog are not observable headless, so they become human checks. Each Level 5 check now says what ships unobserved if it is skipped. The Phase 6 checklist has the matching item.
+- **`/hopla:review-plan`** flags a human check that does not say what ships unobserved, and an approve/decline path claimed from a headless run.
+
 ## [3.3.0] - 2026-10-02
 
 Migrations move into `/hopla:plan-feature`; `/hopla:init-project` builds on the native `/init`. No breaking changes.

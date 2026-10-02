@@ -85,3 +85,10 @@ test("plan-feature: migration plans carry classification, inventory, strategy, r
     }
     assert.match(body, /## Migration/);
 });
+
+test("plan-feature: approve and decline paths are not observable headless; a human check says what ships unobserved", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /not observable headless/i);
+    assert.match(phase3, /approve and decline paths/i);
+    assert.match(body, /ships unobserved/i);
+});

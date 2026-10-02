@@ -120,10 +120,11 @@ Paste the exact search command and the hit count into **Context References**, an
 
 When a task depends on the platform, tool or runtime behaving a certain way that reading this codebase cannot prove — "a command can write file X", "this hook event fires on Y", "`${VAR}` is substituted here", "this CLI flag exists" — run the smallest command that proves it **before** specifying dependent tasks, in the same mode users run (never in a bypass-permissions or admin session that skips the check). Paste the command and its output into **Context References**.
 
-Two traps seen in practice:
+Traps seen in practice:
 - **A negative proves only half.** When a spike shows "X does not restrict / block Y" and the plan then removes or changes X, also prove the **positive side** the current behavior may depend on ("X is what grants Z"): a spike showed `allowed-tools` does not restrict tools, the plan dropped it, and execution found it was what pre-approved reads outside the project.
 - **Check where, not only that.** When the spike involves subagents or a workflow that write files, check **where they write** (their working directory, absolute vs relative paths), not only that a file appeared: a workflow agent started elsewhere wrote a task file outside the project and its verifier, in the same directory, confirmed it.
 - **Spike the real shape.** Run the spike in the shape the plan will run in: the same permission mode, files outside the project when the real case has them, and work **already committed** when phases commit before the step under test (a review spiked only on an uncommitted diff missed that committed work was never reviewed).
+- **Approval paths are not observable headless.** A headless run either refuses a dialog or skips it (bypass), so the approve and decline paths of a permission or Workflow dialog — and what the session does after each — can only be checked interactively: a spike in bypass assumed a declined workflow would fall back to sequential, and interactively the session just stopped. Make those paths a Level 5 human check.
 
 If it cannot be run while planning, make it **Task 0 (spike)** with a fallback, and let no other task depend on the claim until Task 0 passes. **Why:** a state file designed under a directory the platform protects survived planning untested and forced a redesign of 6+ tasks mid-execution.
 
@@ -314,7 +315,7 @@ Run in this order — do not proceed if a level fails:
 - [ ] **Level 2.5 — Code Review:** Run the `code-review` skill on changed files
 - [ ] **Level 3 — Unit Tests:** `[project unit test command]`
 - [ ] **Level 4 — Integration Tests:** `[project integration test or manual curl/check]`
-- [ ] **Level 5 — Human Review:** Verify behavior matches requirements above
+- [ ] **Level 5 — Human Review:** Verify behavior matches requirements above — name each check, and what ships unobserved if it is skipped
 
 ## Acceptance Criteria
 - [ ] [Specific, testable criterion]
@@ -381,6 +382,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Dependents listed:** If the plan changes a selection, detection, path or naming rule, Context References show the search command and hit count, and every dependent file (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) has a task
 - [ ] **Migration complete (migration plans):** `## Migration` filled, every phase has a rollback and a validation, a cleanup phase is last
+- [ ] **Human check:** every Level 5 check says what ships unobserved if it is skipped; approve/decline paths of dialogs are human checks, never claimed from a headless run
 - [ ] **Tests per commit:** If the plan has `## Phase Boundaries`, each commit lists the test files it includes, and none of them is RED at that commit
 - [ ] **Platform claims spiked:** Every task that relies on platform/tool behavior the codebase cannot prove has the proving command and output in Context References, or depends on a Task 0 spike with a fallback
 - [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.
