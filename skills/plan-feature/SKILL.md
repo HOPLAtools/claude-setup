@@ -113,6 +113,7 @@ When the plan changes how something is selected, filtered, detected, parsed, nam
 - Existing artifacts the change must merge with: an open `[Unreleased]` section in `CHANGELOG.md`, a README paragraph, a copy of the same logic elsewhere.
 - When the plan renames or moves files, also search for the **old names of every renamed or moved file** (file name and identifier, e.g. `prompt-route` when `prompt-route.js` becomes `deprecation-notice.js`), not only the old directory: docs such as `SECURITY.md` often describe a file by name.
 - When the plan changes the behavior of a file without renaming it (a hook, a script, a config), search the docs that describe that file by name — `SECURITY.md`, README tables, the `CLAUDE.md` architecture tree — and give each a task.
+- Search **hardcoded values and the current wording**, not only names: a version string the change makes wrong (a notice and a test both said "since 3.0.0" when an item was deprecated in 3.3.0), a removed step or path, and the text that describes the flow today — grep its current wording ("after you approve the dialog"), not the new one, or a README row that describes the changed flow is missed.
 
 Paste the exact search command and the hit count into **Context References**, and give every affected file a place in a task. **Why:** plans that list only the obvious files leave execution to discover the rest (one release broke 19 fixtures in 4 test files when the plan named 2).
 

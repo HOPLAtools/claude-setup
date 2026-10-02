@@ -125,7 +125,7 @@ bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 
 **Changes to the code-review skill are dogfooded:** before the PR, review the branch with the branch's own plugin. Load it from **another copy** (`git worktree add ../claude-setup-dogfood <branch>`) and run in this repo `claude -p --settings '{"enabledPlugins":{"hopla@hopla-marketplace":false}}' --plugin-dir ../claude-setup-dogfood "/hopla:code-review <branch>"`, or run interactively and approve the report write.
 
-**Workflow features in local tests:** the Workflow tool always asks for approval ("Review dynamic workflow before running"), so headless runs refuse it except in `bypassPermissions` — use bypass only to check the mechanics, and check the approve and decline paths interactively.
+**Workflow features in local tests:** the Workflow tool always asks for approval ("Review dynamic workflow before running"), so headless runs refuse it except in `bypassPermissions` — use bypass only to check the mechanics, and check the approve and decline paths interactively. To check what workflow agents actually did (which tools, which files), read their transcripts — `~/.claude/projects/<project>/<session>/subagents/workflows/<wf-id>/agent-*.jsonl` — not only their structured report.
 
 **Protected paths in local tests:** Claude Code protects the directory loaded with `--plugin-dir` (it reloads and runs the plugin's code when a file there changes) and everything under `~/.claude/`. Writes there ask for approval in `default`/`acceptEdits` and are refused headless ("sensitive file"). So headless tests that write into this repo load the plugin from another copy, and temp test projects never live under `~/.claude/` (use the session scratchpad or `/private/tmp`).
 
