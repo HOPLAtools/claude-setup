@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-10-02
+
+Process improvements after 3.2.0. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
 ### Fixed
 - The `review-checklist` guide no longer reads "The the `code-review` skill command" / "A the `execution-report` skill".
 
