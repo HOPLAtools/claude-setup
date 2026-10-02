@@ -121,7 +121,9 @@ node --test tests/cli.test.js        # one file
 bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 ```
 
-**Changes to the code-review skill are dogfooded:** before the PR, run `claude -p --settings '{"enabledPlugins":{"hopla@hopla-marketplace":false}}' --plugin-dir . "/hopla:code-review <branch>"` on the branch itself (the installed plugin disabled so the branch answers).
+**Changes to the code-review skill are dogfooded:** before the PR, review the branch with the branch's own plugin. Load it from **another copy** (`git worktree add ../claude-setup-dogfood <branch>`) and run in this repo `claude -p --settings '{"enabledPlugins":{"hopla@hopla-marketplace":false}}' --plugin-dir ../claude-setup-dogfood "/hopla:code-review <branch>"`, or run interactively and approve the report write.
+
+**Protected paths in local tests:** Claude Code protects the directory loaded with `--plugin-dir` (it reloads and runs the plugin's code when a file there changes) and everything under `~/.claude/`. Writes there ask for approval in `default`/`acceptEdits` and are refused headless ("sensitive file"). So headless tests that write into this repo load the plugin from another copy, and temp test projects never live under `~/.claude/` (use the session scratchpad or `/private/tmp`).
 
 **Plan fixtures must be real plans.** In `plans-parity`, `cli`, `session-prime` and `precompact-snapshot` tests, write plan files with the file's `PLAN_MD` constant (it has `## Implementation Tasks`), never `"x"`: the active-plan mtime fallback skips files without a task heading, so a placeholder fixture silently stops being a plan.
 
