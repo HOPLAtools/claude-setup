@@ -225,9 +225,9 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 | Skill | Description |
 |---|---|
-| `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure — manual only |
+| `init-project` | Existing code: runs the native `/init` and moves its result into AGENTS.md (+ CLAUDE.md alias); no code yet: reads the PRD, recommends the stack, writes a short AGENTS.md. Creates `.agents/`; never overwrites existing rules files without asking — manual only |
 | `create-prd` | Create a Product Requirements Document through guided questions — manual only |
-| `plan-feature` | Research codebase and create a structured implementation plan (runs at `effort: high`) |
+| `plan-feature` | Research codebase and create a structured implementation plan (runs at `effort: high`); migrations get inventory, strategy, rollback and validation per phase and a cleanup phase |
 | `review-plan` | Review a plan before execution — get a summary and approve |
 | `execute` | Execute a structured plan from start to finish with validation — manual only. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog, then validates in the main session |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
@@ -252,12 +252,11 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `debug` | "debug this", "find the bug", "why is this failing" (runs at `effort: high`, like `rca`) |
 | `tdd` | "write tests first", "TDD", "red-green-refactor" |
 | `performance` | "slow", "too slow", "optimize", "bottleneck" |
-| `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
 | `hook-audit` | "audit hook", "check hook", "hook review" — forked subagent on Sonnet; mechanical static audit of `src/hooks/use*.ts` files (memoization, stale-id guards, error-match strictness, cache+dedup integrity) |
 
 The `git` skill asks before every commit, push and PR. If your own instructions grant a standing approval for one of those exact actions — in a `CLAUDE.md` or a file in `~/.claude/rules/` (keep personal approvals there: the CLI installer rewrites `~/.claude/CLAUDE.md`) — it does that action without asking and reports it. Merging, tags and commits or pushes on `main`/`master` still ask unless the approval names them.
 
-**Deprecated in 3.0.0** — still installed and working, removed in 4.0.0. The first time you (or Claude) use one in a session, a one-line notice names the replacement:
+**Deprecated in 3.0.0** (and `migration` in 3.3.0) — still installed and working, removed in 4.0.0. The first time you (or Claude) use one in a session, a one-line notice names the replacement:
 
 | Deprecated | Use instead |
 |---|---|
@@ -265,6 +264,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `subagent-execution` skill | `/hopla:execute` (runs independent tasks as a workflow) |
 | `refactoring` skill | Native `/simplify` |
 | `code-review-fix` skill | `/hopla:code-review --fix` |
+| `migration` skill (3.3.0) | `/hopla:plan-feature` (plans migrations with phases and rollback) |
 | `code-reviewer` agent | The `code-review` skill |
 | `system-reviewer` agent | `/hopla:system-review` |
 
@@ -314,7 +314,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 
 ```
 /hopla:create-prd         → define what you're building (PRD.md)
-/hopla:init-project       → reads PRD, recommends stack, creates CLAUDE.md + .agents/
+/hopla:init-project       → native /init (or PRD + stack), creates AGENTS.md + CLAUDE.md alias + .agents/
 "commit this"             → git skill saves foundation
 ```
 
@@ -509,6 +509,6 @@ project/
 │   ├── code-reviews/              ← Code review reports (don't commit — ephemeral)
 │   └── hopla-active-plan.json     ← Active plan + step (don't commit)
 └── .claude/
-    ├── commands/                  ← Project-specific commands (optional)
+    ├── skills/                    ← Project-specific skills (optional)
     └── compact-snapshot.json      ← Pre-compact snapshot (don't commit)
 ```

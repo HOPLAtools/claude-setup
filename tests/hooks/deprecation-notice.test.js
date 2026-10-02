@@ -42,7 +42,7 @@ function notice(res, event) {
     assert.equal(out.systemMessage, out.hookSpecificOutput.additionalContext);
     assert.ok(!("permissionDecision" in out.hookSpecificOutput), "must never auto-approve");
     assert.ok(!("decision" in out), "must never block");
-    assert.match(out.systemMessage, /deprecated since 3\.0\.0 and will be removed in 4\.0\.0/);
+    assert.match(out.systemMessage, /deprecated since 3\.\d+\.\d+ and will be removed in 4\.0\.0/);
     return out.systemMessage;
 }
 function silent(res) {
@@ -55,6 +55,7 @@ const REPLACEMENTS = [
     ["refactoring", /\/simplify/],
     ["code-review-fix", /\/hopla:code-review --fix/],
     ["parallel-dispatch", /Workflows/],
+    ["migration", /\/hopla:plan-feature/],
     ["subagent-execution", /\/hopla:execute/],
 ];
 
@@ -63,6 +64,7 @@ for (const [item, replacement] of REPLACEMENTS) {
         const msg = notice(run(tmp, ups(`/hopla:${item}`)), "UserPromptSubmit");
         assert.match(msg, new RegExp(item));
         assert.match(msg, replacement);
+        assert.match(msg, new RegExp(`since ${item === "migration" ? "3\\.3\\.0" : "3\\.0\\.0"} `));
     }));
 }
 

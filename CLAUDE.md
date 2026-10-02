@@ -140,7 +140,8 @@ tests/
 ├── layout.test.js                  commands/ gone, no nested skills, no stale commands/ paths
 ├── deprecations.test.js            banners, notifier entries, nothing recommends a deprecated item
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
-├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
+├── plan-feature.test.js            plan-feature keeps the dependents-grep, verification-spike and migration-plan rules
+├── init-project.test.js            init-project: native /init for existing code, alias, never overwrites
 ├── execute.test.js                 execute Step 4a: independent tasks as a workflow, sequential fallbacks
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, [Unreleased])

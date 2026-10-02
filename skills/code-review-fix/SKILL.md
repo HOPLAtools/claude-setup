@@ -45,7 +45,7 @@ Do not move to the next issue until the current one is verified.
 
 After all fixes are complete, run the project's validation suite.
 
-If a `/validate` command exists in `.claude/commands/validate.md`, run it.
+If the project defines its own validation (a `.claude/skills/validate/SKILL.md` skill, or a legacy `.claude/commands/validate.md`), run it.
 Otherwise, run the standard checks for the project stack:
 - Linting
 - Type checking

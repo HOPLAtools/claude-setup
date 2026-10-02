@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-02
+
+Migrations move into `/hopla:plan-feature`; `/hopla:init-project` builds on the native `/init`. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **`/hopla:plan-feature` plans migrations** (new "Migration plans" section in Phase 4 and a `## Migration` block in the template): the four classification questions one at a time, an inventory with counts, the upgrade notes, a strategy (big bang, incremental with adapter, dual-run, branch by abstraction), rollback and validation per phase, idempotent data migrations, a final cleanup phase, and the stop rule at 2× the estimate.
+- **`/hopla:init-project`** has two paths. Existing code runs the native `/init` and moves its result into `AGENTS.md` with the `CLAUDE.md` alias; with rules files already present it shows `/init`'s suggestions or diff and asks, and never overwrites without approval. No code yet keeps the PRD + stack recommendation and writes a short `AGENTS.md`. The skill went from 523 to 218 lines; the long `AGENTS.md` template and the `.claude/commands/validate.md` step are gone (project workflows belong in skills).
+- `validate`, `code-review-fix`, `guides:remote-coding` and the README project tree no longer assume `.claude/commands/`: a project `validate` skill (or a legacy `validate.md`) is still honored.
+
+### Deprecated
+- **`migration` skill** — use `/hopla:plan-feature` (it plans migrations with phases and rollback). Removed in 4.0.0; the first use in a session shows a notice.
+
 ## [3.2.1] - 2026-10-02
 
 Process improvements after 3.2.0. No breaking changes.
