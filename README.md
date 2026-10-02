@@ -227,9 +227,9 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 |---|---|
 | `init-project` | Read PRD, recommend stack, create AGENTS.md (+ CLAUDE.md alias) and .agents/ structure — manual only |
 | `create-prd` | Create a Product Requirements Document through guided questions — manual only |
-| `plan-feature` | Research codebase and create a structured implementation plan |
+| `plan-feature` | Research codebase and create a structured implementation plan (runs at `effort: high`) |
 | `review-plan` | Review a plan before execution — get a summary and approve |
-| `execute` | Execute a structured plan from start to finish with validation — manual only |
+| `execute` | Execute a structured plan from start to finish with validation — manual only. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog, then validates in the main session |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
 | `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
@@ -249,7 +249,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `execution-report` | "generate the report", "document what was done" |
 | `verify` | "verify it works", "make sure it's correct" |
 | `brainstorm` | "let's brainstorm", "explore approaches" |
-| `debug` | "debug this", "find the bug", "why is this failing" |
+| `debug` | "debug this", "find the bug", "why is this failing" (runs at `effort: high`, like `rca`) |
 | `tdd` | "write tests first", "TDD", "red-green-refactor" |
 | `performance` | "slow", "too slow", "optimize", "bottleneck" |
 | `migration` | "migrate", "upgrade", "switch from X to Y", "major version bump" |
@@ -262,7 +262,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | Deprecated | Use instead |
 |---|---|
 | `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
-| `subagent-execution` skill | Native Workflows (say "use a workflow") |
+| `subagent-execution` skill | `/hopla:execute` (runs independent tasks as a workflow) |
 | `refactoring` skill | Native `/simplify` |
 | `code-review-fix` skill | `/hopla:code-review --fix` |
 | `code-reviewer` agent | The `code-review` skill |

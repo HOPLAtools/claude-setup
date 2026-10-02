@@ -3,6 +3,7 @@ name: rca
 description: Investigate a bug or issue and produce a structured RCA document
 when_to_use: "Use when the user wants a root-cause analysis document for a bug or incident. Trigger phrases: 'RCA', 'root cause', 'why did this happen', 'investigate this issue'. Do NOT use for quick fixes — use the debug skill."
 argument-hint: "<issue-description-or-github-url>"
+effort: high
 ---
 
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.

@@ -13,7 +13,7 @@ import path from "node:path";
 const WORKFLOWS = 'native Workflows (say "use a workflow")';
 const DEPRECATED_SKILLS = {
     "parallel-dispatch": WORKFLOWS,
-    "subagent-execution": WORKFLOWS,
+    "subagent-execution": "/hopla:execute (it runs independent tasks as a workflow)",
     "refactoring": "the native /simplify",
     "code-review-fix": "/hopla:code-review --fix",
 };

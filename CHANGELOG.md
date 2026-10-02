@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-02
+
+`/hopla:execute` runs independent tasks as a native Workflow. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Added
+- **Workflows in `/hopla:execute`** (new Step 4a): when a plan has 3 or more independent tasks (disjoint `File` fields, no cross-references, no deletes, CHANGELOG/version/CI/deploy/migrations/DNS excluded), they run as a native Workflow — up to 6 agents, each task implemented and then verified with its own Validate command (verify on Sonnet at low effort) — after you approve the workflow dialog. The validation pyramid stays in the main session. Declined dialog, Fable session or no Workflow tool → sequential, as before. Workflow agents never commit.
+- **`effort: high`** on `plan-feature`, `debug` and `rca`. Measured on Claude Code 2.1.287: it applies to the skill's turn and keeps the prompt cache.
+
+### Changed
+- The `subagent-execution` deprecation notice now points to `/hopla:execute`.
+
 ### Fixed
 - `code-review` takes the native review's findings from `ReportFindings` when the host provides it, and from its text otherwise (the interactive check had no `ReportFindings`).
 
