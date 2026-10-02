@@ -10,7 +10,7 @@ allowed-tools: Read, Grep, Glob, Bash
 
 Review the changed code by wrapping Claude Code's native `/code-review`, add a checklist pass it does not do, keep only confident findings, and always save the report.
 
-Arguments (`$ARGUMENTS`, all optional, any order): an effort level (`low`, `medium`, `high`, `max`), `--fix`, and a **target** — a branch, PR number or path — that the native review reviews instead of the uncommitted diff. Without a target only uncommitted changes are reviewed, so after work was already committed (e.g. a phased plan) pass the branch, e.g. `/hopla:code-review feature/x`.
+Arguments (all optional, any order): an effort level (`low`, `medium`, `high`, `max`), `--fix`, and a **target** — a branch, PR number or path — that the native review reviews instead of the uncommitted diff. Without a target only uncommitted changes are reviewed, so after work was already committed (e.g. a phased plan) pass the branch, e.g. `/hopla:code-review feature/x`.
 
 ## Step 1: Load Context
 

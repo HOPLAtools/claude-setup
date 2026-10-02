@@ -41,7 +41,7 @@ Rules (enforced by `tests/frontmatter.test.js`):
 - `model` appears **only** with `context: fork`. Skills in the main conversation inherit the session model — switching models mid-session loses the prompt cache.
 - A forked skill cannot see the conversation and cannot ask the user anything: keep forks for self-contained work (orientation, audits, reviews) and make the body return a self-contained final answer.
 - Skills that must never start on their own (long-running or file-moving) use `disable-model-invocation: true`; Claude then asks the user to run them.
-- Arguments: declare `arguments: [plan, report]` and use `$plan` / `$report`. Never a positional placeholder (`$` followed by a digit): they are 0-based, and Claude Code substitutes them even in prose. Free text goes through `$ARGUMENTS` (named arguments split on whitespace).
+- Arguments: declare `arguments: [plan, report]` and use `$plan` / `$report`. Never a positional placeholder (`$` followed by a digit): they are 0-based. Free text goes through the ARGUMENTS placeholder (`$` followed by `ARGUMENTS`; named arguments split on whitespace). Claude Code substitutes all of these anywhere in the body, prose included — mention them only in words, never written out, unless the skill means to show the value.
 - `triggers:` is not supported — put trigger phrases in `when_to_use`.
 - Put critical rules at the top of SKILL.md: after compaction only the first 5,000 tokens of an invoked skill are re-injected. Rules that must always hold belong in a hook, not in prose.
 

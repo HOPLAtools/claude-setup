@@ -159,3 +159,13 @@ test("frontmatter: agent references are plugin-scoped; codebase-researcher runs 
     assert.equal(researcher.name, "codebase-researcher");
     assert.equal(researcher.model, "haiku");
 });
+
+// $ARGUMENTS is substituted anywhere in a skill body, prose included (3.1.0
+// rendered "Arguments (``, ...)"). Only skills that mean to show the value use it.
+const ARGUMENTS_CONSUMERS = ["skills/code-review-fix/SKILL.md", "skills/rca/SKILL.md"];
+
+test("frontmatter: $ARGUMENTS only where the skill shows the argument value", () => {
+    const bad = SKILLS.filter((f) => bodyOf(f).includes("$ARGUMENTS")).map(rel)
+        .filter((f) => !ARGUMENTS_CONSUMERS.includes(f));
+    assert.deepEqual(bad, []);
+});

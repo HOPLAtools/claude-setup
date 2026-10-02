@@ -105,7 +105,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 
 - Directory: `skills/[kebab-case-name]/SKILL.md` with `name: [kebab-case-name]` — the plugin namespaces it as `/hopla:[name]`; extra files next to `SKILL.md` are workflows or shared references
 - Reference plugin files as `${CLAUDE_PLUGIN_ROOT}/<path>`: Claude Code substitutes it when the skill renders (`${CLAUDE_SKILL_DIR}` too) (verified in the 2.2 smokes)
-- Never write a literal positional placeholder (a `$` followed by a digit) in a skill body, not even as an example: Claude Code substitutes it when the skill renders. Describe it in words
+- Never write a placeholder in skill prose — a positional one (a `$` followed by a digit), the ARGUMENTS one, or a declared named argument — not even as an example: Claude Code substitutes them anywhere in the body when the skill renders. Describe them in words; write them out only where the skill means to show the value (`tests/frontmatter.test.js` lists those skills)
 - A skill that reads its own supporting files (`${CLAUDE_SKILL_DIR}/...`, outside the user's project) keeps `allowed-tools: Read` (plus what else it needs): the field does not restrict tools, but without it those reads need approval and are denied in headless runs
 - Never make a skill write state under `.claude/` with Write/Edit: Claude Code asks for approval on every such write and refuses it in headless runs, even with `permissions.allow`. Hooks may write there (they are not tools); tool-written state goes under `.agents/` and is git-ignored (e.g. `.agents/hopla-active-plan.json`)
 
