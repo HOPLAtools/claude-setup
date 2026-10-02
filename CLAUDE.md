@@ -127,6 +127,7 @@ tests/
 ├── frontmatter.test.js             skill/command/agent frontmatter rules (forks, models, manual-only, arguments)
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
 ├── plan-feature.test.js            plan-feature keeps the dependents-grep and verification-spike rules
+├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
     ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)

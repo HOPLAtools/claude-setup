@@ -30,7 +30,7 @@ You are a System Reviewer. Your job is to analyze how well the implementation ma
 
 ## Output Format
 
-Save to `.agents/system-reviews/[feature-name].md`:
+Return the review as your **final message**, in this format. You have no Write tool: the caller saves it to `.agents/system-reviews/<plan-slug>-review.md`:
 ```
 # System Review: [Feature Name]
 
@@ -71,6 +71,6 @@ For each recommendation from the 2 most recent system reviews:
 
 ## Next Step
 
-After the review is saved, suggest:
+End with this suggestion (the caller shows it after saving the file):
 > "System review saved to `.agents/system-reviews/[feature]-review.md`. To close the lifecycle of this plan, run `/hopla:archive <plan-path>` — it will fold any delta-specs into the canonical specs and move the plan to `done/`. If recurring recommendations were found, consider applying them before the next feature — they represent known gaps in the process."
 ```

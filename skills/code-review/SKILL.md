@@ -48,7 +48,7 @@ Before reporting, confirm each issue is legitimate:
 
 ## Step 5: Output Report
 
-Save to `.agents/code-reviews/[descriptive-name].md`.
+Save to `.agents/code-reviews/<plan-slug>.md` when the changes implement a plan (`<plan-slug>` = plan filename without `.md`, so `/hopla:archive` and `hopla-claude-setup status` find it), else `.agents/code-reviews/[descriptive-name].md`. Save it even when no issues are found — the file is the evidence that the review ran.
 
 **Format for each issue:**
 
@@ -61,7 +61,7 @@ detail: [why this is a problem]
 suggestion: [how to fix it]
 ```
 
-If no issues found: "Code review passed. No technical issues detected."
+If no issues found, the file says: "Code review passed. No technical issues detected."
 
 **Rules:**
 

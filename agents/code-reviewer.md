@@ -32,7 +32,7 @@ Classify every issue as:
 
 ## Output Format
 
-Save your review to `.agents/code-reviews/[feature-name].md` with:
+Return your review as your **final message**, in this format. You have no Write tool: the caller saves it to `.agents/code-reviews/<plan-slug>.md` (a descriptive name when no plan is involved), so it is never lost:
 ```
 # Code Review: [Feature Name]
 
