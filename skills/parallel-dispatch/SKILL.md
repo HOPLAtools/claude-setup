@@ -4,6 +4,8 @@ description: "Parallel agent dispatch for independent tasks."
 when_to_use: "Use when 2+ tasks have no shared state and can run simultaneously, during brainstorming to explore multiple approaches, or when the user says 'in parallel', 'run in parallel', 'parallelize this', 'simultaneously', 'at the same time'. Do NOT use when tasks have dependencies or share state."
 ---
 
+> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use native Workflows instead (say "use a workflow").
+
 # Parallel Agent Dispatch
 
 ## When to Parallelize

@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const body = fs.readFileSync(path.join(ROOT, "commands", "plan-feature.md"), "utf8");
+const body = fs.readFileSync(path.join(ROOT, "skills", "plan-feature", "SKILL.md"), "utf8");
 
 function section(start, end) {
     const i = body.indexOf(start);

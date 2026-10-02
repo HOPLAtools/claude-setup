@@ -24,7 +24,30 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Runs the npx-downloaded Claude Code CLI in its own job, without id-token:
+  # third-party code never shares a job with the OIDC publish credential.
+  validate-plugin:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # actions/checkout
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Validate plugin (claude plugin validate, pinned CLI as in ci.yml)
+        run: |
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict .
+          # Non-strict: its only warning is this repo's own CLAUDE.md at the plugin root (dev rules, not shipped context).
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate .claude-plugin/plugin.json
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict skills
+          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict agents
+
   publish:
+    needs: validate-plugin
     runs-on: ubuntu-latest # GitHub-hosted only: npm does not support self-hosted runners for trusted publishing
     permissions:
       contents: read # actions/checkout

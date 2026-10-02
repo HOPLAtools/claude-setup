@@ -15,7 +15,7 @@ Mechanical static audit of React hook files (`src/hooks/use*.ts`) against the fo
 **When to invoke:**
 - Right after creating or significantly modifying a `src/hooks/use*.ts` file
 - BEFORE committing the hook
-- Auto-callable from `commands/execute.md` Level 1.5 gate (companion plan: `plan-feature-04c-improvements.md`)
+- Auto-callable from `skills/execute/SKILL.md` Level 1.5 gate (companion plan: `plan-feature-04c-improvements.md`)
 
 ## Step 1: Identify Target File(s)
 

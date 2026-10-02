@@ -44,9 +44,7 @@ Key rules:
 3. Test: `node cli.js --flag-name`
 
 ### Adding a new file to install
-1. Place the file in `files/` (or `files/commands/` for slash commands)
-2. If it's in `files/commands/`, **no changes to `cli.js` needed** — auto-discovered
-3. If it's outside `files/commands/`, add:
+The CLI installs only `global-rules.md` and permissions; skills, agents and hooks ship with the plugin (see `add-skill.md`). If the CLI really must install a new file into `~/.claude/`, add:
    - An `installFile()` call inside `install()`
    - A `removeFile()` call inside `uninstall()`
 

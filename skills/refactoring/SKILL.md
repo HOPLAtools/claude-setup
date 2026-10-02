@@ -4,6 +4,8 @@ description: "Safe refactoring workflow with behavior preservation."
 when_to_use: "Use when the user says 'refactor', 'clean up', 'simplify', 'extract', 'restructure', 'deduplicate', 'rename', or asks to improve code structure without changing behavior. Do NOT use for bug fixes, new features, or performance work — use the debug, plan-feature, or performance skills instead."
 ---
 
+> ⚠️ **Deprecated in 3.0.0, removed in 4.0.0.** Use the native `/simplify` instead.
+
 > 🌐 **Language:** All user-facing output must match the user's language. Code, paths, and commands stay in English.
 
 # Refactoring: Restructure Without Changing Behavior

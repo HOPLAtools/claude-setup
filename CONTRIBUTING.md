@@ -45,7 +45,7 @@ node cli.js --version
 
 ### Edit checklist
 
-Any change to `commands/`, `skills/`, `agents/`, `hooks/`, or `global-rules.md` is shipped to every future user — review carefully and consider backwards compatibility.
+Any change to `skills/`, `agents/`, `hooks/`, or `global-rules.md` is shipped to every future user — review carefully and consider backwards compatibility.
 
 ## Testing
 
@@ -108,9 +108,9 @@ Do **not** open a public issue for security vulnerabilities. See [SECURITY.md](.
 ## Coding conventions
 
 - `cli.js` stays as a single ESM file with no external dependencies (Node built-ins only). Helpers are exported for testing; the main dispatcher only fires when the file is the script entrypoint.
-- Skills (`skills/<name>/SKILL.md`) declare YAML frontmatter with `name`, `description` (what it does, main use case first), `when_to_use` (trigger phrases and "Do NOT use"), and optional `allowed-tools:`. Set `model`/`agent`/`background` only together with `context: fork`; commands take named `arguments:` and use `$name`, never positional `$1`. `tests/frontmatter.test.js` enforces these rules. Keep the description neutral and language-agnostic — the plugin operates internationally.
+- Skills (`skills/<name>/SKILL.md`) declare YAML frontmatter with `name`, `description` (what it does, main use case first), `when_to_use` (trigger phrases and "Do NOT use"), and optional `allowed-tools:`. Set `model`/`agent`/`background` only together with `context: fork`; skills that take arguments declare named `arguments:` and use `$name`, never positional `$1`. `tests/frontmatter.test.js` enforces these rules. Keep the description neutral and language-agnostic — the plugin operates internationally.
 - Hooks (`hooks/*.js`) follow the Claude Code hook contract: read JSON from stdin, write to stdout, exit codes `0` (continue) or `2` (block). All paths use `${CLAUDE_PLUGIN_ROOT}` in `hooks.json` so they survive plugin upgrades.
-- Markdown documentation in `commands/`, `skills/`, and `agents/` uses GitHub-flavored Markdown.
+- Markdown documentation in `skills/` and `agents/` uses GitHub-flavored Markdown. Since 3.0 there is no `commands/` directory: commands and guides are skills (guides: `skills/guides-<name>/` with `name: guides:<name>`).
 
 ## Project rules
 
