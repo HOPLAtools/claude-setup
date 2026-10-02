@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+- **`/hopla:plan-feature`** (from the 3.1.0 system review): the dependents search also covers docs that describe a changed file by name (SECURITY.md, README tables, CLAUDE.md tree); a spike that proves a negative ("X does not restrict") must also prove the positive side the plan relies on; spikes run in the plan's real shape (permission mode, files outside the project, work already committed).
+
 ## [3.1.0] - 2026-10-02
 
 `code-review` now wraps Claude Code's native `/code-review`. No breaking changes.
