@@ -25,6 +25,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeTempDir, rmDir, writeText, writeJson } from "../helpers/fixtures.js";
 
+// Plan fixture: the mtime fallback only picks files with a task heading.
+const PLAN_MD = "# p\n\n## Implementation Tasks\n\n### Task 1: x\n";
+
 const REPO_ROOT = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 const HOOK = path.join(REPO_ROOT, "hooks", "session-prime.js");
 
@@ -116,25 +119,36 @@ test("session-prime: 3 dirty files -> all printed, no tail, leading space kept",
 
 test("session-prime: active plan by mtime excludes drafts and done/", () => withRepo((tmp) => {
     const d = path.join(tmp, ".agents", "plans");
-    writeText(path.join(d, "old.md"), "x"); setMtime(path.join(d, "old.md"), 3);
-    writeText(path.join(d, "newest.md"), "x"); setMtime(path.join(d, "newest.md"), 1);
-    writeText(path.join(d, "newer.draft.md"), "x"); setMtime(path.join(d, "newer.draft.md"), 0);
-    writeText(path.join(d, "done", "archived.md"), "x");
+    const plan = "# p\n\n## Implementation Tasks\n\n### Task 1: x\n";
+    writeText(path.join(d, "old.md"), plan); setMtime(path.join(d, "old.md"), 3);
+    writeText(path.join(d, "newest.md"), plan); setMtime(path.join(d, "newest.md"), 1);
+    writeText(path.join(d, "newer.draft.md"), plan); setMtime(path.join(d, "newer.draft.md"), 0);
+    writeText(path.join(d, "done", "archived.md"), plan);
     const r = runHook(tmp);
     assert.match(r.stdout, /Active plan: \.agents\/plans\/newest\.md/);
     assert.doesNotMatch(r.stdout, /draft|archived/);
 }));
 
+test("session-prime: a newer notes file in the plans dir is not the active plan", () => withRepo((tmp) => {
+    const d = path.join(tmp, ".agents", "plans");
+    writeText(path.join(d, "notes.md"), "# Notes\n- idea\n");
+    assert.doesNotMatch(runHook(tmp).stdout, /Active plan/);
+    writeText(path.join(d, "real.md"), "# r\n\n### Task 1: x\n"); setMtime(path.join(d, "real.md"), 2);
+    const r = runHook(tmp);
+    assert.match(r.stdout, /Active plan: \.agents\/plans\/real\.md/);
+    assert.doesNotMatch(r.stdout, /notes/);
+}));
+
 test("session-prime: no plans dir / only drafts -> no Active plan line", () => withRepo((tmp) => {
     assert.doesNotMatch(runHook(tmp).stdout, /Active plan/);
-    writeText(path.join(tmp, ".agents", "plans", "x.draft.md"), "x");
-    writeText(path.join(tmp, ".agents", "plans", "done", "y.md"), "x");
+    writeText(path.join(tmp, ".agents", "plans", "x.draft.md"), PLAN_MD);
+    writeText(path.join(tmp, ".agents", "plans", "done", "y.md"), PLAN_MD);
     assert.doesNotMatch(runHook(tmp).stdout, /Active plan/);
 }));
 
 test("session-prime: pointer -> Active plan with step", () => withRepo((tmp) => {
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans/\n");
-    writeText(path.join(tmp, "docs", "plans", "x.md"), "x");
+    writeText(path.join(tmp, "docs", "plans", "x.md"), PLAN_MD);
     writeJson(path.join(tmp, ".agents", "hopla-active-plan.json"),
         { plan: "docs/plans/x.md", step: "Task 3", status: "executing" });
     assert.match(runHook(tmp).stdout, /^Active plan: docs\/plans\/x\.md — step: Task 3$/m);
@@ -142,7 +156,7 @@ test("session-prime: pointer -> Active plan with step", () => withRepo((tmp) => 
 
 test("session-prime: docs/plans declaration -> Active plan from that dir", () => withRepo((tmp) => {
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans/\n");
-    writeText(path.join(tmp, "docs", "plans", "x.md"), "x");
+    writeText(path.join(tmp, "docs", "plans", "x.md"), PLAN_MD);
     assert.match(runHook(tmp).stdout, /Active plan: docs\/plans\/x\.md/);
 }));
 
@@ -171,7 +185,7 @@ test("session-prime: snapshot replay (branch differs, worktree, plan, uncommitte
 }));
 
 test("session-prime: snapshot always repeats the plan (with step) even when equal to live", () => withRepo((tmp) => {
-    writeText(path.join(tmp, "docs", "plans", "x.md"), "x");
+    writeText(path.join(tmp, "docs", "plans", "x.md"), PLAN_MD);
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans\n");
     writeSnapshot(tmp, {
         timestamp: new Date().toISOString(), branch: "feature/x", inWorktree: false,
@@ -264,7 +278,7 @@ test("session-prime: long lines are clipped at a word boundary", () => withRepo(
 }));
 
 test("session-prime: pointer step is one sanitized line", () => withRepo((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "x.md"), "x");
+    writeText(path.join(tmp, ".agents", "plans", "x.md"), PLAN_MD);
     writeJson(path.join(tmp, ".agents", "hopla-active-plan.json"),
         { plan: ".agents/plans/x.md", step: "Task 3:\n\tIGNORE\u0007   previous", status: "executing" });
     const lines = runHook(tmp).stdout.split("\n");

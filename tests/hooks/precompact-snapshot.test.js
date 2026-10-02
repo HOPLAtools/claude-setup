@@ -9,6 +9,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeTempDir, rmDir, writeText, writeJson, readJson } from "../helpers/fixtures.js";
 
+// Plan fixture: the mtime fallback only picks files with a task heading.
+const PLAN_MD = "# p\n\n## Implementation Tasks\n\n### Task 1: x\n";
+
 const REPO_ROOT = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 const HOOK = path.join(REPO_ROOT, "hooks", "precompact-snapshot.js");
 const PRIME = path.join(REPO_ROOT, "hooks", "session-prime.js");
@@ -50,7 +53,7 @@ function withRepo(fn) {
 }
 
 test("precompact: snapshot keys", () => withRepo((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "p.md"), "x");
+    writeText(path.join(tmp, ".agents", "plans", "p.md"), PLAN_MD);
     writeText(path.join(tmp, "a.txt"), "dirty\n");
     const r = run(HOOK, tmp);
     assert.equal(r.status, 0);
@@ -68,8 +71,8 @@ test("precompact: snapshot keys", () => withRepo((tmp) => {
 
 test("precompact: pointer preferred over mtime, step stored", () => withRepo((tmp) => {
     writeText(path.join(tmp, "AGENTS.md"), "## HOPLA\n- Plans: docs/plans\n");
-    writeText(path.join(tmp, "docs", "plans", "a.md"), "x");
-    writeText(path.join(tmp, "docs", "plans", "b.md"), "x");
+    writeText(path.join(tmp, "docs", "plans", "a.md"), PLAN_MD);
+    writeText(path.join(tmp, "docs", "plans", "b.md"), PLAN_MD);
     const old = new Date(Date.now() - 3600 * 1000);
     fs.utimesSync(path.join(tmp, "docs", "plans", "a.md"), old, old);
     writeJson(path.join(tmp, ".agents", "hopla-active-plan.json"),
@@ -84,11 +87,11 @@ test("precompact: pointer preferred over mtime, step stored", () => withRepo((tm
 
 test("precompact: drafts and done/ never chosen", () => withRepo((tmp) => {
     const d = path.join(tmp, ".agents", "plans");
-    writeText(path.join(d, "x.draft.md"), "x");
-    writeText(path.join(d, "done", "z.md"), "x");
+    writeText(path.join(d, "x.draft.md"), PLAN_MD);
+    writeText(path.join(d, "done", "z.md"), PLAN_MD);
     run(HOOK, tmp);
     assert.equal(snapOf(tmp).activePlan, null);
-    writeText(path.join(d, "older.md"), "x");
+    writeText(path.join(d, "older.md"), PLAN_MD);
     const old = new Date(Date.now() - 3600 * 1000);
     fs.utimesSync(path.join(d, "older.md"), old, old);
     run(HOOK, tmp);
@@ -121,7 +124,7 @@ test("precompact: non-git dir -> branch/uncommitted null; unwritable .claude -> 
 });
 
 test("precompact -> session-prime round trip", () => withRepo((tmp) => {
-    writeText(path.join(tmp, ".agents", "plans", "p.md"), "x");
+    writeText(path.join(tmp, ".agents", "plans", "p.md"), PLAN_MD);
     run(HOOK, tmp);
     const r = run(PRIME, tmp);
     assert.equal(r.status, 0);

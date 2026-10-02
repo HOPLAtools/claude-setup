@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SessionStart hook: minimal project context (~1K chars typical, hard cap 1,500).
 // Emits: branch, uncommitted summary (max 5 sample lines), active plan (+ step,
-// from .agents/hopla-active-plan.json or newest non-draft plan) and the
+// from .agents/hopla-active-plan.json or newest non-draft plan with tasks) and the
 // pre-compact snapshot replay. No skills list, no rules excerpt, no commits —
 // Claude Code already loads CLAUDE.md and lists skills natively.
 // The snapshot is replayed only after /compact or on resume (stdin `source`);
