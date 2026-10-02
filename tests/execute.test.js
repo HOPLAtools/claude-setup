@@ -59,3 +59,25 @@ test("execute Step 4a: a declined dialog stops the turn; the notice offers a \"s
 test("execute Step 4a: implement agents create files with Write/Edit and use Bash only for Validation", () => {
     assert.match(step4a(), /Write and Edit tools; use Bash only to run the Validation command/);
 });
+
+test("execute Step 4a: the decline notice is visible text (not only reasoning) and is repeated after a decline", () => {
+    const s = step4a();
+    assert.match(s, /visible text/i);
+    assert.match(s, /not only in your reasoning/i);
+    assert.match(s, /after a declin[\s\S]{0,200}repeat/i);
+});
+
+test("execute Step 4a: verify agents judge only their task's files and run only the Validation command with Bash", () => {
+    const s = step4a();
+    assert.match(s, /Use Bash only to run the Validation command/);
+    assert.match(s, /Read tool/);
+    assert.match(s, /sibling tasks/i);
+    assert.match(s, /files_changed/);
+    assert.doesNotMatch(s, /every changed file is one of them/);
+    assert.doesNotMatch(s, /nothing else changed/);
+});
+
+test("execute: the \"sequential\" reply is announced in Step 3's visible summary and in the workflow dialog (meta.description)", () => {
+    assert.match(between("## Step 3:", "## Step 4a:"), /"sequential"/);
+    assert.match(step4a(), /description: '[^']*"sequential"[^']*'/);
+});
