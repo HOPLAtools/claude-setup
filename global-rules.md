@@ -65,6 +65,15 @@ When suggesting a commit, explain in plain language why it's a good moment, adap
 
 ---
 
+## 6. Models, Effort & Cost
+
+- **Opus** by default at **medium** effort; **high** for debugging; **xhigh** only for architecture decisions
+- **Fable** only when chosen on purpose — never in `claude -p` or background sessions (they spend without asking)
+- **Ultracode** off by default: turn it on for audits, migrations or cross-cutting research, then off again (`/effort ultracode off`)
+- The main conversation's prompt cache lasts **1 h** on a Claude subscription (**5 min** with an API key): after a longer break, prefer `/compact` or a fresh session over resuming a huge context (see Context control below)
+
+---
+
 ## 📋 Context Management
 
 ### Three levels of CLAUDE.md

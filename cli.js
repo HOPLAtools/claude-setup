@@ -15,6 +15,9 @@ const STATUS = process.argv.includes("status");
 const JSON_OUT = process.argv.includes("--json");
 const SETUP_STATUSLINE = process.argv.includes("--setup-statusline");
 const REMOVE_STATUSLINE = process.argv.includes("--remove-statusline");
+const SETUP_SETTINGS = process.argv.includes("--setup-settings");
+const SETUP_GUARD = process.argv.includes("--setup-guard");
+const REMOVE_GUARD = process.argv.includes("--remove-guard");
 
 if (VERSION) {
     const pkg = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8"));
@@ -38,6 +41,27 @@ const SETTINGS_FILES = [
     path.join(CLAUDE_DIR, "settings.local.json"),
 ];
 const REPO_ROOT = import.meta.dirname;
+// Opt-in high-risk Bash guard (--setup-guard): a user-level hook, never a plugin hook.
+const GUARD_FILE = "high-risk-guard.js";
+const GUARD_SRC = path.join(REPO_ROOT, "guard", GUARD_FILE);
+const GUARD_DEST = path.join(HOOKS_DIR, GUARD_FILE);
+const GUARD_COMMAND = `node ~/.claude/hooks/${GUARD_FILE}`;
+// Settings written by --setup-settings ({key, why, get, set}). --uninstall keeps
+// them (identical values may have been set by hand) and only lists them.
+const RECOMMENDED_SETTINGS = [
+    {
+        key: "workflowKeywordTriggerEnabled",
+        why: "the word \"ultracode\" in a prompt no longer starts a workflow (e.g. while discussing it)",
+        get: (s) => s.workflowKeywordTriggerEnabled,
+        set: (s) => { s.workflowKeywordTriggerEnabled = false; },
+    },
+    {
+        key: "env.CLAUDE_CODE_SUBAGENT_MODEL",
+        why: "subagents and workflow agents without a model (e.g. /hopla:execute's implementers) run on Sonnet",
+        get: (s) => s.env?.CLAUDE_CODE_SUBAGENT_MODEL,
+        set: (s) => { s.env = { ...(s.env || {}), CLAUDE_CODE_SUBAGENT_MODEL: "sonnet" }; },
+    },
+];
 
 const GREEN = "\x1b[32m";
 const RED = "\x1b[31m";
@@ -379,6 +403,7 @@ async function uninstall() {
     }
     log(`  ${YELLOW}+${RESET}  Legacy hopla-* commands, skills, hooks, agents (if any)`);
     log(`  ${YELLOW}+${RESET}  Hopla permissions from settings.json and settings.local.json`);
+    log(`  ${YELLOW}+${RESET}  The high-risk guard (~/.claude/hooks/${GUARD_FILE} and its hook entry), if installed`);
 
     if (pluginActive || hasMarketplaceCache) {
         log(`\n${YELLOW}⚠${RESET}  Claude Code plugin artifacts detected — this CLI cannot remove them:`);
@@ -420,6 +445,17 @@ async function uninstall() {
     const statuslineRemoved = removeStatuslineFromSettings();
     for (const item of statuslineRemoved) {
         logRemoved(item);
+    }
+
+    for (const item of removeGuardArtifacts()) {
+        logRemoved(item);
+    }
+
+    const userSettings = parseSettingsFile(path.join(CLAUDE_DIR, "settings.json")) || {};
+    const keptSettings = RECOMMENDED_SETTINGS.filter((item) => item.get(userSettings) !== undefined);
+    if (keptSettings.length) {
+        log(`\n${CYAN}ℹ${RESET}  Kept in ~/.claude/settings.json (remove by hand if HOPLA set them for you):`);
+        for (const item of keptSettings) log(`   • ${item.key} = ${JSON.stringify(item.get(userSettings))}`);
     }
 
     log(`\n${GREEN}${BOLD}Done!${RESET} ${DRY_RUN ? "Dry-run complete — no files were changed." : "CLI-managed files removed."}\n`);
@@ -548,6 +584,130 @@ async function removeStatusline() {
     for (const item of removed) {
         logRemoved(item);
     }
+    log("");
+}
+
+async function setupSettings() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Recommended settings${dryTag()}\n`);
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    let settings = parseSettingsFile(settingsPath);
+    if (!settings) {
+        if (fs.existsSync(settingsPath)) {
+            log(`  ${YELLOW}↷${RESET}  Skipped — settings.json is not valid JSON. Fix it and re-run.\n`);
+            return;
+        }
+        settings = {};
+    }
+
+    let changed = false;
+    for (const item of RECOMMENDED_SETTINGS) {
+        const current = item.get(settings);
+        if (current !== undefined) {
+            log(`  ${GREEN}✓${RESET}  ${item.key} already set (${JSON.stringify(current)}) — left as is`);
+            continue;
+        }
+        item.set(settings);
+        changed = true;
+        log(`  ${GREEN}✓${RESET}  ${DRY_RUN ? "Would set" : "Set"} ${item.key} = ${JSON.stringify(item.get(settings))}`);
+        log(`     ${item.why}`);
+    }
+    if (!changed) {
+        log(`\n${GREEN}✓${RESET}  Nothing to change.\n`);
+        return;
+    }
+    safeMkdir(CLAUDE_DIR, { recursive: true });
+    safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+    log(`\n  ${DRY_RUN ? "Would write" : "Wrote"} ~/.claude/settings.json\n`);
+}
+
+function isGuardCommand(cmd) {
+    return typeof cmd === "string" && cmd.includes(GUARD_FILE);
+}
+
+async function setupGuard() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — High-risk guard${dryTag()}\n`);
+    const settingsPath = path.join(CLAUDE_DIR, "settings.json");
+    let settings = parseSettingsFile(settingsPath);
+    if (!settings) {
+        if (fs.existsSync(settingsPath)) {
+            log(`  ${YELLOW}↷${RESET}  Skipped — settings.json is not valid JSON. Fix it and re-run.\n`);
+            return;
+        }
+        settings = {};
+    }
+
+    const src = fs.readFileSync(GUARD_SRC, "utf8");
+    if (fs.existsSync(GUARD_DEST) && fs.readFileSync(GUARD_DEST, "utf8") === src) {
+        log(`  ${GREEN}✓${RESET}  ~/.claude/hooks/${GUARD_FILE} already up to date`);
+    } else {
+        const existed = fs.existsSync(GUARD_DEST);
+        if (existed) {
+            log(`  ${YELLOW}⚠${RESET}  ~/.claude/hooks/${GUARD_FILE} exists and differs from this version.`);
+            const ok = await confirm(`  Overwrite it? (y/N) `);
+            if (!ok) {
+                log(`  ${YELLOW}↷${RESET}  Kept your guard file. No changes.\n`);
+                return;
+            }
+        }
+        safeMkdir(HOOKS_DIR, { recursive: true });
+        safeCopy(GUARD_SRC, GUARD_DEST);
+        logInstalled(`~/.claude/hooks/${GUARD_FILE}`, existed);
+    }
+
+    const groups = settings.hooks?.PreToolUse || [];
+    const registered = groups.some((g) => (g.hooks || []).some((h) => isGuardCommand(h.command)));
+    if (registered) {
+        log(`  ${GREEN}✓${RESET}  PreToolUse Bash hook already registered`);
+    } else {
+        settings.hooks = { ...(settings.hooks || {}) };
+        settings.hooks.PreToolUse = [...groups, { matcher: "Bash", hooks: [{ type: "command", command: GUARD_COMMAND }] }];
+        safeMkdir(CLAUDE_DIR, { recursive: true });
+        safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+        log(`  ${GREEN}✓${RESET}  ${DRY_RUN ? "Would register" : "Registered"} PreToolUse Bash hook: ${CYAN}${GUARD_COMMAND}${RESET}`);
+    }
+    log(`\n  Blocked commands are denied in every permission mode; run them yourself with ${CYAN}!${RESET} if you mean it.`);
+    log(`  Remove with: ${CYAN}hopla-claude-setup --remove-guard${RESET}\n`);
+}
+
+// Removes the guard file and every guard hook command from both settings files,
+// dropping matcher groups left empty. Other hooks are untouched.
+function removeGuardArtifacts() {
+    const removed = [];
+    for (const settingsPath of SETTINGS_FILES) {
+        const settings = parseSettingsFile(settingsPath);
+        const groups = settings?.hooks?.PreToolUse;
+        if (!Array.isArray(groups)) continue;
+        let count = 0;
+        const kept = [];
+        for (const g of groups) {
+            const hooks = (g.hooks || []).filter((h) => {
+                if (isGuardCommand(h.command)) { count++; return false; }
+                return true;
+            });
+            if (hooks.length > 0 || !(g.hooks || []).length) kept.push({ ...g, hooks });
+        }
+        if (count === 0) continue;
+        if (kept.length) settings.hooks.PreToolUse = kept;
+        else delete settings.hooks.PreToolUse;
+        if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+        safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+        removed.push(`high-risk guard hook from ${path.basename(settingsPath)}`);
+    }
+    if (fs.existsSync(GUARD_DEST)) {
+        safeRm(GUARD_DEST);
+        removed.push(`~/.claude/hooks/${GUARD_FILE}`);
+    }
+    return removed;
+}
+
+async function removeGuard() {
+    log(`\n${BOLD}@hopla/claude-setup${RESET} — Remove high-risk guard${dryTag()}\n`);
+    const removed = removeGuardArtifacts();
+    if (removed.length === 0) {
+        log(`${GREEN}✓${RESET}  No high-risk guard found. Nothing to remove.\n`);
+        return;
+    }
+    for (const item of removed) logRemoved(item);
     log("");
 }
 
@@ -898,6 +1058,12 @@ const run = STATUS
     ? setupStatusline
     : REMOVE_STATUSLINE
     ? removeStatusline
+    : SETUP_SETTINGS
+    ? setupSettings
+    : SETUP_GUARD
+    ? setupGuard
+    : REMOVE_GUARD
+    ? removeGuard
     : (UNINSTALL ? uninstall : (MIGRATE ? migrate : install));
 
 // Only invoke the dispatcher when this file is executed directly (e.g. via

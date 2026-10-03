@@ -40,13 +40,14 @@ This plugin executes inside the Claude Code session and has access to several se
 - **`session-prime.js`** (SessionStart): reads git state, the plans directory declaration (`## HOPLA` in `AGENTS.md` / `CLAUDE.md`), `.agents/hopla-active-plan.json` and `.claude/compact-snapshot.json` to inject a short context (≤ 1,500 chars). It reads the SessionStart payload from stdin only to learn the `source` (the snapshot is replayed after `/compact` or on resume). Read-only.
 - **`deprecation-notice.js`** (UserPromptSubmit + PreToolUse on `Skill|Agent|Task`): reads the prompt or the tool input, never blocks and never sets a permission decision. When a deprecated HOPLA item is used it prints one notice and records it in `<tmpdir>/hopla-deprecations-<session_id>.json` (the session id is validated against `^[A-Za-z0-9_-]{1,128}$` before it reaches a path, otherwise no file is written; the file is written with `O_NOFOLLOW` and mode `0600`, so a symlink planted at that path is never followed).
 - **`precompact-snapshot.js`** (PreCompact): writes a session snapshot to `<project>/.claude/compact-snapshot.json`. Writes only inside the active project directory.
-- **`statusline.js`** (opt-in): renders branch + active plan (and step) in the status bar. Read-only.
+- **`statusline.js`** (opt-in): renders model, effort, fast mode and prompt-cache state from the statusline payload, the `ultracode` key of the user and project settings files, and the branch + active plan (and step). Read-only.
+- **`guard/high-risk-guard.js`** (opt-in, not a plugin hook): installed by `hopla-claude-setup --setup-guard` to `~/.claude/hooks/` and registered as a user-level `PreToolUse` hook on `Bash`. It reads the Bash command and denies high-risk ones (pushes to `main`/`master` and force pushes, deploys / remote D1 / secrets / deletes without `--env dev`, `gh pr merge` and merge API calls, piping into a shell, recursive `rm` outside temp dirs) with `permissionDecision: "deny"`; everything else passes untouched. It runs `git` with `execFileSync` (no shell) to read the current branch. Removed by `--remove-guard` and `--uninstall`.
 
 ### What to verify before enabling the plugin
 
 - The plugin source repository is `https://github.com/HOPLAtools/claude-setup` (public). Verify the marketplace URL you add matches.
 - Review `hooks/hooks.json` and the corresponding `.js` files before enabling the plugin in environments where tool calls handle sensitive material.
-- The CLI (`hopla-claude-setup`) modifies `~/.claude/CLAUDE.md` (global rules template) and `~/.claude/settings.json` (`permissions.allow`, and optionally `statusLine`). Run `node cli.js --dry-run --force` first to preview every change.
+- The CLI (`hopla-claude-setup`) modifies `~/.claude/CLAUDE.md` (global rules template) and `~/.claude/settings.json` (`permissions.allow`, and optionally `statusLine`, the `--setup-settings` keys and the `--setup-guard` hook). Run `node cli.js --dry-run --force` first to preview every change.
 
 ### Out of scope
 

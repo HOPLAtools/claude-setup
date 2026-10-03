@@ -50,8 +50,10 @@ hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
 │   ├── session-prime.js        ← SessionStart: branch + git summary + active plan + compact-snapshot replay (≤1,500 chars)
 │   ├── deprecation-notice.js   ← UserPromptSubmit + PreToolUse(Skill|Agent|Task): one notice per session per deprecated item
 │   ├── precompact-snapshot.js  ← PreCompact: dump state to .claude/compact-snapshot.json
-│   ├── statusline.js           ← Statusline renderer (opt-in via settings.json)
+│   ├── statusline.js           ← Statusline renderer: model/effort/ultracode/cache + git + plan (opt-in via settings.json)
 │   └── lib/plans.js            ← shared plans-dir + active-plan helpers (hooks only; cli.js keeps a copy)
+guard/
+└── high-risk-guard.js       ← opt-in user-level PreToolUse(Bash) guard, installed by `--setup-guard` (never a plugin hook)
 package.json         ← npm metadata and version
 CLAUDE.md            ← THIS FILE — project dev rules (not installed to users)
 README.md            ← Public documentation
@@ -62,7 +64,7 @@ README.md            ← Public documentation
 | Channel | Install | What it provides |
 |---|---|---|
 | **Plugin** | `/plugin install hopla@hopla-marketplace` | Skills, agents, hooks |
-| **CLI (npm)** | `npm i -g @hopla/claude-setup && hopla-claude-setup` | Global rules (`~/.claude/CLAUDE.md`) + permissions |
+| **CLI (npm)** | `npm i -g @hopla/claude-setup && hopla-claude-setup` | Global rules (`~/.claude/CLAUDE.md`) + permissions; opt-in statusline, recommended settings and high-risk guard |
 
 **CLI install flow (cli.js):**
 ```
@@ -147,13 +149,16 @@ tests/
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
+├── global-rules.test.js            global-rules.md Models, Effort & Cost section (short, no duplicated /clear)
+├── high-risk-guard.test.js         guard deny/allow tables, end-to-end deny, hostile directory name
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
     ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)
     ├── tsc-check.test.js           PostToolUse recorder + Stop check (nearest tsconfig, own vs other errors, loop guard)
     ├── session-prime.test.js       minimal SessionStart output + snapshot replay
     ├── precompact-snapshot.test.js snapshot keys + round trip into session-prime
-    └── deprecation-notice.test.js  one notice per session per item, never blocks, registered for both events
+    ├── deprecation-notice.test.js  one notice per session per item, never blocks, registered for both events
+    └── statusline.test.js          model (Fable red), effort, ultracode setting, fast, cache warm/cold, optional fields
 ```
 
 Manual smoke (use in addition to `npm test` for any change touching the CLI install/uninstall flow):
@@ -167,6 +172,8 @@ node cli.js --version                  # verify version string
 node cli.js --dry-run --uninstall --force   # preview what uninstall would remove, without touching disk
 node cli.js --dry-run --force          # preview what install would do, without touching disk
 node cli.js --dry-run --setup-statusline --force    # preview statusline setup
+node cli.js --dry-run --setup-settings --force      # preview recommended settings
+node cli.js --dry-run --setup-guard --force         # preview high-risk guard install
 ```
 
 **`--dry-run`** composes with any other flag and prints what would change without writing anything. Use it before testing destructive paths on a real `~/.claude/` directory.
@@ -195,6 +202,8 @@ node cli.js status       # Read-only: inspect current project's .agents/ workflo
 node cli.js status --json # Same, machine-readable JSON for agents
 node cli.js --dry-run    # Preview changes without writing (composes with any other flag)
 node cli.js --version    # Print package version
+node cli.js --setup-settings   # Recommended settings (only keys not set yet)
+node cli.js --setup-guard      # Install the high-risk guard (--remove-guard removes it)
 npm publish --otp=<code> # Manual fallback only — merging a version bump to main publishes automatically (publish.yml)
 ```
 

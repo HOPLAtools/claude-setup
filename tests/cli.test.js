@@ -28,11 +28,12 @@ const REPO_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CLI = path.join(REPO_ROOT, "cli.js");
 
 // Run cli.js with a fake $HOME and the given args. Returns { status, stdout, stderr }.
-// `cwd` is optional (defaults to the test runner's cwd).
-function runCli(args, { home, cwd } = {}) {
+// `cwd` is optional (defaults to the test runner's cwd); `input` answers prompts.
+function runCli(args, { home, cwd, input } = {}) {
     return spawnSync("node", [CLI, ...args], {
         encoding: "utf8",
         cwd,
+        input,
         env: { ...process.env, HOME: home, CLAUDE_DRY_RUN: undefined },
     });
 }
@@ -475,4 +476,109 @@ test("CLI status --json: a review for another slug (oauth-refactor) does not cou
     assert.match(statusJson(tmp).next, /Active plan \(auth\.md\) reviewed — run execution-report/);
     writeText(path.join(tmp, ".agents", "execution-reports", "auth-smokes.md"), "# s\n");
     assert.match(statusJson(tmp).next, /reviewed and reported/);
+}));
+
+// --- 3.4: --setup-settings, --setup-guard, --remove-guard ---------------------
+
+const GUARD_SRC = path.join(REPO_ROOT, "guard", "high-risk-guard.js");
+const guardPath = (home) => path.join(home, ".claude", "hooks", "high-risk-guard.js");
+const settingsPath = (home) => path.join(home, ".claude", "settings.json");
+const guardCommands = (settings) => (settings?.hooks?.PreToolUse || [])
+    .flatMap((g) => g.hooks || []).map((h) => h.command).filter((c) => /high-risk-guard\.js/.test(c));
+
+function withHome(fn) {
+    const home = makeTempDir("hopla-cli-34-");
+    try {
+        fs.mkdirSync(path.join(home, ".claude"), { recursive: true });
+        return fn(home);
+    } finally {
+        rmDir(home);
+    }
+}
+
+test("CLI --setup-settings writes the two keys and never workflowSizeGuideline or _FORCE", () => withHome((home) => {
+    const res = runCli(["--setup-settings"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    const s = readJson(settingsPath(home));
+    assert.equal(s.workflowKeywordTriggerEnabled, false);
+    assert.equal(s.env.CLAUDE_CODE_SUBAGENT_MODEL, "sonnet");
+    assert.ok(!("workflowSizeGuideline" in s));
+    assert.ok(!("CLAUDE_CODE_SUBAGENT_MODEL_FORCE" in s.env));
+}));
+
+test("CLI --setup-settings is idempotent and reports keys already set", () => withHome((home) => {
+    runCli(["--setup-settings"], { home });
+    const before = fs.readFileSync(settingsPath(home), "utf8");
+    const res = runCli(["--setup-settings"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.match(res.stdout, /already set/i);
+    assert.equal(fs.readFileSync(settingsPath(home), "utf8"), before);
+}));
+
+test("CLI --setup-settings keeps a user's own subagent model and other keys", () => withHome((home) => {
+    writeJson(settingsPath(home), { env: { CLAUDE_CODE_SUBAGENT_MODEL: "opus", OTHER: "1" }, theme: "dark" });
+    runCli(["--setup-settings"], { home });
+    const s = readJson(settingsPath(home));
+    assert.equal(s.env.CLAUDE_CODE_SUBAGENT_MODEL, "opus");
+    assert.equal(s.env.OTHER, "1");
+    assert.equal(s.theme, "dark");
+    assert.equal(s.workflowKeywordTriggerEnabled, false);
+}));
+
+test("CLI --setup-settings skips an invalid settings.json", () => withHome((home) => {
+    writeText(settingsPath(home), "{ not json");
+    const res = runCli(["--setup-settings"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.match(res.stdout, /not valid JSON/i);
+    assert.equal(fs.readFileSync(settingsPath(home), "utf8"), "{ not json");
+}));
+
+test("CLI --setup-settings --dry-run writes nothing", () => withHome((home) => {
+    const res = runCli(["--setup-settings", "--dry-run"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.ok(!fs.existsSync(settingsPath(home)));
+}));
+
+test("CLI --setup-guard installs the guard and one hook entry, keeping other hooks", () => withHome((home) => {
+    writeJson(settingsPath(home), { hooks: { PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "node /x/other.js" }] }] } });
+    const res = runCli(["--setup-guard"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.equal(fs.readFileSync(guardPath(home), "utf8"), fs.readFileSync(GUARD_SRC, "utf8"));
+    const s = readJson(settingsPath(home));
+    assert.equal(guardCommands(s).length, 1);
+    assert.ok(JSON.stringify(s).includes("node /x/other.js"));
+    const again = runCli(["--setup-guard"], { home });
+    assert.equal(again.status, 0, again.stderr);
+    assert.equal(guardCommands(readJson(settingsPath(home))).length, 1);
+}));
+
+test("CLI --setup-guard never overwrites a different guard when the prompt is answered n", () => withHome((home) => {
+    writeText(guardPath(home), "// my own guard\n");
+    const res = runCli(["--setup-guard"], { home, input: "n\n" });
+    assert.equal(res.status, 0, res.stderr);
+    assert.equal(fs.readFileSync(guardPath(home), "utf8"), "// my own guard\n");
+}));
+
+test("CLI --remove-guard removes the guard file and only its hook entry", () => withHome((home) => {
+    writeJson(settingsPath(home), { hooks: { PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "node /x/other.js" }] }] } });
+    runCli(["--setup-guard"], { home });
+    const res = runCli(["--remove-guard"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.ok(!fs.existsSync(guardPath(home)));
+    const s = readJson(settingsPath(home));
+    assert.equal(guardCommands(s).length, 0);
+    assert.ok(JSON.stringify(s).includes("node /x/other.js"));
+}));
+
+test("CLI --uninstall removes the guard but keeps and lists the --setup-settings keys", () => withHome((home) => {
+    runCli(["--setup-settings"], { home });
+    runCli(["--setup-guard"], { home });
+    const res = runCli(["--uninstall", "--force"], { home });
+    assert.equal(res.status, 0, res.stderr);
+    assert.ok(!fs.existsSync(guardPath(home)));
+    const s = readJson(settingsPath(home));
+    assert.equal(guardCommands(s).length, 0);
+    assert.equal(s.workflowKeywordTriggerEnabled, false);
+    assert.equal(s.env.CLAUDE_CODE_SUBAGENT_MODEL, "sonnet");
+    assert.match(res.stdout, /workflowKeywordTriggerEnabled/);
 }));
