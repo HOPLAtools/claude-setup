@@ -51,7 +51,8 @@ Plans that missed one of these caused mid-execution surprises four times. Check 
 - **Dependents:** the plan changes a rule, path or name but Context References show no search for its dependents — including tests, fixtures and the **old names** of renamed or moved files.
 - **Platform claims:** a task relies on how the platform, a tool or a runtime behaves, with no proving command in Context References and no **Task 0 spike** with a fallback.
 - **Tests per commit:** the plan has `## Phase Boundaries` but does not say which test files land in each commit, or a commit would carry a RED test.
-- **Human check:** the plan lists a human check but does not say what ships unobserved if it is skipped, or claims an approve/decline path of a dialog from a headless run.
+- **Human check:** the plan lists a human check but does not say who runs it and when (before merge), or what ships unobserved if it is skipped, or claims an approve/decline path of a dialog from a headless run.
+- **Requirements coverage:** a behavior stated in the Overview or Requirements Summary that no task's Details and no test delivers (it is lost until code review).
 - **Changelog:** `CHANGELOG.md` has an open `[Unreleased]` section and the plan's release task does not fold it in.
 
 ## Step 3: Ask for Approval

@@ -125,6 +125,7 @@ Traps seen in practice:
 - **A negative proves only half.** When a spike shows "X does not restrict / block Y" and the plan then removes or changes X, also prove the **positive side** the current behavior may depend on ("X is what grants Z"): a spike showed `allowed-tools` does not restrict tools, the plan dropped it, and execution found it was what pre-approved reads outside the project.
 - **Check where, not only that.** When the spike involves subagents or a workflow that write files, check **where they write** (their working directory, absolute vs relative paths), not only that a file appeared: a workflow agent started elsewhere wrote a task file outside the project and its verifier, in the same directory, confirmed it.
 - **Spike the real shape.** Run the spike in the shape the plan will run in: the same permission mode, files outside the project when the real case has them, and work **already committed** when phases commit before the step under test (a review spiked only on an uncommitted diff missed that committed work was never reviewed).
+- **Do not let the prompt skip the step under test.** A smoke or spike prompt may pre-answer the questions the skill asks, but must not give the model a way around the step being tested: a prompt saying "stop before applying changes" made an init smoke skip `/init` entirely, so the run proved nothing about it.
 - **Approval paths are not observable headless.** A headless run either refuses a dialog or skips it (bypass), so the approve and decline paths of a permission or Workflow dialog — and what the session does after each — can only be checked interactively: a spike in bypass assumed a declined workflow would fall back to sequential, and interactively the session just stopped. Make those paths a Level 5 human check.
 
 If it cannot be run while planning, make it **Task 0 (spike)** with a fallback, and let no other task depend on the claim until Task 0 passes. **Why:** a state file designed under a directory the platform protects survived planning untested and forced a redesign of 6+ tasks mid-execution.
@@ -177,7 +178,7 @@ When the request is a migration — migrate, upgrade, switch from X to Y, a majo
 
 1. **Classify** (ask one question at a time): type (dependency upgrade, framework switch, runtime switch, data store, API version), scope (one module, one service, the whole codebase), downtime tolerance (blue/green, zero-downtime dual-run, acceptable window), deadline driver (deprecation, security, performance, opportunistic).
 2. **Inventory** with counts, pasted into Context References: imports/usages of the old API (`grep -rn` / `rg`), public contracts that depend on current behavior, build and deploy steps tied to the current version, tests that assume the old behavior, docs that mention it — e.g. "47 import sites across 12 files".
-3. **Upgrade notes:** read the target's official migration guide or changelog end to end — breaking changes, deprecations, peer-dependency minimums, data-shape changes. No guide → higher risk, budget more exploration.
+3. **Upgrade notes:** read the target's official migration guide or changelog end to end (fetch it: WebFetch / WebSearch) — breaking changes, deprecations, peer-dependency minimums, data-shape changes — and cite the URL you read in Context References. No official guide → say so and how you searched; higher risk, budget more exploration. The target version comes from the registry (`npm view <pkg> version`, `pip index versions <pkg>`, or the ecosystem's equivalent), pasted with its output — never from memory.
 4. **Strategy** — pick one and write its trade-off in the plan:
 
    | Strategy | When |
@@ -265,7 +266,7 @@ Each bullet is a user-confirmable assumption the planner made about meaning, beh
 - **Type / scope / downtime / driver:** [from the classification]
 - **Strategy:** [big bang | incremental with adapter | dual-run | branch by abstraction] — [trade-off]
 - **Inventory:** [counts per surface, with the search commands]
-- **Upgrade notes:** [breaking changes, deprecations, peer minimums, data-shape changes]
+- **Upgrade notes:** [source URL read (or "no official guide" + how searched); target version + registry command output; breaking changes, deprecations, peer minimums, data-shape changes]
 - **Rollback per phase** and **validation per phase:** listed under `## Phase Boundaries`; the last phase is the cleanup phase
 
 ## Implementation Tasks
@@ -316,7 +317,7 @@ Run in this order — do not proceed if a level fails:
 - [ ] **Level 2.5 — Code Review:** Run the `code-review` skill on changed files
 - [ ] **Level 3 — Unit Tests:** `[project unit test command]`
 - [ ] **Level 4 — Integration Tests:** `[project integration test or manual curl/check]`
-- [ ] **Level 5 — Human Review:** Verify behavior matches requirements above — name each check, and what ships unobserved if it is skipped
+- [ ] **Level 5 — Human Review:** Verify behavior matches requirements above — name each check, who runs it and when (before merge), and what ships unobserved if it is skipped
 
 ## Acceptance Criteria
 - [ ] [Specific, testable criterion]
@@ -383,7 +384,7 @@ Before saving the draft, review the plan against these criteria:
 - [ ] **Domain Assumptions surfaced:** If the feature uses domain vocabulary per the Phase 4 heuristic, the plan includes a `## Domain Assumptions` subsection BEFORE `## Implementation Tasks`, with each bullet phrased as a user-confirmable statement. If no domain vocabulary is involved, the section is correctly absent (no `N/A`, no empty placeholder).
 - [ ] **Dependents listed:** If the plan changes a selection, detection, path or naming rule, Context References show the search command and hit count, and every dependent file (tests and fixtures included, plus any open `[Unreleased]` CHANGELOG section) has a task
 - [ ] **Migration complete (migration plans):** `## Migration` filled, every phase has a rollback and a validation, a cleanup phase is last
-- [ ] **Human check:** every Level 5 check says what ships unobserved if it is skipped; approve/decline paths of dialogs are human checks, never claimed from a headless run
+- [ ] **Human check:** every Level 5 check says who runs it and when (before merge), and what ships unobserved if it is skipped; approve/decline paths of dialogs are human checks, never claimed from a headless run
 - [ ] **Tests per commit:** If the plan has `## Phase Boundaries`, each commit lists the test files it includes, and none of them is RED at that commit
 - [ ] **Platform claims spiked:** Every task that relies on platform/tool behavior the codebase cannot prove has the proving command and output in Context References, or depends on a Task 0 spike with a fallback
 - [ ] **Requirements Delta declared (when behavior changes):** If the feature adds, modifies, or removes a user-visible capability or business rule, the plan includes a `## Requirements Delta` subsection with one or more of `### ADDED Requirements`, `### MODIFIED Requirements`, `### REMOVED Requirements`. If the change is a pure refactor/perf/infra fix with no behavior change, the section is correctly absent (no `N/A`, no empty placeholder). Requirement IDs follow the project's `REQ-<DOMAIN>-<NNN>` convention.
