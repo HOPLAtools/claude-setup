@@ -22,6 +22,8 @@ for (const [label, re] of [
     ["tests per commit", /tests? (per|in each) commit/i],
     ["[Unreleased] merged", /\[Unreleased\]/],
     ["human check states what ships unobserved", /human check[\s\S]{0,200}ships unobserved/i],
+    ["human check names who runs it and when", /human check[\s\S]{0,300}who runs it and when/i],
+    ["requirements coverage", /Requirements coverage[\s\S]{0,200}(task|test)/i],
 ]) {
     test(`review-plan: completeness check covers ${label}`, () => assert.match(body, re));
 }

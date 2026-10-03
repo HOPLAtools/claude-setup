@@ -98,3 +98,20 @@ test("plan-feature: dependents search covers hardcoded values and the existing d
     assert.match(phase3, /hardcoded/i);
     assert.match(phase3, /current wording/i);
 });
+
+test("plan-feature: upgrade notes cite the guide/changelog URL (or say none was found) and the target version comes from the registry", () => {
+    const phase4 = section("## Phase 4:", "## Phase 5:");
+    assert.match(phase4, /cite the URL/i);
+    assert.match(phase4, /no official guide/i);
+    assert.match(phase4, /npm view/);
+    assert.match(phase4, /never from memory/i);
+});
+
+test("plan-feature: each human check names who runs it and when", () => {
+    assert.match(body, /who runs it and when/i);
+});
+
+test("plan-feature: smoke and spike prompts must not let the model skip the step under test", () => {
+    const phase3 = section("## Phase 3:", "## Phase 4:");
+    assert.match(phase3, /skip the step under test/i);
+});

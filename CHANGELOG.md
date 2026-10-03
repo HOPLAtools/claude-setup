@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.3.4] - 2026-10-02
+
+Process fixes from the 3.3.x system reviews and the 3.3.0 human check. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **`/hopla:plan-feature`, migration plans:** the upgrade notes cite the URL of the guide or changelog that was read, or say that none was found and how it was searched. The target version comes from the registry (`npm view` or the ecosystem's equivalent), pasted with its output, never from memory. In the 3.3.0 human check, a plan had mixed a remembered version with the registry's.
+- **`/hopla:plan-feature`:**
+  - Each Level 5 human check names who runs it and when (before merge), besides what ships unobserved if it is skipped.
+  - New spike trap: a smoke or spike prompt must not let the model skip the step under test.
+- **`/hopla:review-plan`:**
+  - Flags a human check that does not say who runs it and when (before merge).
+  - New "Requirements coverage" item: a behavior stated in the Overview or Requirements Summary that no task or test delivers.
+
 ## [3.3.3] - 2026-10-02
 
 Process improvements from the 3.3.x system reviews. No breaking changes.
