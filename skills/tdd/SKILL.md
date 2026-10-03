@@ -29,6 +29,13 @@ when_to_use: "Use when implementing features that require tests, when the plan s
 3. Run ALL tests again — everything must still be green
 4. Only refactor when tests are green
 
+## Refactoring
+
+A refactor (extract, rename, inline, move, deduplicate, flatten) changes structure, never behavior — output, side effects, error shape and API surface stay identical. If behavior changes, it is a feature or a fix: reclassify it.
+- Validation green before and after: run lint, types and tests before you start (a refactor on red cannot prove anything) and expect the same results after each step.
+- No coverage on the code you touch? Write characterization tests first that pin today's behavior, then refactor.
+- One refactor per commit (`refactor:`), never mixed with a feature; if it grows into a redesign, stop and use `/hopla:plan-feature`.
+
 ## When to Apply TDD
 
 **Strongly recommended for:**

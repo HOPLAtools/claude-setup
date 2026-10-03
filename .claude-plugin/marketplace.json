@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "hopla",
-      "description": "Agentic coding system: PIV loop, TDD, debugging, brainstorming, subagent execution, and team workflows",
-      "version": "3.4.0",
+      "description": "Agentic coding system: PIV loop, TDD, debugging, brainstorming, code review and team workflows",
+      "version": "4.0.0",
       "source": "./",
       "author": {
         "name": "Hopla Tools",

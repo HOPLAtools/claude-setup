@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "hopla",
-  "description": "Agentic coding system for Claude Code: PIV loop (Plan → Implement → Validate), TDD, debugging, brainstorming, subagent execution, and team workflows",
-  "version": "3.4.0",
+  "description": "Agentic coding system for Claude Code: PIV loop (Plan → Implement → Validate), TDD, debugging, brainstorming, code review and team workflows",
+  "version": "4.0.0",
   "author": {
     "name": "Hopla Tools",
     "email": "julio@hopla.tools"

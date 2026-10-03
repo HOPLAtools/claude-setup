@@ -32,7 +32,7 @@ const INHERIT = [
     "skills/git/SKILL.md", "skills/tdd/SKILL.md", "skills/verify/SKILL.md", "skills/worktree/SKILL.md",
     "skills/brainstorm/SKILL.md", "skills/debug/SKILL.md", "skills/execution-report/SKILL.md",
     "skills/review-plan/SKILL.md", "skills/plan-feature/SKILL.md", "skills/execute/SKILL.md", "skills/rca/SKILL.md",
-    "skills/archive/SKILL.md", "skills/code-review-fix/SKILL.md", "skills/validate/SKILL.md",
+    "skills/archive/SKILL.md", "skills/validate/SKILL.md",
 ];
 const MANUAL_ONLY = [
     "skills/guide/SKILL.md", "skills/create-prd/SKILL.md", "skills/init-project/SKILL.md",
@@ -42,8 +42,8 @@ const MANUAL_ONLY = [
         "review-checklist", "scaling-beyond-engineering", "validation-pyramid", "write-skill"]
         .map((g) => `skills/guides-${g}/SKILL.md`),
 ];
-// Former commands that are model-invocable need when_to_use; these three deliberately have none.
-const NO_WHEN_TO_USE = ["execute", "archive", "code-review-fix"];
+// Former commands that are model-invocable need when_to_use; these deliberately have none.
+const NO_WHEN_TO_USE = ["execute", "archive"];
 const ARGUMENTS = {
     "skills/system-review/SKILL.md": "[plan, report]",
     "skills/archive/SKILL.md": "[plan]",
@@ -125,7 +125,7 @@ test("frontmatter: disable-model-invocation exactly on the manual-only commands"
     assert.deepEqual(flagged, [...MANUAL_ONLY].sort());
 });
 
-test("frontmatter: no when_to_use on execute/archive/code-review-fix", () => {
+test("frontmatter: no when_to_use on execute/archive", () => {
     for (const c of NO_WHEN_TO_USE) {
         assert.ok(!("when_to_use" in fm(path.join(ROOT, "skills", c, "SKILL.md"))), `${c} must not have when_to_use`);
     }
@@ -162,7 +162,7 @@ test("frontmatter: agent references are plugin-scoped; codebase-researcher runs 
 
 // $ARGUMENTS is substituted anywhere in a skill body, prose included (3.1.0
 // rendered "Arguments (``, ...)"). Only skills that mean to show the value use it.
-const ARGUMENTS_CONSUMERS = ["skills/code-review-fix/SKILL.md", "skills/rca/SKILL.md"];
+const ARGUMENTS_CONSUMERS = ["skills/rca/SKILL.md"];
 
 test("frontmatter: $ARGUMENTS only where the skill shows the argument value", () => {
     const bad = SKILLS.filter((f) => bodyOf(f).includes("$ARGUMENTS")).map(rel)

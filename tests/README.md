@@ -27,7 +27,7 @@ tests/
 ├── plans-parity.test.js            cli.js plans helpers == hooks/lib/plans.js
 ├── frontmatter.test.js             skill/guide/agent frontmatter guard
 ├── layout.test.js                  3.0 layout guard (no commands/, no nested skills)
-├── deprecations.test.js            deprecation banners + notifier entries
+├── removals.test.js                4.0.0 removals guard
 ├── git-skill.test.js               git skill standing-approval guard
 ├── plan-feature.test.js            plan-feature research-rules + migration-plan guard
 ├── init-project.test.js            init-project /init path guard
@@ -42,7 +42,6 @@ tests/
     ├── tsc-check.test.js           PostToolUse recorder + Stop type check
     ├── session-prime.test.js       minimal SessionStart context
     ├── precompact-snapshot.test.js PreCompact snapshot + round trip
-    ├── deprecation-notice.test.js  deprecation notices (once per session, never blocks)
     └── statusline.test.js          statusline segments (model, effort, ultracode, cache)
 ```
 

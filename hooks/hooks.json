@@ -33,16 +33,6 @@
             "async": false
           }
         ]
-      },
-      {
-        "matcher": "Skill|Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deprecation-notice.js\"",
-            "async": false
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -52,17 +42,6 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-prime.js\"",
-            "async": false
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deprecation-notice.js\"",
             "async": false
           }
         ]
