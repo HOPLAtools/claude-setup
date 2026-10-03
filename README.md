@@ -93,7 +93,7 @@ npm install -g @hopla/claude-setup@latest --prefer-online && hopla-claude-setup 
 hopla-claude-setup --uninstall
 ```
 
-Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
+Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs, and the [high-risk guard](#optional-high-risk-guard) if you installed it. Settings written by `--setup-settings` are kept (you may have set them yourself) and listed.
 
 ### CLI flags reference
 
@@ -105,6 +105,9 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 | `hopla-claude-setup --uninstall` | Remove global rules + legacy files |
 | `hopla-claude-setup status` | Read-only inspection of the current project's workflow state (plans from the [plans directory](#plans-directory), active plan + step, specs, reviews, suggested next step) |
 | `hopla-claude-setup status --json` | Same as above, JSON output for agents to parse |
+| `hopla-claude-setup --setup-statusline` / `--remove-statusline` | Turn the [Hopla statusline](#optional-hopla-statusline) on or off |
+| `hopla-claude-setup --setup-settings` | Write the [recommended settings](#optional-recommended-settings) that are not set yet |
+| `hopla-claude-setup --setup-guard` / `--remove-guard` | Install or remove the [high-risk guard](#optional-high-risk-guard) |
 | `hopla-claude-setup --dry-run` | Preview changes without touching disk (composes with other flags) |
 | `hopla-claude-setup --version` | Print package version |
 
@@ -112,7 +115,16 @@ Removes `~/.claude/CLAUDE.md` plus legacy `hopla-*` files from older installs.
 
 ## Optional: Hopla statusline
 
-The plugin ships a statusline script that shows your branch, worktree indicator, uncommitted count, and active plan file (`📋 plan-name`) in Claude Code's status bar.
+The plugin ships a statusline script for Claude Code's status bar. It shows what makes a session expensive, then where you are:
+
+- **Model** — Fable is shown in red, the most expensive choice
+- **Effort** — `effort:high`; `xhigh` and `max` in yellow
+- **`⚡ultracode`** — when `"ultracode": true` is set in your user, project or local settings. A per-session `/effort ultracode` is not visible: Claude Code does not pass it to statusline scripts
+- **`fast`** — when fast mode is on
+- **Prompt cache** — `cache 1h ✓ 14:32` while it is warm (and when it goes cold), `cache cold` once it expired
+- **Branch** (with a worktree indicator), **uncommitted count**, **active plan** (`📋 plan-name`)
+
+Every segment is optional: anything Claude Code does not send is skipped.
 
 **Enable it (one-time):**
 
@@ -128,7 +140,7 @@ This writes the right `statusLine` block to `~/.claude/settings.json`, pointing 
 hopla-claude-setup --remove-statusline
 ```
 
-Sample output: ` feature/auth · 3M · 📋 add-authentication`
+Sample output: `Opus · effort:high · cache 1h ✓ 14:32 ·  feature/auth · 3M · 📋 add-authentication`
 
 > **Manual setup (fallback):** if you don't have the CLI installed, add this to `~/.claude/settings.json` yourself:
 > ```json
@@ -140,6 +152,43 @@ Sample output: ` feature/auth · 3M · 📋 add-authentication`
 > }
 > ```
 > Replace `hopla-marketplace` with the actual marketplace name if you registered it differently.
+
+---
+
+## Optional: recommended settings
+
+```bash
+hopla-claude-setup --setup-settings
+```
+
+Writes to `~/.claude/settings.json`, only for keys you have not set yet:
+
+| Setting | Effect |
+|---|---|
+| `workflowKeywordTriggerEnabled: false` | Typing the word "ultracode" (e.g. while talking about it) no longer starts a workflow |
+| `env.CLAUDE_CODE_SUBAGENT_MODEL: "sonnet"` | Subagents and workflow agents that do not ask for a model run on Sonnet instead of your session model — this includes `/hopla:execute`'s implement agents. A model set by the agent or the caller still wins (`_FORCE` is not set) |
+
+`workflowSizeGuideline` is not written: `medium` is already Claude Code's default (`small` on Pro). `--uninstall` keeps these settings and lists them.
+
+---
+
+## Optional: high-risk guard
+
+```bash
+hopla-claude-setup --setup-guard
+```
+
+Installs `~/.claude/hooks/high-risk-guard.js` and registers it as a user-level `PreToolUse` hook on `Bash`. It denies these commands in **every** permission mode, including bypass — run them yourself with the `!` prefix when you mean it:
+
+- `git push` to `main`/`master` (explicit refspec or current branch), `--force`, `--force-with-lease`, `+refspec`, `--all`, `--mirror`
+- `wrangler deploy` and `npm|pnpm|yarn|bun run deploy` without `--env dev` (`deploy:dev` scripts are allowed)
+- `wrangler d1 migrations apply --remote` and `wrangler d1 execute --remote` without `--env dev`
+- `wrangler secret put|delete|bulk`, `wrangler delete`, `wrangler r2 object|bucket delete` and `wrangler d1 delete` without `--env dev`
+- `gh pr merge`, and `gh api` calls that merge (REST merge endpoints, GraphQL merge mutations)
+- Piping into a shell (`… | sh`, `… | bash`)
+- Recursive `rm` outside temp directories
+
+It is not a plugin hook (plugin hooks are always on), never overwrites a different guard file without asking, and is removed by `hopla-claude-setup --remove-guard` or `--uninstall`.
 
 ---
 
@@ -218,6 +267,7 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 - **`~/.claude/CLAUDE.md`** — Global rules applied to every Claude Code session
 - **`~/.claude/settings.json`** — Bash permissions configured for common dev commands
+- **Opt-in, one flag each:** the statusline (`--setup-statusline`), recommended settings (`--setup-settings`) and the high-risk guard (`--setup-guard`, adds `~/.claude/hooks/high-risk-guard.js`)
 
 ### From the Plugin (per Claude Code session)
 

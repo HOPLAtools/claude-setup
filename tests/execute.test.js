@@ -81,3 +81,7 @@ test("execute: the \"sequential\" reply is announced in Step 3's visible summary
     assert.match(between("## Step 3:", "## Step 4a:"), /"sequential"/);
     assert.match(step4a(), /description: '[^']*"sequential"[^']*'/);
 });
+
+test("execute Step 4a: says implement agents run on CLAUDE_CODE_SUBAGENT_MODEL when it is set", () => {
+    assert.match(step4a(), /CLAUDE_CODE_SUBAGENT_MODEL/);
+});

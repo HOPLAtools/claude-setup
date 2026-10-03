@@ -35,12 +35,15 @@ tests/
 ├── review-checklist.test.js        project review-checklist guard
 ├── review-plan.test.js             review-plan completeness-check guard
 ├── code-review.test.js             code-review file guard (execute, pyramid, skill, agents)
+├── global-rules.test.js            global-rules.md cost section guard
+├── high-risk-guard.test.js         guard/high-risk-guard.js deny/allow tables + hostile dir
 └── hooks/
     ├── env-protect.test.js         table-driven: dotenv reads blocked, mentions/templates allowed
     ├── tsc-check.test.js           PostToolUse recorder + Stop type check
     ├── session-prime.test.js       minimal SessionStart context
     ├── precompact-snapshot.test.js PreCompact snapshot + round trip
-    └── deprecation-notice.test.js  deprecation notices (once per session, never blocks)
+    ├── deprecation-notice.test.js  deprecation notices (once per session, never blocks)
+    └── statusline.test.js          statusline segments (model, effort, ultracode, cache)
 ```
 
 ## Conventions

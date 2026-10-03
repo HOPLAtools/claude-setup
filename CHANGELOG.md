@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-03
+
+Cost visibility and safe defaults. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`. CLI users get the new flags with `npm i -g @hopla/claude-setup@latest`.
+
+### Added
+- **Statusline segments** (before branch, changes and plan):
+  - the model, with Fable in red;
+  - the effort (`xhigh` and `max` in yellow);
+  - `⚡ultracode` when `"ultracode": true` is in the user, project or local settings (a per-session `/effort ultracode` is not visible: Claude Code does not pass it to statusline scripts);
+  - `fast` in fast mode;
+  - the prompt cache: `cache 1h ✓ HH:MM` while warm, `cache cold` once expired.
+
+  Every field is optional.
+- **`hopla-claude-setup --setup-settings`** writes `workflowKeywordTriggerEnabled: false` and `env.CLAUDE_CODE_SUBAGENT_MODEL: "sonnet"`, but only keys you have not set yet. It never writes `_FORCE` or `workflowSizeGuideline` (whose default is already `medium`).
+- **`hopla-claude-setup --setup-guard` / `--remove-guard`** install or remove an opt-in, user-level `PreToolUse` Bash guard (`~/.claude/hooks/high-risk-guard.js`). It denies, in every permission mode:
+  - pushes to `main`/`master` and force pushes;
+  - deploys, remote D1, secrets and deletes without `--env dev`;
+  - `gh pr merge` and merge API calls;
+  - piping into a shell;
+  - recursive `rm` outside temp directories.
+
+  It never overwrites a different guard file without asking. Compared with the maintainer's earlier personal guard, it also catches a redirection after `git push` (`git push origin 2>&1` on `main`), combined shell flags (`bash -lc '…'`) and push options that take a value (`-o ci.skip`).
+
+### Changed
+- **`global-rules.md`** has a new "Models, Effort & Cost" section:
+  - Opus at medium effort by default;
+  - Fable only on purpose, never in `-p` or background sessions;
+  - ultracode only for audits, migrations and cross-cutting research;
+  - the main conversation's prompt cache lasts 1 h on a subscription, 5 min with an API key.
+- **`--uninstall`** also removes the guard. It keeps the `--setup-settings` keys and lists them.
+- **`/hopla:execute`** Step 4a notes that implement agents run on `CLAUDE_CODE_SUBAGENT_MODEL` when it is set.
+
 ## [3.3.4] - 2026-10-02
 
 Process fixes from the 3.3.x system reviews and the 3.3.0 human check. No breaking changes.
