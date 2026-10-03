@@ -23,12 +23,6 @@ test("agents without a Write tool are never told to save a file", () => {
     }
 });
 
-test("code-reviewer agent returns its report for the caller to save", () => {
-    const body = read("agents/code-reviewer.md");
-    assert.match(body, /final message/i);
-    assert.match(body, /\.agents\/code-reviews\//);
-});
-
 test("execute: Level 5 passes only when the review file exists, also when a subagent did the review", () => {
     const body = read("skills/execute/SKILL.md");
     assert.ok(body.includes(REVIEW_PATH), "execute.md must name the review file");

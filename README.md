@@ -306,15 +306,15 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 
 The `git` skill asks before every commit, push and PR. If your own instructions grant a standing approval for one of those exact actions — in a `CLAUDE.md` or a file in `~/.claude/rules/` (keep personal approvals there: the CLI installer rewrites `~/.claude/CLAUDE.md`) — it does that action without asking and reports it. Merging, tags and commits or pushes on `main`/`master` still ask unless the approval names them.
 
-**Deprecated in 3.0.0** (and `migration` in 3.3.0) — still installed and working, removed in 4.0.0. The first time you (or Claude) use one in a session, a one-line notice names the replacement:
+**Removed in 4.0.0** — deprecated in 3.0.0 (`migration` in 3.3.0) and now deleted. If you used one, this is what replaces it:
 
-| Deprecated | Use instead |
+| Removed | Use instead |
 |---|---|
 | `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
 | `subagent-execution` skill | `/hopla:execute` (runs independent tasks as a workflow) |
-| `refactoring` skill | Native `/simplify` |
-| `code-review-fix` skill | `/hopla:code-review --fix` |
-| `migration` skill (3.3.0) | `/hopla:plan-feature` (plans migrations with phases and rollback) |
+| `refactoring` skill | Native `/simplify`; the refactoring rules (behavior unchanged, validation green before and after, one refactor per commit) now live in the `tdd` skill |
+| `code-review-fix` skill | `/hopla:code-review --fix` (reviews again, then fixes; to fix a saved report, ask in words) |
+| `migration` skill | `/hopla:plan-feature` (plans migrations with phases and rollback) |
 | `code-reviewer` agent | The `code-review` skill |
 | `system-reviewer` agent | `/hopla:system-review` |
 
@@ -326,7 +326,6 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 | `env-protect.js` | PreToolUse | Blocks reads of dotenv files (`.env`, `.env.local`, …); `.env.example` stays readable; Bash is matched by what the command does, not by its text. Also blocks Read/Grep/Edit/MultiEdit of `.dev.vars` |
 | `session-prime.js` | SessionStart | Injects branch, uncommitted summary, active plan + step and the post-`/compact` snapshot (≤ 1,500 chars) |
 | `precompact-snapshot.js` | PreCompact | Saves branch, uncommitted files and the active plan + step to `.claude/compact-snapshot.json` |
-| `deprecation-notice.js` | UserPromptSubmit + PreToolUse | When a deprecated skill or agent is used, shows one line per session naming its replacement; never blocks |
 
 > **Type errors once per turn.** `tsc-check` runs at the end of each turn, not after every edit, and blocks only for errors in files Claude edited in that turn (at most twice per turn); errors elsewhere are reported in one line. For per-edit diagnostics, install the official TypeScript language server plugin (optional, your choice):
 >
@@ -338,9 +337,7 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 
 | Agent | What it does |
 |---|---|
-| `code-reviewer` | Deprecated in 3.0.0 — use the `code-review` skill |
 | `codebase-researcher` | Fast codebase explorer (read-only). Systematic search, structured findings |
-| `system-reviewer` | Deprecated in 3.0.0 — use `/hopla:system-review` |
 
 **Reference guides** — manual-only skills you load with `/hopla:guides:<name>` (since 3.1 Claude does not load them on its own, so they stay out of the skill-listing budget; HOPLA skills read the ones they need by path):
 

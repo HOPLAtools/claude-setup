@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-10-03
+
+**BREAKING:** removes the skills and agents deprecated in 3.x. Each one announced its replacement since 3.0.0 (`migration` since 3.3.0); the table below repeats them.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`. The CLI channel (global rules, settings, guard) is unaffected.
+
+### Removed
+| Removed | Use instead |
+|---|---|
+| `parallel-dispatch` skill | Native Workflows (say "use a workflow") |
+| `subagent-execution` skill | `/hopla:execute` (independent tasks run as a workflow) |
+| `refactoring` skill | Native `/simplify`; its rules moved to the `tdd` skill |
+| `code-review-fix` skill | `/hopla:code-review --fix` |
+| `migration` skill | `/hopla:plan-feature` (migration plans) |
+| `code-reviewer` agent | The `code-review` skill |
+| `system-reviewer` agent | `/hopla:system-review` |
+
+- The deprecation notifier hook (`deprecation-notice.js`) is gone with its `UserPromptSubmit` and `PreToolUse` entries: nothing is deprecated any more, so no hook runs on every prompt.
+
+### Changed
+- **`/hopla:code-review --fix`**, taking over from `code-review-fix`:
+  - verifies each finding before fixing it and pushes back on false positives with the reason;
+  - skips fixes that add complexity nobody needs (YAGNI);
+  - runs the project's validation afterwards.
+
+  It always reviews first. To fix the findings of a saved report, ask for it in words.
+- **`code-review`** flags deviations from the plan that nothing explains, taking over from the `code-reviewer` agent.
+- **`tdd`** has a new "Refactoring" section, from the `refactoring` skill: behavior unchanged, validation green before and after, characterization tests first, one refactor per commit.
+- The plugin descriptions no longer advertise subagent execution.
+
 ## [3.4.0] - 2026-10-03
 
 Cost visibility and safe defaults. No breaking changes.

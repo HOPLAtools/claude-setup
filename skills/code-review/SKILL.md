@@ -33,7 +33,7 @@ The native review does not read project checklists. Review the same changed file
 1. `${CLAUDE_SKILL_DIR}/checklist.md` (HOPLA's checklist, next to this skill) — every category.
 2. `.agents/guides/review-checklist.md`, if it exists.
 
-Read each changed file in full, not just the diff. Report only issues the native review did not already report: same file, line within ±3 and the same problem is a **duplicate** — drop it. These are the `source: checklist` findings.
+Read each changed file in full, not just the diff. When the changes implement a plan, also flag deviations from it that nothing explains (a task done differently, a file the plan did not name, a planned step missing). Report only issues the native review did not already report: same file, line within ±3 and the same problem is a **duplicate** — drop it. These are the `source: checklist` findings.
 
 ## Step 4: Severity and Confidence
 
@@ -48,7 +48,13 @@ Keep findings with confidence **≥ 80**. The rest go to a "Dropped (low confide
 
 ## Step 5: Fixes (only with `--fix`)
 
-The native review already applied its fixes in Step 2. Fix the kept `source: checklist` findings yourself, then mark every kept finding `outcome: fixed` or `outcome: skipped` (with a short reason).
+The native review already applied its fixes in Step 2. Fix the kept `source: checklist` findings yourself, most severe first:
+
+1. **Verify before fixing** — read the code again; if the finding is a false positive, push back with the reason (`outcome: skipped — false positive: …`) instead of "fixing" it.
+2. **YAGNI** — skip a fix that adds complexity the current requirements do not need, and say so.
+3. **Fix and check** each one before the next (a test or the exact input that failed).
+
+Then run the project's validation (its `validate` skill, or the lint/type/test commands in `AGENTS.md` / `CLAUDE.md`) and record the result in the report. Mark every kept finding `outcome: fixed` or `outcome: skipped` (with a short reason). `--fix` always reviews first; to fix the findings of a saved report without a new review, ask for it in words (e.g. "fix the findings in `.agents/code-reviews/x.md`").
 
 ## Step 6: Save the Report
 

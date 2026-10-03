@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-const FORMER_COMMANDS = ["archive", "code-review-fix", "create-prd", "execute", "guide", "init-project",
+const FORMER_COMMANDS = ["archive", "create-prd", "execute", "guide", "init-project",
     "plan-feature", "rca", "review-plan", "system-review", "validate"];
 const GUIDES = ["ai-optimized-codebase", "data-audit", "hooks-reference", "mcp-integration", "remote-coding",
     "review-checklist", "scaling-beyond-engineering", "validation-pyramid", "write-skill"];
