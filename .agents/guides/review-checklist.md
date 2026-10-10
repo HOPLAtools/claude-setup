@@ -6,7 +6,7 @@ Applied by the `code-review` skill's checklist pass on every review of this repo
 
 - [ ] **Dependents of a changed rule:** if the diff changes how something is selected, detected, parsed, named or located, every dependent is updated too — code, docs, tests **and fixtures** (plan fixtures use `PLAN_MD`, never `"x"`).
 - [ ] **Renames and moves:** the old names of every renamed or moved file are gone from code and docs (`grep -rn <old-name>`), not only the old directory.
-- [ ] **Docs that name a changed file:** a hook, script or skill whose behavior changed is still described correctly in `SECURITY.md`, the README tables and the `CLAUDE.md` architecture tree.
+- [ ] **Docs that name a changed file:** a hook, script or skill whose behavior changed is still described correctly in `SECURITY.md`, the README tables and the `AGENTS.md` architecture tree.
 - [ ] **Release files:** a version bump touches `package.json`, `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` together; an open `[Unreleased]` section in `CHANGELOG.md` is folded into the release, never duplicated.
 - [ ] **Deprecated items:** no file outside the deprecated item itself, the notifier (if any), README's deprecated table and CHANGELOG recommends a deprecated skill or agent.
 

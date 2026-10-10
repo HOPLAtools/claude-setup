@@ -1,5 +1,5 @@
 // Parity tests: cli.js keeps its own copy of the plans helpers (single-file
-// rule, CLAUDE.md §4) while hooks import hooks/lib/plans.js. Both copies must
+// rule, AGENTS.md §4) while hooks import hooks/lib/plans.js. Both copies must
 // return identical results. Also covers findActivePlan edge cases.
 
 import test from "node:test";

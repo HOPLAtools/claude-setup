@@ -54,7 +54,8 @@ hooks/               ← Event hooks (auto-discovered by plugin via hooks.json)
 guard/
 └── high-risk-guard.js       ← opt-in user-level PreToolUse(Bash) guard, installed by `--setup-guard` (never a plugin hook)
 package.json         ← npm metadata and version
-CLAUDE.md            ← THIS FILE — project dev rules (not installed to users)
+AGENTS.md            ← THIS FILE — project dev rules (not installed to users)
+.claude/CLAUDE.md    ← alias (`@../AGENTS.md`) for Claude Code; a root CLAUDE.md would fail `plugin validate --strict` (the repo root is the plugin root)
 README.md            ← Public documentation
 ```
 

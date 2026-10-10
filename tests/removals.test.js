@@ -41,7 +41,7 @@ test("removals: no plugin file, doc or CLI recommends a removed skill or agent",
     const names = [...REMOVED_SKILLS.map((s) => `hopla:${s}`), ...REMOVED_AGENTS.map((a) => `hopla:${a}`),
         ...REMOVED_SKILLS.map((s) => `skills/${s}/`)];
     const files = [...walk(path.join(ROOT, "skills")), ...walk(path.join(ROOT, "agents")), ...walk(path.join(ROOT, "hooks")),
-        ...["cli.js", "global-rules.md", "SECURITY.md", "CLAUDE.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"].map((f) => path.join(ROOT, f))];
+        ...["cli.js", "global-rules.md", "SECURITY.md", "AGENTS.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"].map((f) => path.join(ROOT, f))];
     const hits = [];
     for (const f of files) {
         fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {

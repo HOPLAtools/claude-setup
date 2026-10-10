@@ -44,8 +44,8 @@ Add it to the right table in `README.md` ("Skills you run yourself" or "Skills t
 ## Renaming or removing a skill
 
 - Plugin users get renames and removals through the plugin itself; `cli.js` legacy lists are only for files the old CLI copied into `~/.claude/`.
-- Do not delete or rename a public skill in one step: deprecate it first (CLAUDE.md §3 "Deprecating"), remove it one major later.
-- Before deleting a skill that another one replaces, run the deduplication check (CLAUDE.md §3).
+- Do not delete or rename a public skill in one step: deprecate it first (AGENTS.md §3 "Deprecating"), remove it one major later.
+- Before deleting a skill that another one replaces, run the deduplication check (AGENTS.md §3).
 
 ---
 
