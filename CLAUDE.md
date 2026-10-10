@@ -101,6 +101,7 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 ### Hooks (hooks/*.js)
 - Per-session files in the temp dir (markers, records): validate the session id (`^[A-Za-z0-9_-]{1,128}$`) before it reaches a path, write with `O_NOFOLLOW` and mode `0600`, and test the guard with an id that would otherwise be a valid file name (`a.b`), not only with `../x` (which fails for unrelated reasons)
 - A hook that runs an external command built from file paths uses `execFileSync` (argument array, no shell) and has a regression test with a hostile directory name (spaces, quotes, `$(…)`, `;`) — the 2.2 code review found a shell injection in `tsc-check`
+- A change that makes a blocking hook (e.g. `guard/high-risk-guard.js`) allow more, or ask instead of deny, ships with a **differential check**: run a corpus of dangerous commands × wrappers (`eval`, `source`, subshells, heredocs, write-then-run, `cd`) × working directories (repo, temp dir, project) through the previous version (`git show HEAD:<file>`) and the new one, and treat every old-blocks / new-passes case as a bug unless it is the intended change. When unsure, the hook fails closed (deny). In 4.1.0 a code review found 8 bypasses and the differential check 3 more; an automated "find bypasses" review can be stopped by a safety classifier, so the differential check runs in the main session
 
 ### Skill files (skills/**/*.md)
 
@@ -129,6 +130,8 @@ bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 **Workflow features in local tests:** the Workflow tool always asks for approval ("Review dynamic workflow before running"), so headless runs refuse it except in `bypassPermissions` — use bypass only to check the mechanics, and check the approve and decline paths interactively. To check what workflow agents actually did (which tools, which files), read their transcripts — `~/.claude/projects/<project>/<session>/subagents/workflows/<wf-id>/agent-*.jsonl` — not only their structured report.
 
 **Protected paths in local tests:** Claude Code protects the directory loaded with `--plugin-dir` (it reloads and runs the plugin's code when a file there changes) and everything under `~/.claude/`. Writes there ask for approval in `default`/`acceptEdits` and are refused headless ("sensitive file"). So headless tests that write into this repo load the plugin from another copy, and temp test projects never live under `~/.claude/` (use the session scratchpad or `/private/tmp`).
+
+**The CLI is tested through a symlink too.** The npm global bin is a symlink to `cli.js`; a main-module check that compared the unresolved `process.argv[1]` made every command except `--version` a silent no-op from 2.1.0 to 4.1.0, and tests that run `node cli.js` directly never saw it. Keep the `realpathSync` comparison and the symlink test in `tests/cli.test.js`; a new entry point gets the same test.
 
 **Plan fixtures must be real plans.** In `plans-parity`, `cli`, `session-prime` and `precompact-snapshot` tests, write plan files with the file's `PLAN_MD` constant (it has `## Implementation Tasks`), never `"x"`: the active-plan mtime fallback skips files without a task heading, so a placeholder fixture silently stops being a plan.
 
