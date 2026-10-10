@@ -180,6 +180,7 @@ Work through the remaining tasks (all of them, when Step 4a did not apply) seque
 
 **Git strategy:**
 - **Plans with 1–7 tasks:** Do not commit after individual tasks. Keep all changes staged but uncommitted until the full plan passes validation (Step 5). This allows a clean revert if later tasks fail.
+- **Tests written first that stay RED until a late task** (plans with intermediate commits, below): never commit a RED test. If an intermediate commit would carry one, make a single final commit instead, and record it under "Deviations from Plan" in the completion report.
 - **Plans with 8+ tasks (or plans with `## Phase Boundaries`):** Commit at each phase boundary defined in the plan. Run Level 1–2 validation (lint + types) before each intermediate commit. Use commit message format: `feat(<scope>): <feature> — phase N of M`. This prevents losing work on large implementations if later phases fail.
      For plans with 8+ tasks, the **first intermediate commit** should happen after the first 3-4 tasks pass validation — do not wait until a full phase boundary if one isn't defined. Losing work on large implementations was a recurring problem when commits were deferred too long.
 

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [4.1.2] - 2026-10-10
+
+Process improvements from the system reviews of 3.4.0–4.1.1, and a CI check for the CLI as users install it. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **`/hopla:plan-feature`:**
+  - every git ref, tag or version a plan relies on carries the command that resolves it;
+  - a plan that loosens a blocking hook has a differential check before the implementation, with its findings as failing tests first, and is sized as a parser change;
+  - entry points and install paths are tested the way users get them (the packed package, the installed bin);
+  - input handling states the behavior for a sequence of inputs;
+  - a Level 5 check never asserts an outcome that another task can change.
+- **`/hopla:execute`:** when tests written first stay RED until a late task, a single final commit is fine (never commit a RED test), and it is recorded as a divergence.
+
+### Added
+- **CI pack smoke** (`scripts/pack-smoke.sh`, in `ci.yml` and before publishing). It packs the package, installs the tarball globally into a temp prefix and runs the installed bin, which is a symlink, with `--version`, `--dry-run --force` and `status`. It fails on the 4.1.0 `cli.js`, so a silent symlink no-op can no longer ship.
+
 ## [4.1.1] - 2026-10-10
 
 ### Fixed

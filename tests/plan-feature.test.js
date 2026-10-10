@@ -115,3 +115,26 @@ test("plan-feature: smoke and spike prompts must not let the model skip the step
     const phase3 = section("## Phase 3:", "## Phase 4:");
     assert.match(phase3, /skip the step under test/i);
 });
+
+test("plan-feature: refs a plan relies on carry the command that resolves them", () => {
+    assert.match(section("## Phase 3:", "## Phase 4:"), /resolves? (it|the ref)|command that resolves/i);
+    assert.match(body, /git (tag|rev-parse|cat-file)/);
+});
+
+test("plan-feature: loosening a blocking hook plans a differential check before the implementation", () => {
+    assert.match(body, /loosen[\s\S]{0,200}blocking hook/i);
+    assert.match(body, /differential check[\s\S]{0,200}before/i);
+});
+
+test("plan-feature: entry points are tested the way users get them", () => {
+    assert.match(body, /the way users get (it|them)/i);
+    assert.match(body, /npm pack|packed (tarball|package)/i);
+});
+
+test("plan-feature: input handling states the behavior for a sequence of inputs", () => {
+    assert.match(body, /sequence of (inputs|prompts)/i);
+});
+
+test("plan-feature: a Level 5 check never asserts an outcome another task can change", () => {
+    assert.match(body, /another task[\s\S]{0,80}(can|may) change/i);
+});

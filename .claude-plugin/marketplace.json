@@ -10,7 +10,7 @@
     {
       "name": "hopla",
       "description": "Agentic coding system: PIV loop, TDD, debugging, brainstorming, code review and team workflows",
-      "version": "4.1.1",
+      "version": "4.1.2",
       "source": "./",
       "author": {
         "name": "Hopla Tools",

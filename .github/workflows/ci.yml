@@ -54,3 +54,7 @@ jobs:
 
       - name: Hook-audit manual tests
         run: bash skills/hook-audit/tests/manual-test.sh
+
+      # The CLI the way users get it: packed tarball, global install (symlinked bin), temp HOME.
+      - name: Pack smoke (installed bin)
+        run: bash scripts/pack-smoke.sh
