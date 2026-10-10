@@ -153,6 +153,7 @@ tests/
 ├── plan-feature.test.js            plan-feature keeps the dependents-grep, verification-spike and migration-plan rules
 ├── init-project.test.js            init-project: native /init for existing code, alias, never overwrites
 ├── execute.test.js                 execute Step 4a: independent tasks as a workflow, sequential fallbacks
+├── execution-report.test.js        execution-report names its plan by slug, valid before and after archive
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save

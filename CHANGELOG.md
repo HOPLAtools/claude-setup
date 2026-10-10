@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [4.1.3] - 2026-10-10
+
+Fix from the 4.1.2 system review. No breaking changes.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Fixed
+- **`/hopla:execution-report`:** the report names its plan by slug, with its path before and after `/hopla:archive` moves it to `done/` — reports no longer cite a path that stops existing once the plan is archived.
+
 ## [4.1.2] - 2026-10-10
 
 Process improvements from the system reviews of 3.4.0–4.1.1, and a CI check for the CLI as users install it. No breaking changes.
