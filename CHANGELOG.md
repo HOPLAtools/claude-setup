@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-10-10
+
+### Fixed
+- **The global `hopla-claude-setup` command did nothing.** This affected every command except `--version`, since 2.1.0. npm installs the bin as a symlink, and the CLI compared its own path with the unresolved symlink path, so it never ran. It now resolves the real path, as the guard already did. A test now runs the CLI through a symlink. Until you update, `node "$(npm root -g)/@hopla/claude-setup/cli.js" <flags>` works.
+- **A prompt with no interactive terminal exited silently.** One example is `--setup-guard` overwriting a different guard from a `!` shell in a chat. It now counts as "no", and so does every later prompt in the same run. Each one tells you to re-run with `--force`. Ctrl+C at a prompt now aborts the command instead of continuing.
+
+Update with `npm i -g @hopla/claude-setup@latest`. The plugin channel is unaffected.
+
 ## [4.1.0] - 2026-10-09
 
 The opt-in high-risk guard asks instead of refusing what you may have requested, and stops blocking harmless commands. No breaking changes.
