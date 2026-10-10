@@ -102,7 +102,8 @@ The uninstall flow additionally removes `HOPLA_PERMISSIONS` **and** `LEGACY_PERM
 ### Hooks (hooks/*.js)
 - Per-session files in the temp dir (markers, records): validate the session id (`^[A-Za-z0-9_-]{1,128}$`) before it reaches a path, write with `O_NOFOLLOW` and mode `0600`, and test the guard with an id that would otherwise be a valid file name (`a.b`), not only with `../x` (which fails for unrelated reasons)
 - A hook that runs an external command built from file paths uses `execFileSync` (argument array, no shell) and has a regression test with a hostile directory name (spaces, quotes, `$(…)`, `;`) — the 2.2 code review found a shell injection in `tsc-check`
-- A change that makes a blocking hook (e.g. `guard/high-risk-guard.js`) allow more, or ask instead of deny, ships with a **differential check**: run a corpus of dangerous commands × wrappers (`eval`, `source`, subshells, heredocs, write-then-run, `cd`) × working directories (repo, temp dir, project) through the previous version (`git show HEAD:<file>`) and the new one, and treat every old-blocks / new-passes case as a bug unless it is the intended change. When unsure, the hook fails closed (deny). In 4.1.0 a code review found 8 bypasses and the differential check 3 more; an automated "find bypasses" review can be stopped by a safety classifier, so the differential check runs in the main session
+- A hook that parses Bash commands is tested, next to every rule it enforces, with redirections (`2>&1`, `> file`), combined short flags (`-lc`) and value-taking options (`-o x`) — in 3.4.0 all three high-severity bypasses found in review were this class
+- A change that makes a blocking hook (e.g. `guard/high-risk-guard.js`) allow more, or ask instead of deny, ships with a **differential check**: run a corpus of dangerous commands × wrappers (`eval`, `source`, subshells, heredocs, write-then-run, `cd`) × working directories (repo, temp dir, project) through the previous version (`git show HEAD:<file>`) and the new one, and treat every old-blocks / new-passes case as a bug unless it is the intended change. When unsure, the hook fails closed (deny). Each old-blocks / new-passes finding becomes a failing test row before it is fixed. In 4.1.0 a code review found 8 bypasses and the differential check 3 more; an automated "find bypasses" review can be stopped by a safety classifier, so the differential check runs in the main session
 
 ### Skill files (skills/**/*.md)
 
@@ -124,6 +125,7 @@ Automated unit + integration tests run via Node's built-in `node:test` runner (n
 npm test                             # full suite (cli.js helpers, plans parity, frontmatter, hook scripts)
 node --test tests/cli.test.js        # one file
 bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
+bash scripts/pack-smoke.sh           # the CLI as users get it: npm pack → global install → run the bin
 ```
 
 **Changes to the code-review skill are dogfooded:** before the PR, review the branch with the branch's own plugin. Load it from **another copy** (`git worktree add ../claude-setup-dogfood <branch>`) and run in this repo `claude -p --settings '{"enabledPlugins":{"hopla@hopla-marketplace":false}}' --plugin-dir ../claude-setup-dogfood "/hopla:code-review <branch>"`, or run interactively and approve the report write.
@@ -133,6 +135,8 @@ bash skills/hook-audit/tests/manual-test.sh   # the hook-audit smoke
 **Protected paths in local tests:** Claude Code protects the directory loaded with `--plugin-dir` (it reloads and runs the plugin's code when a file there changes) and everything under `~/.claude/`. Writes there ask for approval in `default`/`acceptEdits` and are refused headless ("sensitive file"). So headless tests that write into this repo load the plugin from another copy, and temp test projects never live under `~/.claude/` (use the session scratchpad or `/private/tmp`).
 
 **The CLI is tested through a symlink too.** The npm global bin is a symlink to `cli.js`; a main-module check that compared the unresolved `process.argv[1]` made every command except `--version` a silent no-op from 2.1.0 to 4.1.0, and tests that run `node cli.js` directly never saw it. Keep the `realpathSync` comparison and the symlink test in `tests/cli.test.js`; a new entry point gets the same test.
+
+**Status words are tested.** A flag that reports what it did ("Installed", "Updated", "Skipped", "already set") has a test row on that word, not only on the resulting files — a fresh guard install once printed "Updated".
 
 **Plan fixtures must be real plans.** In `plans-parity`, `cli`, `session-prime` and `precompact-snapshot` tests, write plan files with the file's `PLAN_MD` constant (it has `## Implementation Tasks`), never `"x"`: the active-plan mtime fallback skips files without a task heading, so a placeholder fixture silently stops being a plan.
 
@@ -213,7 +217,7 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
 
 1. Bump version in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (must match — `scripts/check-versions.js` runs as `prepublishOnly` and blocks publish if they diverge)
 2. `git commit` + open PR
-3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, and `hook-audit/tests/manual-test.sh` on Node 20 and 24)
+3. **Verify CI is green** on the PR before merging (`.github/workflows/ci.yml` runs JSON validation, `check-versions`, `npm test`, CLI dry-runs, `hook-audit/tests/manual-test.sh` and the pack smoke (`scripts/pack-smoke.sh`: packed tarball, installed symlinked bin) on Node 20 and 24)
 4. Merge PR to `main`
 5. **Publishing is automatic.** `.github/workflows/publish.yml` runs on every push to `main`: if the `package.json` version is not on npm yet, it repeats the CI checks and runs `npm publish` (which runs `prepublishOnly`) with npm trusted publishing (OIDC, no stored token, provenance included); otherwise it ends green doing nothing. It only affects the CLI channel — the plugin channel is updated by Claude Code reading the git repo. Never rename `publish.yml`: npmjs.com trusts that exact filename. Anything `publish.yml` downloads at run time (npx, curl | sh) runs in its own job with `contents: read` (see `validate-plugin`); never give such a step `id-token: write`. Manual fallback: `npm publish --otp=<code>` from `main`.
    To confirm a release, poll the registry until it answers 200 (about a minute after the publish log shows `+ @hopla/claude-setup@<version>`; `npm view` may still report the previous `latest` before that), then check `latest`:
@@ -229,6 +233,8 @@ npm publish --otp=<code> # Manual fallback only — merging a version bump to ma
    /reload-plugins
    ```
    In commit messages and release notes, reference this canonical flow — **do not** repeat the old `cd … && git pull` dance.
+
+**Releases are not tagged** (the last tag is `v1.3.4`): refer to a release by its merge commit (e.g. `c60349b` for 3.4.0), or tag it (`git tag vX.Y.Z <merge> && git push origin vX.Y.Z`) before a rule or plan depends on the tag.
 
 **Committing part of a file** (a file edited by more than one phase): stage hunks with context (`git diff -U3 <file>` → edit the patch → `git apply --cached`), never `--unidiff-zero`, which can drop hunks in the wrong place. Before committing, check the staged snapshot with `git checkout-index -a --prefix=<tmp>/` and run the tests there.
 

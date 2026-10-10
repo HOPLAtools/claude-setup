@@ -85,3 +85,8 @@ test("execute: the \"sequential\" reply is announced in Step 3's visible summary
 test("execute Step 4a: says implement agents run on CLAUDE_CODE_SUBAGENT_MODEL when it is set", () => {
     assert.match(step4a(), /CLAUDE_CODE_SUBAGENT_MODEL/);
 });
+
+test("execute: tests RED until a late task → one final commit, recorded as a divergence", () => {
+    assert.match(body, /RED until a late task[\s\S]{0,300}(single|one) final commit/i);
+    assert.match(body, /never commit a RED test/i);
+});

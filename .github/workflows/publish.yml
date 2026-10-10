@@ -106,6 +106,8 @@ jobs:
           node cli.js --dry-run --force
           node cli.js --dry-run --uninstall --force
           bash skills/hook-audit/tests/manual-test.sh
+          # local tarball, no dependencies: nothing is downloaded in this id-token job
+          bash scripts/pack-smoke.sh
 
       - name: Publish
         if: steps.check.outputs.should_publish == 'true'
