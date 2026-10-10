@@ -478,6 +478,37 @@ test("CLI status --json: a review for another slug (oauth-refactor) does not cou
     assert.match(statusJson(tmp).next, /reviewed and reported/);
 }));
 
+// --- 4.1.1: the npm bin is a symlink; prompts without an answer -------------
+
+test("CLI runs when started through a symlink (the npm global bin)", () => withHome((home) => {
+    const link = path.join(home, "hopla-claude-setup");
+    fs.symlinkSync(CLI, link);
+    const res = spawnSync("node", [link, "--dry-run", "--setup-settings"], {
+        encoding: "utf8",
+        env: { ...process.env, HOME: home, CLAUDE_DRY_RUN: undefined },
+    });
+    assert.equal(res.status, 0, res.stderr);
+    assert.match(res.stdout, /Recommended settings/);
+}));
+
+test("CLI prompt with no answer (closed stdin) says so and changes nothing", () => withHome((home) => {
+    fs.mkdirSync(path.join(home, ".claude", "hooks"), { recursive: true });
+    fs.writeFileSync(path.join(home, ".claude", "hooks", "high-risk-guard.js"), "// mine\n");
+    const res = runCli(["--setup-guard"], { home, input: "" });
+    assert.equal(res.status, 0, res.stderr);
+    assert.match(res.stdout, /--force/);
+    assert.equal(fs.readFileSync(path.join(home, ".claude", "hooks", "high-risk-guard.js"), "utf8"), "// mine\n");
+}));
+
+test("CLI install with two prompts and closed stdin says so twice and writes no settings", () => withHome((home) => {
+    fs.writeFileSync(path.join(home, ".claude", "CLAUDE.md"), "# mine\n");
+    const res = runCli([], { home, input: "" });
+    assert.equal(res.status, 0, res.stderr);
+    assert.equal((res.stdout.match(/treated as "no"/g) || []).length, 2, res.stdout);
+    assert.equal(fs.readFileSync(path.join(home, ".claude", "CLAUDE.md"), "utf8"), "# mine\n");
+    assert.ok(!fs.existsSync(path.join(home, ".claude", "settings.json")));
+}));
+
 // --- 3.4: --setup-settings, --setup-guard, --remove-guard ---------------------
 
 const GUARD_SRC = path.join(REPO_ROOT, "guard", "high-risk-guard.js");

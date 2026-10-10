@@ -144,13 +144,35 @@ function logInstalled(label, exists) {
     log(`  ${GREEN}✓${RESET}  ${verb}: ${label}`);
 }
 
+let stdinEnded = false;
+
 async function confirm(question) {
     if (FORCE) return true;
+    // stdin closed without an answer (no terminal, e.g. `! cmd` in a chat): every
+    // prompt from then on is "no" — an ended stdin never emits `close` again.
+    const noAnswer = () => {
+        stdinEnded = true;
+        log(`\n  ${YELLOW}↷${RESET}  No answer (no interactive terminal) — treated as "no". Re-run with ${CYAN}--force${RESET} to confirm.`);
+        return false;
+    };
+    if (stdinEnded || process.stdin.readableEnded) return noAnswer();
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     return new Promise((resolve) => {
+        let answered = false;
         rl.question(question, (answer) => {
+            answered = true;
             rl.close();
             resolve(answer.toLowerCase() === "y" || answer.toLowerCase() === "yes");
+        });
+        // Ctrl+C at a prompt aborts the whole command
+        rl.on("SIGINT", () => {
+            answered = true;
+            rl.close();
+            log("\nAborted.");
+            process.exit(130);
+        });
+        rl.on("close", () => {
+            if (!answered) resolve(noAnswer());
         });
     });
 }
@@ -1070,10 +1092,18 @@ const run = STATUS
 // Only invoke the dispatcher when this file is executed directly (e.g. via
 // `node cli.js` or the npm bin). When the file is imported as a library
 // (tests), skip — tests call the exported helpers themselves.
+// The npm global bin is a symlink to this file: compare real paths, or every
+// command except --version silently does nothing (2.1.0–4.1.0).
 import { pathToFileURL } from "url";
-const isMainModule = process.argv[1]
-    && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isMainModule) {
+function isMainModule() {
+    try {
+        return Boolean(process.argv[1])
+            && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href;
+    } catch {
+        return false;
+    }
+}
+if (isMainModule()) {
     run().catch((err) => {
         console.error("Failed:", err.message);
         process.exit(1);
