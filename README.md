@@ -178,17 +178,26 @@ Writes to `~/.claude/settings.json`, only for keys you have not set yet:
 hopla-claude-setup --setup-guard
 ```
 
-Installs `~/.claude/hooks/high-risk-guard.js` and registers it as a user-level `PreToolUse` hook on `Bash`. It denies these commands in **every** permission mode, including bypass — run them yourself with the `!` prefix when you mean it:
+Installs `~/.claude/hooks/high-risk-guard.js` and registers it as a user-level `PreToolUse` hook on `Bash`. It works in **every** permission mode, including bypass.
 
-- `git push` to `main`/`master` (explicit refspec or current branch), `--force`, `--force-with-lease`, `+refspec`, `--all`, `--mirror`
-- `wrangler deploy` and `npm|pnpm|yarn|bun run deploy` without `--env dev` (`deploy:dev` scripts are allowed)
-- `wrangler d1 migrations apply --remote` and `wrangler d1 execute --remote` without `--env dev`
-- `wrangler secret put|delete|bulk`, `wrangler delete`, `wrangler r2 object|bucket delete` and `wrangler d1 delete` without `--env dev`
+**Asks first** — Claude Code shows an approval dialog with the reason; the command runs only if you approve (so Claude can do it when you asked for it). In headless runs (`claude -p`) nobody can approve, so these do not run:
+
+- `git push` to `main`/`master` (explicit refspec or current branch)
 - `gh pr merge`, and `gh api` calls that merge (REST merge endpoints, GraphQL merge mutations)
-- Piping into a shell (`… | sh`, `… | bash`)
-- Recursive `rm` outside temp directories
+- `wrangler deploy` and `npm|pnpm|yarn|bun run deploy` without `--env dev` (scripts whose name ends in `:dev`, such as `deploy:site:dev`, are allowed)
+- `wrangler d1 migrations apply --remote`, and `wrangler d1 execute --remote` that may write, without `--env dev` (a read-only `--command` — `SELECT`, `EXPLAIN`, a `PRAGMA` read — is allowed)
+- `wrangler secret put|delete|bulk`, `wrangler delete`, `wrangler r2 object|bucket delete` and `wrangler d1 delete` without `--env dev`
+- Recursive `rm` of a path outside temp directories (`rm -rf node_modules`, `rm -rf ~/old`)
 
-It is not a plugin hook (plugin hooks are always on), never overwrites a different guard file without asking, and is removed by `hopla-claude-setup --remove-guard` or `--uninstall`.
+**Always denied** — run them yourself with the `!` prefix when you mean it:
+
+- `git push --force`, `--force-with-lease`, `-f`, `+refspec`, `--all`, `--mirror`
+- Piping into a shell (`… | sh`, `… | bash`)
+- Recursive `rm` of `/`, your home directory, or a path the guard cannot resolve (an unknown `$VAR`, `$(…)`)
+
+Recursive `rm` of temp directories passes, including variables set earlier in the same command at its top level (`T=/tmp/x; …`, `export S=…`, exactly `T=$(mktemp -d)`). An assignment inside `( … )`, after `&&`/`||`, or any later `declare`/`read`/`T+=` makes the variable unknown, and the `rm` is denied. When in doubt, the guard denies. A heredoc body is data only when a data program reads it (`cat`, `tee`, `python3`, `node`, `jq`, `git`, …) and its closing line is found. Otherwise, for example with `bash`/`source`, its lines are checked as commands.
+
+It is not a plugin hook (plugin hooks are always on), never overwrites a different guard file without asking, and is removed by `hopla-claude-setup --remove-guard` or `--uninstall`. To update an installed guard, run `hopla-claude-setup --setup-guard` again and answer `y`.
 
 ---
 

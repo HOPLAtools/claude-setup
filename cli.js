@@ -665,7 +665,8 @@ async function setupGuard() {
         safeWrite(settingsPath, JSON.stringify(settings, null, 2) + "\n");
         log(`  ${GREEN}✓${RESET}  ${DRY_RUN ? "Would register" : "Registered"} PreToolUse Bash hook: ${CYAN}${GUARD_COMMAND}${RESET}`);
     }
-    log(`\n  Blocked commands are denied in every permission mode; run them yourself with ${CYAN}!${RESET} if you mean it.`);
+    log(`\n  Requested high-risk commands ask for approval; force pushes, piping into a shell and unsafe deletes`);
+    log(`  are always denied — run those yourself with ${CYAN}!${RESET} if you mean it.`);
     log(`  Remove with: ${CYAN}hopla-claude-setup --remove-guard${RESET}\n`);
 }
 

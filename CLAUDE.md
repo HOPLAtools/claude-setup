@@ -149,7 +149,7 @@ tests/
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased])
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── global-rules.test.js            global-rules.md Models, Effort & Cost section (short, no duplicated /clear)
-├── high-risk-guard.test.js         guard deny/allow tables, end-to-end deny, hostile directory name
+├── high-risk-guard.test.js         guard ask/deny/allow tables, end-to-end ask and deny, heredocs, hostile directory name
 ├── helpers/fixtures.js             tempdir, JSON/text I/O, frontmatter reader, cleanup helpers
 └── hooks/
     ├── env-protect.test.js         dotenv reads blocked, mentions and templates allowed (table-driven)

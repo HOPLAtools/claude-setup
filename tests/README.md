@@ -36,7 +36,7 @@ tests/
 ├── review-plan.test.js             review-plan completeness-check guard
 ├── code-review.test.js             code-review file guard (execute, pyramid, skill, agents)
 ├── global-rules.test.js            global-rules.md cost section guard
-├── high-risk-guard.test.js         guard/high-risk-guard.js deny/allow tables + hostile dir
+├── high-risk-guard.test.js         guard/high-risk-guard.js ask/deny/allow tables + hostile dir
 └── hooks/
     ├── env-protect.test.js         table-driven: dotenv reads blocked, mentions/templates allowed
     ├── tsc-check.test.js           PostToolUse recorder + Stop type check

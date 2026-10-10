@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-10-09
+
+The opt-in high-risk guard asks instead of refusing what you may have requested, and stops blocking harmless commands. No breaking changes.
+
+**Update an installed guard:** `npm i -g @hopla/claude-setup@latest`, then `hopla-claude-setup --setup-guard` and answer `y`. Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **The guard asks before actions a user may request.** Claude Code shows an approval dialog with the reason, and the command runs only if you approve. This was verified interactively in bypass and default mode; in `claude -p` nobody can approve, so the command does not run. It covers:
+  - pushes to `main`/`master`;
+  - `gh pr merge` and merge API calls;
+  - production deploys, remote D1 migrations and writes, secrets and deletes without `--env dev`;
+  - recursive `rm` outside temp dirs.
+
+  Before, all of these were denied even when you had asked for them.
+- **Still always denied:**
+  - force pushes (`--force`, `--force-with-lease`, `-f`, `+refspec`, `--all`, `--mirror`);
+  - piping into a shell;
+  - recursive `rm` of `/`, the home directory or a path the guard cannot resolve.
+
+### Fixed
+These false positives come from 10 days of real transcripts:
+- recursive `rm` of a variable set earlier in the same command, at its top level (`T=/tmp/x`, `export S=…`, exactly `T=$(mktemp -d)`), that points to a temp dir (about 70 blocks). Assignments in subshells or after `&&`/`||`, and later `declare`/`read`/`+=` writes, make the variable unknown → deny;
+- read-only remote D1 queries (`SELECT`, `EXPLAIN`, a `PRAGMA` read in `--command`) (27 blocks);
+- deploy scripts whose name ends in `:dev`, such as `deploy:site:dev` (4 blocks);
+- text inside a heredoc read by a data program (`python3 - <<'EOF'`, `cat > file <<EOF`, `node`, `jq`, `git`, …), when its closing line is found. It was read as commands. Any other heredoc (`bash`, `source`, an unknown program, no closing line) is still checked as commands.
+
+The code review of this release found bypasses in the new parsing, and they are closed test-first:
+- an asking segment could hide a denied one (`gh pr merge && git push --force`);
+- `<<` inside a comment or `$((…))` was read as a heredoc;
+- quoted heredoc delimiters were not handled;
+- a suffix after `$(mktemp)` was ignored;
+- brace expansion in `rm` targets was not checked;
+- a `cd ~` / `cd $X` was not followed.
+
+Older gaps are closed too: `if … then`, `{ … }` and `!` prefixes, `bash <<<…`, `bash <(curl …)` and `curl … | bash -c "$(cat)"`. The guard always keeps the most severe decision across the whole command.
+
+A differential check (the 4.0.0 guard against this one, over 504 cases) closed the last regressions:
+- `eval` and `source` make every variable and the directory unknown;
+- an assignment inside `{ … }`, `then` or a function invalidates the variable;
+- `builtin cd` is followed;
+- when a command runs a script file (`bash run.sh`, `./run.sh`), every heredoc in it is checked as commands.
+
 ## [4.0.0] - 2026-10-03
 
 **BREAKING:** removes the skills and agents deprecated in 3.x. Each one announced its replacement since 3.0.0 (`migration` since 3.3.0); the table below repeats them.
