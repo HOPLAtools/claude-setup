@@ -4,7 +4,7 @@ Fill every section. Write "Not applicable" rather than leaving a section blank �
 
 ## Meta Information
 
-- **Plan file:** [path to the plan that guided this implementation]
+- **Plan:** `<slug>` (the plan filename without `.md`) — `<plans-dir>/<slug>.md`, or `<plans-dir>/done/<slug>.md` once `/hopla:archive` has moved it (`<plans-dir>` is usually `.agents/plans`)
 - **Files added:** [list with paths]
 - **Files modified:** [list with paths]
 - **Lines changed:** +X −Y
