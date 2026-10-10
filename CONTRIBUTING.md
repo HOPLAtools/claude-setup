@@ -114,4 +114,4 @@ Do **not** open a public issue for security vulnerabilities. See [SECURITY.md](.
 
 ## Project rules
 
-`CLAUDE.md` at the repo root captures the binding development rules for this project (architecture, distribution channels, release flow). Read it before making non-trivial changes — it covers details this file deliberately keeps brief.
+`AGENTS.md` at the repo root (loaded by Claude Code through the `.claude/CLAUDE.md` alias) captures the binding development rules for this project (architecture, distribution channels, release flow). Read it before making non-trivial changes — it covers details this file deliberately keeps brief.

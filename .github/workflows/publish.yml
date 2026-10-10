@@ -40,11 +40,10 @@ jobs:
 
       - name: Validate plugin (claude plugin validate, pinned CLI as in ci.yml)
         run: |
-          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict .
-          # Non-strict: its only warning is this repo's own CLAUDE.md at the plugin root (dev rules, not shipped context).
-          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate .claude-plugin/plugin.json
-          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict skills
-          npx -y @anthropic-ai/claude-code@2.1.287 plugin validate --strict agents
+          npx -y @anthropic-ai/claude-code@2.1.296 plugin validate --strict .
+          npx -y @anthropic-ai/claude-code@2.1.296 plugin validate --strict .claude-plugin/plugin.json
+          npx -y @anthropic-ai/claude-code@2.1.296 plugin validate --strict skills
+          npx -y @anthropic-ai/claude-code@2.1.296 plugin validate --strict agents
 
   publish:
     needs: validate-plugin
