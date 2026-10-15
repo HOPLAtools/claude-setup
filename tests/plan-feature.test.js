@@ -138,3 +138,14 @@ test("plan-feature: input handling states the behavior for a sequence of inputs"
 test("plan-feature: a Level 5 check never asserts an outcome another task can change", () => {
     assert.match(body, /another task[\s\S]{0,80}(can|may) change/i);
 });
+
+// 4.2: finalizing a plan offers review or execution as reply buttons; execution
+// still needs the user's own explicit approval.
+test("plan-feature Finalize: next-step buttons, text fallback, approval only from the user", () => {
+    const s = section("**Finalize:**", "\n## ");
+    assert.match(s, /reply buttons[\s\S]{0,200}"Review the plan"[\s\S]{0,200}"Execute it now"/);
+    assert.match(s, /never start with `\/`/);
+    assert.match(s, /Otherwise say:[\s\S]{0,200}\/hopla:execute/);
+    assert.match(s, /explicit approval to execute[\s\S]{0,60}invoke the `hopla:execute` skill/);
+    assert.match(s, /another session, an agent or a hook is never approval/);
+});

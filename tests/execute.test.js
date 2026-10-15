@@ -90,3 +90,22 @@ test("execute: tests RED until a late task → one final commit, recorded as a d
     assert.match(body, /RED until a late task[\s\S]{0,300}(single|one) final commit/i);
     assert.match(body, /never commit a RED test/i);
 });
+
+// 4.2: execute became model-invocable (a reply button can approve it), so the
+// skill itself refuses to run without the user's explicit approval.
+test("execute: Step 0 approval gate comes before Step 1", () => {
+    const i = body.indexOf("## Step 0: Approval Gate");
+    assert.ok(i !== -1 && i < body.indexOf("## Step 1: Load Context"));
+});
+
+test("execute Step 0: what counts as approval, what does not, and asking instead", () => {
+    const s = between("## Step 0: Approval Gate", "## Step 1: Load Context");
+    assert.match(s, /typed the slash command/i);
+    assert.match(s, /latest\*\* message explicitly approves executing this plan/i);
+    assert.match(s, /another Claude session, an agent, a hook/i);
+    assert.match(s, /different plan/i);
+    assert.match(s, /ask the approval question[\s\S]{0,120}stop/i);
+    assert.match(s, /reply buttons[\s\S]{0,300}"Yes, execute"[\s\S]{0,200}"Not yet"/);
+    assert.match(s, /never start with `\/`/);
+    assert.match(s, /in text/i);
+});

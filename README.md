@@ -288,14 +288,16 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `create-prd` | Create a Product Requirements Document through guided questions — manual only |
 | `plan-feature` | Research codebase and create a structured implementation plan (runs at `effort: high`); migrations get inventory, strategy, rollback and validation per phase and a cleanup phase |
 | `review-plan` | Review a plan before execution — get a summary and approve |
-| `execute` | Execute a structured plan from start to finish with validation — manual only. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog (decline it and reply "sequential" to run them one by one), then validates in the main session |
+| `execute` | Execute a structured plan from start to finish with validation — only after you approve that plan: type the slash command, or answer yes (a reply button in the desktop app) to the approval question `review-plan` or `plan-feature` ends with. With 3 or more independent tasks (disjoint files) it runs them as a native Workflow — up to 6 agents, each implemented and verified — after you approve the workflow dialog (decline it and reply "sequential" to run them one by one), then validates in the main session |
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
 | `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
 | `guide` | 4D Framework walkthrough for non-technical users — manual only |
 | `system-review` | Analyze implementation against plan to find process improvements (runs as a forked subagent on Sonnet) |
 
-> **Manual only** skills (`guide`, `create-prd`, `init-project`, `execute`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them. The others can also start automatically when your request matches them.
+> **Manual only** skills (`guide`, `create-prd`, `init-project`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them. The others can also start automatically when your request matches them.
+>
+> **`execute` needs your approval.** It never starts on its own either, but you do not have to type it: `review-plan` (and `plan-feature`) end by asking whether to execute the plan — in the Claude desktop app as a "Yes, execute" / "Not yet" reply button, elsewhere as a question in text. Your "yes" makes Claude start `execute` with that plan. A message from another session or agent never counts as approval; without yours, `execute` asks instead of running.
 
 **Skills that activate on their own** — by semantic matching:
 
@@ -380,8 +382,8 @@ The `git` skill asks before every commit, push and PR. If your own instructions 
 "catch me up"             → prime skill loads project context
 "use a worktree"          → worktree skill (optional — for isolation or parallel work)
 /hopla:plan-feature       → research codebase and create plan
-/hopla:review-plan        → review summary and approve
-/hopla:execute            → implement plan with validation
+/hopla:review-plan        → review summary and approve ("Yes, execute" starts execute)
+/hopla:execute            → implement plan with validation (or approve it at the end of review-plan)
 /hopla:validate           → lint → types → tests → integration
 "review the code"         → code-review skill runs automatically
 "fix the findings"        → fix the issues (or /hopla:code-review --fix)

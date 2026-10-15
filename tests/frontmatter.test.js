@@ -36,14 +36,15 @@ const INHERIT = [
 ];
 const MANUAL_ONLY = [
     "skills/guide/SKILL.md", "skills/create-prd/SKILL.md", "skills/init-project/SKILL.md",
-    "skills/execute/SKILL.md", "skills/archive/SKILL.md",
+    "skills/archive/SKILL.md",
+    // execute is model-invocable since 4.2, but only after the user's explicit approval (see below).
     // Guides are manual-only since 3.1 (they stay out of the skill-listing budget).
     ...["ai-optimized-codebase", "data-audit", "hooks-reference", "mcp-integration", "remote-coding",
         "review-checklist", "scaling-beyond-engineering", "validation-pyramid", "write-skill"]
         .map((g) => `skills/guides-${g}/SKILL.md`),
 ];
 // Former commands that are model-invocable need when_to_use; these deliberately have none.
-const NO_WHEN_TO_USE = ["execute", "archive"];
+const NO_WHEN_TO_USE = ["archive"];
 const ARGUMENTS = {
     "skills/system-review/SKILL.md": "[plan, report]",
     "skills/archive/SKILL.md": "[plan]",
@@ -125,9 +126,21 @@ test("frontmatter: disable-model-invocation exactly on the manual-only commands"
     assert.deepEqual(flagged, [...MANUAL_ONLY].sort());
 });
 
-test("frontmatter: no when_to_use on execute/archive", () => {
+test("frontmatter: no when_to_use on archive", () => {
     for (const c of NO_WHEN_TO_USE) {
         assert.ok(!("when_to_use" in fm(path.join(ROOT, "skills", c, "SKILL.md"))), `${c} must not have when_to_use`);
+    }
+});
+
+// 4.2: execute is model-invocable so a reply button can approve it, but its
+// when_to_use must keep the model from starting it without the user's approval.
+test("frontmatter: execute is invocable only after the user's explicit approval", () => {
+    const m = fm(path.join(ROOT, "skills", "execute", "SKILL.md"));
+    assert.ok(!("disable-model-invocation" in m), "execute must be model-invocable");
+    assert.match(m.description, /only after the user explicitly approved/i);
+    for (const re of [/ONLY right after the user/, /explicitly approved executing this specific plan/i,
+        /Never auto-trigger/i, /never infer approval/i, /another session/i]) {
+        assert.match(m.when_to_use, re);
     }
 });
 
