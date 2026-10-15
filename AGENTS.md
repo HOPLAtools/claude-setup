@@ -146,16 +146,16 @@ Tests live in `tests/`:
 tests/
 ├── cli.test.js                     parseSettingsFile + safeWrite + status/plans-dir + CLI integration tests
 ├── plans-parity.test.js            cli.js copy == hooks/lib/plans.js (plans dir, pointer, active plan)
-├── frontmatter.test.js             skill/guide/agent frontmatter rules (forks, models, manual-only, arguments)
+├── frontmatter.test.js             skill/guide/agent frontmatter rules (forks, models, manual-only, execute approval-only, arguments)
 ├── layout.test.js                  commands/ gone, no nested skills, no stale commands/ paths
 ├── removals.test.js                4.0.0 removals gone, nothing recommends them, their rules live on in code-review and tdd
 ├── git-skill.test.js               git skill honors standing approvals; merging stays manual
-├── plan-feature.test.js            plan-feature keeps the dependents-grep, verification-spike and migration-plan rules
+├── plan-feature.test.js            plan-feature keeps the dependents-grep, verification-spike and migration-plan rules; finalize buttons
 ├── init-project.test.js            init-project: native /init for existing code, alias, never overwrites
-├── execute.test.js                 execute Step 4a: independent tasks as a workflow, sequential fallbacks
+├── execute.test.js                 execute Step 0 approval gate; Step 4a: independent tasks as a workflow, sequential fallbacks
 ├── execution-report.test.js        execution-report names its plan by slug, valid before and after archive
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
-├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased])
+├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased]); approval buttons invoke execute
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── global-rules.test.js            global-rules.md Models, Effort & Cost section (short, no duplicated /clear)
 ├── high-risk-guard.test.js         guard ask/deny/allow tables, end-to-end ask and deny, heredocs, hostile directory name

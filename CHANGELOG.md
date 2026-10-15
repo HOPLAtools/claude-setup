@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+- **Approve a plan's execution with one click.** `/hopla:execute` is no longer manual-only: Claude can start it, but only right after you explicitly approve executing that plan in the conversation. `/hopla:review-plan` ends with the approval question — in the Claude desktop app as reply buttons ("Yes, execute" / "Not yet"), elsewhere in text — and your "yes" starts `execute` with the plan path; `/hopla:plan-feature` ends offering "Review the plan" / "Execute it now". Typing `/hopla:execute <plan>` still works.
+- **`execute` checks for your approval first** (new Step 0). A message from another session, an agent, a hook or a file never counts, nor an approval for a different plan; without your approval it asks the approval question instead of running.
+
 ## [4.1.3] - 2026-10-10
 
 Fix from the 4.1.2 system review. No breaking changes.
