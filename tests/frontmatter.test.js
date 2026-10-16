@@ -32,11 +32,11 @@ const INHERIT = [
     "skills/git/SKILL.md", "skills/tdd/SKILL.md", "skills/verify/SKILL.md", "skills/worktree/SKILL.md",
     "skills/brainstorm/SKILL.md", "skills/debug/SKILL.md", "skills/execution-report/SKILL.md",
     "skills/review-plan/SKILL.md", "skills/plan-feature/SKILL.md", "skills/execute/SKILL.md", "skills/rca/SKILL.md",
-    "skills/archive/SKILL.md", "skills/validate/SKILL.md",
+    "skills/archive/SKILL.md", "skills/validate/SKILL.md", "skills/orchestrator/SKILL.md",
 ];
 const MANUAL_ONLY = [
     "skills/guide/SKILL.md", "skills/create-prd/SKILL.md", "skills/init-project/SKILL.md",
-    "skills/execute/SKILL.md", "skills/archive/SKILL.md",
+    "skills/execute/SKILL.md", "skills/archive/SKILL.md", "skills/orchestrator/SKILL.md",
     // Guides are manual-only since 3.1 (they stay out of the skill-listing budget).
     ...["ai-optimized-codebase", "data-audit", "hooks-reference", "mcp-integration", "remote-coding",
         "review-checklist", "scaling-beyond-engineering", "validation-pyramid", "write-skill"]
