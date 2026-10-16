@@ -292,10 +292,11 @@ After each PIV loop, run the `execution-report` skill + `/hopla:system-review` t
 | `validate` | Run the validation pyramid: lint → types → tests → integration |
 | `rca` | Root Cause Analysis — investigate a bug and generate an RCA doc |
 | `archive` | Close the lifecycle of a completed plan: fold its delta-specs into canonical specs, move artifacts to archive locations — manual only |
+| `orchestrator` | Run the session as the project's orchestrator: reads `.agents/orchestrator.md` (created with you, one question at a time, from a template) and the project's single work list, checks sessions, worktrees and branches, and proposes the first batch of at most 2 worker sessions. Writes no product code; relays every worker report, challenges their proposals, keeps production and other people's work behind your OK, and calls a worker done only after the full HOPLA cycle — manual only |
 | `guide` | 4D Framework walkthrough for non-technical users — manual only |
 | `system-review` | Analyze implementation against plan to find process improvements (runs as a forked subagent on Sonnet) |
 
-> **Manual only** skills (`guide`, `create-prd`, `init-project`, `archive`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them. The others can also start automatically when your request matches them.
+> **Manual only** skills (`guide`, `create-prd`, `init-project`, `archive`, `orchestrator`) never start on their own: Claude asks you to type the slash command. They are long-running or move files, so they only run when you ask for them. The others can also start automatically when your request matches them.
 >
 > **`execute` needs your approval.** It never starts on its own either, but you do not have to type it: `review-plan` (and `plan-feature`) end by asking whether to execute the plan — in the Claude desktop app as a "Yes, execute" / "Not yet" reply button, elsewhere as a question in text. Your "yes" makes Claude start `execute` with that plan. A message from another session or agent never counts as approval; without yours, `execute` asks instead of running.
 

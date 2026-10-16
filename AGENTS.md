@@ -7,6 +7,7 @@
 - Guides are flat skills `skills/guides-<name>/SKILL.md` with `name: guides:<name>` (invoked as `/hopla:guides:<name>`) and `disable-model-invocation: true` (manual-only since 3.1). Never nest a skill (`skills/<a>/<b>/SKILL.md`): Claude Code does not load it
 - `skills/<name>/SKILL.md` is each skill's entry point. A skill may include extra files (e.g. `commit.md`, `pr.md`, `flow-detection.md` in `skills/git/`) that the `SKILL.md` references as workflows or shared libraries
 - Shared references across skills: a file inside one skill can be cited by another (e.g. `skills/worktree/SKILL.md` references `../git/flow-detection.md`). Centralize Git Flow, branching, and similar logic in one place and reference it — do not duplicate
+- `/hopla:orchestrator` carries only the generic orchestrator rules; what changes per project (repos, work list, release flow, approvals) lives in that project's `.agents/orchestrator.md`, built from `skills/orchestrator/orchestrator-template.md`. A rule learned in one project goes there, not into the skill, unless it holds for every project
 - `agents/*.md` are specialized subagent definitions
 - `hooks/*.js` are event-driven hooks; `hooks/hooks.json` declares them for the plugin system
 - `cli.js` is a single-file Node.js ESM script — keep it that way, no external dependencies
@@ -156,6 +157,7 @@ tests/
 ├── execution-report.test.js        execution-report names its plan by slug, valid before and after archive
 ├── review-checklist.test.js        this repo's .agents/guides/review-checklist.md covers the recurring patterns
 ├── review-plan.test.js             review-plan completeness check (dependents, spikes, tests per commit, human check, [Unreleased]); approval buttons invoke execute
+├── orchestrator.test.js            orchestrator rules (single list, relay, ≤2 workers, token budget, merge gates, full HOPLA cycle); nothing project-specific
 ├── code-review.test.js             review always saved to .agents/code-reviews/<plan-slug>.md; read-only agents never told to save
 ├── global-rules.test.js            global-rules.md Models, Effort & Cost section (short, no duplicated /clear)
 ├── high-risk-guard.test.js         guard ask/deny/allow tables, end-to-end ask and deny, heredocs, hostile directory name
