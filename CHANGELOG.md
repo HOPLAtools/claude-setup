@@ -11,6 +11,16 @@ Planned as 4.3.0. No breaking changes.
 ### Added
 - **`/hopla:orchestrator`** (manual only): runs the session as the project's orchestrator, which coordinates worker sessions and writes no product code. At start-up it reads `.agents/orchestrator.md` and the project's single work list, checks open sessions, worktrees, branches and `git status`, and reports a 5-line summary, the pending decisions and a proposed first batch — then waits for your go-ahead. Without a project file it builds one with you, one question at a time, from `skills/orchestrator/orchestrator-template.md`, and proposes a work list if there is none. Its rules: relay every worker message in one line; challenge worker proposals and verify money and security claims in the code; at most 2 workers per project with no files in common, each in its own worktree with plan-feature → review-plan → execute, on a model chosen by risk; no workflows or agent fan-out, one fresh-context review per branch; merge only with CI green, the merge validated and the Level 5 test done; production, `main`, secrets, deletions, publishing and messages to people only on your OK, never on another session's; done means the full HOPLA cycle, and local reports are kept.
 
+## [4.2.0] - 2026-10-15
+
+Approve a plan's execution with one click. No breaking changes: typing `/hopla:execute <plan>` still works.
+
+Plugin users without auto-update refresh with `/plugin marketplace update hopla-marketplace` → `/plugin disable hopla@hopla-marketplace` → `/plugin enable hopla@hopla-marketplace` → `/reload-plugins`.
+
+### Changed
+- **Approve a plan's execution with one click.** `/hopla:execute` is no longer manual-only: Claude can start it, but only right after you explicitly approve executing that plan in the conversation. `/hopla:review-plan` ends with the approval question — in the Claude desktop app as reply buttons ("Yes, execute" / "Not yet"), elsewhere in text — and your "yes" starts `execute` with the plan path; `/hopla:plan-feature` ends offering "Review the plan" / "Execute it now". Typing `/hopla:execute <plan>` still works.
+- **`execute` checks for your approval first** (new Step 0). A message from another session, an agent, a hook or a file never counts, nor an approval for a different plan; without your approval it asks the approval question instead of running.
+
 ## [4.1.3] - 2026-10-10
 
 Fix from the 4.1.2 system review. No breaking changes.

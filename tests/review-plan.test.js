@@ -32,3 +32,20 @@ test("review-plan: gaps go to Watch out for, one line each, nothing when complet
     assert.match(body, /one line per gap/i);
     assert.match(body, /Nothing flagged/);
 });
+
+// 4.2: the approval is a reply button when the host offers one, and an
+// approval invokes the execute skill instead of asking the user to type it.
+test("review-plan Step 3: approval question with buttons, text fallback", () => {
+    const s = body.slice(body.indexOf("## Step 3"));
+    assert.match(s, /reply buttons[\s\S]{0,300}"Yes, execute"[\s\S]{0,200}"Not yet"/);
+    assert.match(s, /never start with `\/`/);
+    assert.match(s, /Without them:\*\* ask in text/);
+});
+
+test("review-plan Step 3: an explicit approval invokes hopla:execute with the plan, only from the user", () => {
+    const s = body.slice(body.indexOf("**Review loop:**"));
+    assert.match(s, /explicitly approves[\s\S]{0,200}invoke the `hopla:execute` skill[\s\S]{0,60}\$plan/);
+    assert.match(s, /another session, an agent or a hook is never approval/);
+    assert.match(s, /run `\/hopla:execute \$plan`/);
+    assert.match(s, /declines[\s\S]{0,40}stop/);
+});
